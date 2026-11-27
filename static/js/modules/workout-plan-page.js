@@ -5,7 +5,6 @@
 //   Block 1 (formerly a classic script) — muscle-selector instance, the
 //     view-mode filter dropdown rebuild, and the plan-generator form wiring
 //     (volume-scale colour, environment→equipment, live plan preview).
-//   Block 2 (already a module) — the collapsible-frame toggle UI.
 //
 // Timing/global contract preserved: this module is deferred and sits at the same
 // template position as the original scripts, before app.js in document order, so
@@ -18,6 +17,7 @@
 // updateMuscleFilterDropdowns is kept module-internal: it had no external callers
 // (only its own DOMContentLoaded listener and initMuscleFilters reference it).
 
+import { initializeMenu } from './ui-menu.js';
 import { volumeColorClass, planPreviewData, equipmentForEnvironment } from './workout-plan-helpers.js';
 
 // Muscle Selector Instance (global for access from app.js)
@@ -196,61 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Collapsible-frame toggle UI
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize collapse toggles
-    const toggleButtons = document.querySelectorAll('.collapse-toggle');
+document.addEventListener('DOMContentLoaded', () => {
+    const moreMenu = document.querySelector('.ui-page-actions .ui-menu');
+    if (moreMenu) initializeMenu(moreMenu);
 
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const frame = this.closest('.collapsible-frame');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            const toggleText = this.querySelector('.toggle-text');
-            const allFrames = document.querySelectorAll('.collapsible-frame');
-
-            // Toggle collapsed state
-            frame.classList.toggle('collapsed');
-
-            // Update aria-expanded
-            this.setAttribute('aria-expanded', !isExpanded);
-
-            // Update button text
-            toggleText.textContent = isExpanded ? 'Show' : 'Hide';
-
-            // Update title attribute for tooltip
-            const sectionName = frame.getAttribute('data-section');
-            const titleText = isExpanded ? `Expand ${sectionName}` : `Collapse ${sectionName}`;
-            this.setAttribute('title', titleText);
-
-            // CSS handles icon rotation via .collapsed class
-            // No need for inline styles
-
-            // Adjust spacing
-            setTimeout(() => {
-                // Recalculate positions after collapse/expand
-                window.dispatchEvent(new Event('resize'));
-
-                // Adjust margins for subsequent frames
-                let previousFrame = frame;
-                allFrames.forEach(currentFrame => {
-                    if (currentFrame === frame) return;
-
-                    if (previousFrame.classList.contains('collapsed')) {
-                        currentFrame.style.marginTop = '1rem';
-                    } else {
-                        currentFrame.style.marginTop = '2rem';
-                    }
-                    previousFrame = currentFrame;
-                });
-
-                // Adjust table margin
-                const table = document.querySelector('.workout-plan.table-container');
-                if (table) {
-                    const lastFrame = Array.from(allFrames).pop();
-                    table.style.marginTop = lastFrame.classList.contains('collapsed') ? '2rem' : '3rem';
-                }
-            }, 300); // Wait for collapse animation to complete
-        });
+    document.querySelector('[data-focus-add]')?.addEventListener('click', () => {
+        const environment = document.getElementById('routine-env');
+        environment.focus({ preventScroll: true });
+        environment.scrollIntoView({ block: 'center' });
     });
 });

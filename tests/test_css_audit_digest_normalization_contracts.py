@@ -97,12 +97,12 @@ def test_the_superseded_pin_was_the_windows_only_digest() -> None:
 
     If the two forms happened to hash alike, nothing here would be measuring
     anything. They do not: the CRLF form is one `CR` per line larger, and its
-    digest is pinned independently after the Workout Log migration.
+    digest is pinned independently after the Workout Plan CSS retirement.
     """
     lf = _tracked_css_as_lf()
     crlf = lf.replace("\n", "\r\n")
     assert len(crlf.encode("utf-8")) - len(lf.encode("utf-8")) == lf.count("\n")
-    assert _digest(crlf) == "fa98715bdfbc381e03c1e300c0667f52095f539caed92f274f1ad11bd2f6805c"
+    assert _digest(crlf) == "d2325a039607411fac3837cdfe48166cad684d4325f968ca572f3b4c0ddd2307"
     assert _digest(crlf) != _pinned_digest()
 
 

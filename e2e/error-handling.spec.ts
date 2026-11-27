@@ -8,6 +8,8 @@
  * - Timeout handling
  */
 import { test, expect, ROUTES, SELECTORS, waitForPageReady, resetWorkoutPlan } from './fixtures';
+import { BENCH, ROUTINE_A, addPlanRow, loadPlan } from './workout-plan-fixture';
+import { moreButton } from './workout-plan-redesign';
 
 /**
  * Helper to select a complete routine
@@ -158,23 +160,39 @@ test.describe('Network Error Handling', () => {
   });
 
   test('handles timeout during export to Excel', async ({ page }) => {
-    await selectRoutine(page);
+    await addPlanRow(page.request, ROUTINE_A, BENCH);
+    await loadPlan(page, true);
 
-    // Make export request hang
-    await page.route('**/export_to_excel**', async route => {
-      // Delay response significantly
-      await new Promise(resolve => setTimeout(resolve, 10000));
+    const isExport = (url: URL) => url.pathname === '/export_to_excel';
+    let release: () => void = () => {};
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    await page.route(isExport, async route => {
+      await pending;
       await route.abort('timedout');
     });
 
-    const exportBtn = page.locator(SELECTORS.EXPORT_EXCEL_BTN);
-    if (await exportBtn.isVisible()) {
+    const more = moreButton(page);
+    const menu = page.getByRole('menu', { name: 'More' });
+    try {
+      await more.click();
+      const exportBtn = page.locator(SELECTORS.EXPORT_EXCEL_BTN);
+      await expect(exportBtn).toBeVisible();
+      const started = page.waitForRequest(request => isExport(new URL(request.url())));
       await exportBtn.click();
-      
-      // Page should not freeze - user can still interact
-      await page.waitForTimeout(500);
-      await expect(page.locator('h1')).toContainText('Workout Plan');
+      expect((await started).method()).toBe('GET');
+      await expect(menu).toBeHidden();
+
+      await more.click();
+      await expect(menu).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(menu).toBeHidden();
+      await expect(more).toBeFocused();
+    } finally {
+      release();
     }
+    await expect(page.locator('#toast-body')).toHaveText('Failed to export to Excel');
+    await expect(page.locator('h1')).toContainText('Workout Plan');
+    await expect(more).toBeEnabled();
   });
 });
 

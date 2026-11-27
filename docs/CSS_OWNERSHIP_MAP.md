@@ -1,8 +1,7 @@
 # CSS Ownership Map
 
-Last updated: 2026-08-27, line citations re-measured against `templates/base.html` after the dark-theme packet inserted a parser-blocking `js/theme-init.js` tag in the head. Every line number below moved by +3; the link **order**, the bundle inventory and the ownership assignments are unchanged. The 2026-08-25 revision re-measured against the route templates at `5ca4191`, corrected item 2 and recorded the load-order drift in item 6; both still stand.
-
-This document reflects the active CSS loading model after the Calm Glass redesign cleanup, the Backup Center page, the Profile page, and the Body Composition page.
+Updated for the Workout Plan redesign (#736). The link locations below refer to
+`templates/base.html`, including the parser-blocking `js/theme-init.js` tag.
 
 ## Current Loading Architecture
 
@@ -58,14 +57,14 @@ The runtime CSS surface is organized around the target bundles below.
 | `tokens.css` | Responsive tokens, spacing scale, input/button/table sizes, and calm color tokens |
 | `motion.css` | Transitions, skeleton states, and motion preferences |
 | `base.css` | Body backdrop, shared text defaults, and fluid baseline typography |
-| `layout.css` | Containers, shell spacing, responsive tables, and grid/layout utilities |
-| `components.css` | Reusable interactive surfaces and component-level UI patterns |
+| `layout.css` | Containers, shell spacing, responsive tables, grid utilities and the shared `.ui-page-frame` used by Workout Plan and Workout Log |
+| `components.css` | Reusable controls and surfaces, including `.ui-tab`, `.ui-chip`, `.ui-menu`, `.ui-data-table--ruled`, `.ui-modal` and `.ui-drawer` |
 | `navbar.css` | Navigation layout, pills, dropdown presentation, and mobile navbar behavior |
 | `theme-dark.css` | Shared dark theme token overrides and dark component styling |
 | `a11y.css` | UI scaling, focus states, and browser-specific accessibility fallbacks |
 | `pages-welcome.css` | Welcome route presentation |
-| `pages-workout-plan.css` | Workout plan route-specific controls and views |
-| `pages-workout-log.css` | Workout Log card placement, keyed column widths, editor positioning and Clear Log modal. Shared frame and component styling lives in layout.css and components.css. |
+| `pages-workout-plan.css` | Add exercise layout, exercise picker and previews, exercise card and table layout, superset row placement and Volume targets drawer content |
+| `pages-workout-log.css` | Workout Log card placement, keyed column widths and editor positioning |
 | `pages-weekly-summary.css` | Weekly summary route visuals |
 | `pages-session-summary.css` | Session summary route visuals |
 | `pages-progression.css` | Progression route visuals |
@@ -73,6 +72,11 @@ The runtime CSS surface is organized around the target bundles below.
 | `pages-body-composition.css` | Body Composition calculator, ACE band, trend SVG, history table |
 | `pages-volume-splitter.css` | Volume splitter route visuals |
 | `pages-backup.css` | Backup Center route visuals |
+
+The Clear Plan, starter-plan, execution-style, shared reference-video and Clear Log dialogs
+opt in to the `.ui-modal` styles in `components.css`. The `.vp-drawer.ui-drawer` shell, its
+close control and its backdrop also live there. Shared overlay colors, radii and the drawer
+backdrop color come from `tokens.css`.
 
 ## Maintenance Rules
 

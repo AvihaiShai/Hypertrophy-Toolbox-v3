@@ -100,7 +100,8 @@ def test_one_explicit_order_covers_every_existing_layer() -> None:
     }
 
     assert declarations == [", ".join(LAYER_ORDER)]
-    assert layer_blocks == set(LAYER_ORDER)
+    # The retired Workout Plan layer keeps its slot in the declaration.
+    assert layer_blocks == set(LAYER_ORDER) - {"workout"}
 
 
 def test_bootstrap_artifact_keeps_scss_owned_selector_families() -> None:
@@ -234,12 +235,19 @@ def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None
     plan_js = (
         ROOT / "static" / "js" / "modules" / "workout-plan-page.js"
     ).read_text(encoding="utf-8")
+    table_responsiveness = (ROOT / "static" / "js" / "table-responsiveness.js").read_text(
+        encoding="utf-8"
+    )
     fixtures = (ROOT / "e2e" / "fixtures.ts").read_text(encoding="utf-8")
 
-    assert 'class="collapsible-frame' in plan
-    assert "frame-header-2025" in plan
+    assert '<header class="ui-page-header">' in plan
+    assert 'class="collapsible-frame' not in plan
+    assert "frame-header-2025" not in plan
+    assert ".collapsible-frame" not in plan_js
+    toggle_class = re.search(r"toggle\.className = '([^']+)'", table_responsiveness)
+    assert toggle_class is not None
+    assert {"tbl-view-mode-toggle", "ui-btn", "ui-btn--small"} <= set(toggle_class[1].split())
     assert 'class="ui-page-header"' in log
-    assert ".collapsible-frame" in plan_js
     assert ".collapsible-frame" not in log_js
     assert 'class="workout-log-frame"' in log
     assert "PAGE_WORKOUT_LOG: '.workout-log-frame'" in fixtures
@@ -248,6 +256,55 @@ def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None
     assert 'class="progression-plan-container"' in progression
     for route_hook in ('id="workout"', "workout-log-page", "summary-frame"):
         assert route_hook not in progression
+
+
+def test_workout_plan_drawer_shadows_legacy_declarations() -> None:
+    legacy_css = (ROOT / "scss" / "pages" / "_workout_plan_volume_panel.scss").read_text(
+        encoding="utf-8"
+    )
+    new_css = "\n".join(
+        (ROOT / "static" / "css" / bundle).read_text(encoding="utf-8")
+        for bundle in ("components.css", "pages-workout-plan.css")
+    )
+    template = (ROOT / "templates" / "workout_plan.html").read_text(encoding="utf-8")
+    assert re.search(r'<aside\s+id="vpDrawer"\s+class="vp-drawer ui-drawer"', template)
+
+    def declarations(css: str) -> dict[str, set[str]]:
+        rules: dict[str, set[str]] = {}
+        for head, body in re.findall(r"^((?:\.|\[)[^{}]+)\{([^{}]*)\}", COMMENT_RE.sub("", css), re.M):
+            properties = set(re.findall(r"(?:^|;)\s*([\w-]+)\s*:", body))
+            for selector in re.split(r",(?![^()]*\))", head):
+                selector = " ".join(selector.split())
+                # The new rules group several equivalent status selectors inside :is().
+                status_group = re.search(r":is\((\.status-[^)]+)\)", selector)
+                if status_group:
+                    for status in status_group[1].split(","):
+                        expanded = selector.replace(status_group[0], status.strip())
+                        rules.setdefault(expanded, set()).update(properties)
+                else:
+                    rules.setdefault(selector, set()).update(properties)
+        return rules
+
+    replacement_rules = declarations(new_css)
+    legacy_rules = declarations(legacy_css)
+    for selector, properties in legacy_rules.items():
+        selector = selector.removeprefix("[data-theme='dark'] ")
+        if ".vp-" not in selector or selector.startswith((".vp-header-summary", ".vp-active-summary")):
+            continue
+        if selector.startswith(".vp-backdrop"):
+            # The drawer initializer appends the backdrop first, then the drawer.
+            replacement = f"{selector}:has(~ .ui-drawer)"
+        elif selector == ".vp-drawer" or selector.startswith(".vp-drawer["):
+            replacement = selector.replace(".vp-drawer", ".vp-drawer.ui-drawer", 1)
+        else:
+            replacement = f".ui-drawer {selector}"
+        covered = replacement_rules.get(replacement, set()).copy()
+        if "border" in covered:
+            covered.add("border-color")
+        for edge in ("left", "top", "bottom"):
+            if f"border-{edge}" in covered:
+                covered.add(f"border-{edge}-color")
+        assert properties <= covered, f"{replacement} is missing {sorted(properties - covered)}"
 
 
 def test_backup_tokens_remain_page_owned_under_the_late_global_theme() -> None:
@@ -835,28 +892,31 @@ def test_workout_plan_dormant_filter_glass_cluster_removed() -> None:
     ):
         assert not re.search(dead_pattern, css)
 
-    # The few declarations that did own computed values remain: the hidden
-    # native filter's positioning/focus mechanics and pseudo highlight, plus
-    # the short-lived exercise animation hook. Layout rules and both existing
-    # cascade layers are deliberately outside the removal.
+    # Filters and the exercise select keep separate enhancement hooks. The
+    # shared field class gives both the current form surface.
+    filter_select = re.search(r'<select\b[^>]*data-filter-key="[^"]+"[^>]*>', template)
+    exercise_select = re.search(r'<select\b[^>]*id="exercise"[^>]*>', template)
+    assert filter_select is not None
+    assert exercise_select is not None
+    assert 'class="ui-field-input filter-dropdown"' in filter_select[0]
+    assert 'class="ui-field-input exercise-dropdown"' in exercise_select[0]
+    assert "uniform-dropdown" not in template
+    for field in ("weight", "sets", "rir", "rpe", "min_rep", "max_rep_range"):
+        assert re.search(
+            rf'<input\b[^>]*id="{field}"[^>]*class="ui-field-input"', template
+        ), field
+    for field in ("routine-env", "routine-program", "routine-day"):
+        assert re.search(
+            rf'<select\b[^>]*id="{field}"[^>]*class="ui-field-input cascade-dropdown ',
+            template,
+        ), field
     assert re.search(
-        r"\.filter-dropdown\s*\{\s*position:\s*relative;\s*\}", css
+        r"\.exercise-dropdown\.filter-applied\s*\{\s*animation: glowPulse", css
     )
-    assert "select.filter-dropdown:focus {\n    z-index: 1050 !important;" in css
-    assert css.count(".filter-dropdown::before") == 2
-    assert ".exercise-dropdown.filter-applied {\n    animation: glowPulse" in css
     assert "@keyframes glowPulse" in css
-    assert "#filters-form .form-label" in css
-    assert css.count("@media") == 44
     assert "@layer workout-dropdowns {" in css
-    assert "@layer workout {" in css
+    assert ".filter-dropdown::before" not in css
 
-    # The route still renders native select hooks and the enhancement still
-    # converts them to wpdd controls. The retired naming toggle has no template
-    # consumer and its legacy factory has no in-repo invocation (definition
-    # only), which is why route-bundle toggle CSS had zero matched elements.
-    assert 'class="form-select uniform-dropdown filter-dropdown' in template
-    assert 'class="form-select uniform-dropdown exercise-dropdown' in template
     assert "select.classList.add('wpdd-native')" in dropdown_js
     assert "filter-view-toggle" not in template
     assert view_mode_js.count("createToggleButton(") == 1
@@ -878,7 +938,7 @@ def test_workout_plan_wpdd_route_ownership_cleanup() -> None:
     global_popover_start = css.index("Global Popover Styles", layer_start)
     dropdown_layer = css[layer_start:global_popover_start]
     global_popover = css[
-        global_popover_start : css.index("@layer workout {", global_popover_start)
+        global_popover_start : css.index("/* Execution Style Picker Popup */", global_popover_start)
     ]
 
     # Runtime appends every popover to body, so the old #workout-descendant copy
@@ -890,20 +950,23 @@ def test_workout_plan_wpdd_route_ownership_cleanup() -> None:
     assert ".wpdd-popover {" in global_popover
     assert "@media (max-width: 768px)" in global_popover
 
-    # No route consumer generates a routine-flavored wpdd button. The rendered
-    # filter/exercise surface and state declarations are owned by calm-glass
-    # components, while keyboard focus is owned by the global a11y contract.
-    assert ".wpdd-routine" not in dropdown_layer
-    assert ".wpdd-button.wpdd-filter" not in dropdown_layer
-    assert ".wpdd-button.wpdd-exercise" not in dropdown_layer
-    assert ".wpdd-button:hover:not(:disabled)" not in dropdown_layer
-    assert ".wpdd-button:focus-visible" not in dropdown_layer
-    assert ".wpdd-button:disabled" not in dropdown_layer
-    assert '.wpdd-button[aria-expanded="true"] {' not in dropdown_layer
-    assert '#workout[data-page="workout-plan"] .wpdd-button,' in components
-    assert ".wpdd-button:hover:not(:disabled)," in components
-    assert ".wpdd-button:disabled," in components
-    assert ".wpdd-button.wpdd-filter.filter-active {" in components
+    # The enhanced button is rendered only on the Plan. Its field surface
+    # uses the same tokens as the shared input and keeps global keyboard focus.
+    for retired in (
+        ".wpdd-routine",
+        ".wpdd-button.wpdd-filter",
+        ".wpdd-button.wpdd-exercise",
+        ".wpdd-button:hover:not(:disabled)",
+        ".wpdd-button:focus-visible",
+        ".wpdd-button:disabled",
+        '.wpdd-button[aria-expanded="true"] {',
+    ):
+        assert retired not in dropdown_layer
+    assert '#workout[data-page="workout-plan"] .wpdd-button' not in components
+    paint = _wp_rule_body(css, ".plan-form-field .wpdd-button")
+    assert "background: var(--ui-field-surface);" in paint
+    assert "color: var(--ink-1);" in paint
+    assert ".plan-form-field .wpdd-button:disabled {" in css
     assert "*:focus-visible," in a11y
 
     # Route-owned mechanics remain: native-select anchoring/hiding, button
@@ -915,14 +978,13 @@ def test_workout_plan_wpdd_route_ownership_cleanup() -> None:
         "pointer-events: none;",
         "z-index: -1;",
         '#workout[data-page="workout-plan"] .wpdd-button {',
-        "gap: var(--wpdd-gap);",
         "transition: background var(--wpdd-transition)",
         "text-overflow: ellipsis;",
         ".wpdd-button:active:not(:disabled)",
         ".wpdd-button .wpdd-placeholder",
         ".wpdd-button .wpdd-caret",
         '.wpdd-button[aria-expanded="true"] .wpdd-caret',
-        "@media (prefers-reduced-motion: reduce)",
+        "@media (prefers-reduced-motion: no-preference)",
         "@media (prefers-contrast: high)",
     ):
         assert live_contract in dropdown_layer
@@ -933,16 +995,13 @@ def test_workout_plan_wpdd_route_ownership_cleanup() -> None:
     assert "--wpdd-radius" not in css
     for token in (
         "--wpdd-font",
-        "--wpdd-fs",
         "--wpdd-bg",
         "--wpdd-surface",
         "--wpdd-text",
         "--wpdd-muted",
         "--wpdd-border",
         "--wpdd-accent",
-        "--wpdd-gap",
         "--wpdd-shadow",
-        "--wpdd-shadow-lg",
         "--wpdd-transition",
     ):
         assert css.count(token) >= 2
@@ -961,44 +1020,12 @@ def test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup() -> N
     template = (ROOT / "templates" / "workout_plan.html").read_text(
         encoding="utf-8"
     )
-    page_js = (
-        ROOT / "static" / "js" / "modules" / "workout-plan-page.js"
-    ).read_text(encoding="utf-8")
+    page_js = (ROOT / "static" / "js" / "modules" / "workout-plan-page.js").read_text(
+        encoding="utf-8"
+    )
 
-    start = css.index("Page Header - 2026 Glass/Neumorphic Style")
-    end = css.index("Collapse Toggle Buttons - Modern 2025 Refresh", start)
-    cluster = css[start:end]
-
-    # Browser declaration-removal proof showed these route declarations never
-    # win over Bootstrap utilities or the shared unlayered/calm-glass owners.
-    # The direct page header has no h2 consumer; the table h2 is nested below a
-    # separate .table-header and never matched this selector arm.
-    for dormant in (
-        "margin-bottom: var(--wp-gap-lg);",
-        "text-align: center;",
-        '>.container-fluid>.table-header h2',
-        "font-size: var(--wp-fs-title);",
-        "width: 60px;",
-        "width: 80px;",
-        '.unified-frames-container {',
-        '.collapsible-frame:hover {',
-        '.frame-header::before {',
-        '.frame-header.frame-header-2025 {',
-        '.frame-header-2025 .frame-header-right {',
-        '.frame-title::after,',
-        "[data-theme='dark'] #workout[data-page=\"workout-plan\"] .collapsible-frame",
-        "[data-theme='dark'] #workout[data-page=\"workout-plan\"] .frame-header::before",
-    ):
-        assert dormant not in cluster
-
-    # The shared component system remains the actual surface/layout/pseudo
-    # owner; the late dark theme is why the route retains one explicit dark
-    # frame-header blur override.
+    # Summary routes still use the shared frame and its dark treatment.
     for shared_owner in (
-        '#workout[data-page="workout-plan"] .frame-calm-glass,',
-        '#workout[data-page="workout-plan"] .frame-calm-glass .frame-header,',
-        '#workout[data-page="workout-plan"] .frame-calm-glass .frame-header.frame-header-2025 {',
-        '#workout[data-page="workout-plan"] .frame-calm-glass .frame-header-right {',
         ".collapsible-frame {",
         ".frame-header::before {",
         ".frame-title::after,",
@@ -1007,50 +1034,24 @@ def test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup() -> N
     assert ':where([data-theme="dark"] .frame-header) {' in theme_dark
     assert "backdrop-filter: blur(8px) !important;" in theme_dark
 
-    # Live route ownership is retained: page-header positioning/surface and
-    # hover transition, frame/title repaint safeguards, and the dark title
-    # values that still win the important cascade.
-    for live_contract in (
-        "margin-top: -55px;",
-        "padding: var(--wp-padding-sm) var(--wp-padding-xl);",
-        "backdrop-filter: blur(8px);",
-        "position: relative;",
-        "overflow: hidden;",
-        ">.container-fluid>.table-header::before {",
-        ">.container-fluid>.table-header h1 {",
-        "letter-spacing: -0.02em;",
-        "box-shadow: 0 2px 8px rgba(79, 140, 255, 0.3);",
-        "transition: width var(--wp-transition), box-shadow var(--wp-transition);",
-        "box-shadow: 0 4px 12px rgba(79, 140, 255, 0.4);",
-        "border-color: rgba(255, 255, 255, 0.08);",
-        "backdrop-filter: none !important;",
-        "color: var(--wp-text) !important;",
-        "border-radius: 0 !important;",
-        "padding-bottom: 0 !important;",
+    for retired in (
+        r"\.frame-calm-glass\b",
+        r"\.collapsible-frame\b",
+        r"\.collapse-toggle\b",
+        r"\.frame-header-2025\b",
+        r"\.unified-frames-container\b",
+        r"\.table-header\b",
     ):
-        assert live_contract in cluster
-    assert len(
-        re.findall(r"(?m)^\s+backdrop-filter: none !important;$", cluster)
-    ) == 3
-    assert len(
-        re.findall(r"(?m)^\s+-webkit-backdrop-filter: none !important;$", cluster)
-    ) == 3
+        assert not re.search(retired, COMMENT_RE.sub("", css)), retired
 
-    # No artificial packet-local token is introduced: the remaining repeated
-    # raw values have different roles (gleam, shadow, border, or text shadow).
-    assert "--wp-header-" not in cluster
-    assert "--wp-frame-" not in cluster
-
-    # Runtime topology and collapse semantics remain wired.
-    assert template.count('class="collapsible-frame') == 3
-    assert template.count("frame-header-2025") == 3
-    assert template.count('class="collapse-toggle"') == 3
-    assert '<header class="table-header text-center"' in template
-    assert '<h1>Workout Plan</h1>' in template
+    assert '<header class="ui-page-header">' in template
+    assert '<h1 class="ui-page-title">Workout Plan</h1>' in template
     assert '<h2 id="workout-plan-table-heading"' in template
-    assert "const toggleButtons = document.querySelectorAll('.collapse-toggle');" in page_js
-    assert "frame.classList.toggle('collapsed');" in page_js
-    assert "this.setAttribute('aria-expanded', !isExpanded);" in page_js
+    assert 'class="ui-panel plan-list"' in template
+    assert 'class="ui-panel plan-add"' in template
+    for retired in ("collapsible-frame", "frame-header-2025", "collapse-toggle"):
+        assert retired not in template
+        assert retired not in page_js
 
 
 def test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks() -> None:
@@ -1094,10 +1095,12 @@ def test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks() -> None
     ):
         assert bare in region
 
-    # Scope boundary: Bootstrap-integrated var(--bs-*, #hex) fallbacks are a
-    # separate concern and were deliberately left intact.
+    # Preserve the Bootstrap body fallback and the current text token owners.
     assert "var(--bs-body-color, #212529)" in region
-    assert "var(--bs-secondary-color, #6c757d)" in region
+    for selector in (".muscle-body-tabs .nav-link", ".summary-value"):
+        body = _wp_rule_body(region, selector)
+        assert "color: var(--ink-2);" in body
+        assert "--bs-secondary-color" not in body
 
     # No artificial packet-local token was invented; the fix is pure removal.
     assert "--wp-ms-" not in region
@@ -1108,18 +1111,15 @@ def test_workout_plan_wpdd_popover_drops_dead_local_token_fallbacks() -> None:
         encoding="utf-8"
     )
 
-    # The --wpdd-* dropdown tokens are page-local: this bundle defines them in its
-    # own :root (light) and [data-theme="dark"] blocks, loaded once before use, so
-    # the .wpdd-popover component's var(--wpdd-*, fallback) fallbacks never
-    # rendered. Removing them is exact-value (each fallback equalled the light
-    # token). Non-remapped tokens (--wpdd-accent/-font) inherit :root in dark.
+    # The popover is appended to body and consumes the same theme tokens as
+    # the route's enhanced fields. Theme changes flow through the token values.
     for token_def in (
-        "--wpdd-bg: #ffffff;",
-        "--wpdd-surface: #f8f9fa;",
-        "--wpdd-text: #1a1f2e;",
-        "--wpdd-muted: #6b7280;",
-        "--wpdd-border: #e5e7eb;",
-        "--wpdd-accent: #4f8cff;",
+        "--wpdd-bg: var(--surface-2);",
+        "--wpdd-surface: var(--ui-field-surface);",
+        "--wpdd-text: var(--ink-1);",
+        "--wpdd-muted: var(--ink-2);",
+        "--wpdd-border: var(--ink-3);",
+        "--wpdd-accent: var(--ui-primary);",
     ):
         assert token_def in css
 
@@ -1145,42 +1145,30 @@ def test_workout_plan_table_drops_dead_global_token_fallbacks() -> None:
     css = (ROOT / "static" / "css" / "pages-workout-plan.css").read_text(
         encoding="utf-8"
     )
-    tokens = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
+    components = (ROOT / "static" / "css" / "components.css").read_text(encoding="utf-8")
+    template = (ROOT / "templates" / "workout_plan.html").read_text(encoding="utf-8")
 
-    # The Calm-Glass tokens the Workout Plan Table section consumes are always
-    # defined at :root (light) in tokens.css, loaded before this bundle, so the
-    # section's var(--token, #hex) fallbacks never rendered. Several fallbacks did
-    # not even match the active token (e.g. var(--surface-1, #1a2332) in a dark
-    # rule while --surface-1 is #f4f6fa light), i.e. misleading dead code; removal
-    # preserves the current rendered value (the token).
-    for token_def in (
-        "--accent: #4c6ef5;",
-        "--surface-1: #f4f6fa;",
-        "--surface-2: #ffffff;",
-        "--ink-1: #0f1220;",
-        "--ink-2: #4a5170;",
-    ):
-        assert token_def in tokens
-
-    # Scope the assertion to the Workout Plan Table section.
-    start = css.index("Workout Plan Table - 2026 Glass")
-    region = css[start:css.index("Responsive Design", start)]
-
-    dead = re.compile(
-        r"var\(\s*--(?:accent|ink-1|ink-2|surface-0|surface-1|surface-2)"
-        r"\s*,\s*#[0-9a-fA-F]{3,8}\s*\)"
+    table_js = (ROOT / "static" / "js" / "modules" / "workout-plan-table.js").read_text(
+        encoding="utf-8"
     )
-    assert dead.search(region) is None
 
-    # Tokens are now consumed bare inside their color-mix()/direct usages; the
-    # per-rule !important weighting is unchanged (fallback removal only).
-    for bare in (
-        "color-mix(in srgb, var(--surface-2) 90%, var(--accent) 10%) !important",
-        "border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent) !important",
-        "color: var(--ink-2) !important",
-        "color-mix(in srgb, var(--surface-1) 84%, var(--accent) 16%) !important",
+    table = re.search(r'<table\b[^>]*data-testid="exercise-table"[^>]*>', template)
+    assert table is not None
+    table_classes = re.search(r'class="([^"]+)"', table[0])
+    assert table_classes is not None
+    assert {"workout-plan-table", "ui-data-table", "ui-data-table--ruled"} <= set(
+        table_classes[1].split()
+    )
+    assert "table-calm" not in table_classes[1].split()
+    assert "row.classList.add('ui-record-card', 'ui-record-card--ruled');" in table_js
+    for rule in (
+        ".ui-data-table {",
+        ".ui-data-table--ruled tbody td {",
+        ".ui-record-card--ruled {",
     ):
-        assert bare in region
+        assert rule in components
+    assert '.workout-plan-table th[data-label="Exercise"] {' in css
+    assert "table-calm" not in COMMENT_RE.sub("", css)
 
 
 def test_workout_plan_drops_remaining_dead_defined_token_fallbacks() -> None:
@@ -1189,42 +1177,20 @@ def test_workout_plan_drops_remaining_dead_defined_token_fallbacks() -> None:
     )
     tokens = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
 
-    # These page-local (@layer workout) tokens are defined before use, so their
-    # var(--token, fallback) fallbacks never rendered.
-    for token_def in ("--wp-fw-medium: 500;", "--wp-text-muted: #6b7280;",
-                      "--wp-border: #e5e7eb;"):
-        assert token_def in css
-    # The --input-* sizing tokens are always defined at :root in tokens.css.
-    for token_def in ("--input-height-md: 38px;", "--input-padding-x:",
-                      "--input-padding-y:", "--input-font-size:"):
-        assert token_def in tokens
-
-    # The specific consumption sites are now bare.
-    for bare in (
-        "font-weight: var(--wp-fw-medium);",
-        "color: var(--wp-text-muted);",
-        "background: var(--wp-border);",
-        "height: var(--input-height-md);",
-        "padding: var(--input-padding-y) var(--input-padding-x);",
-        "font-size: var(--input-font-size);",
+    # Bootstrap fallbacks in the retained muscle map are independent of the
+    # retired Plan-local sizing and color families.
+    fallbacks = re.findall(r"var\(\s*(--[a-z0-9-]+)\s*,", css)
+    assert fallbacks
+    assert all(token.startswith("--bs-") for token in fallbacks), fallbacks
+    for retired in ("--wp-fw-medium", "--wp-text-muted", "--wp-border", "--superset-row-color"):
+        assert retired not in css
+    for definition in (
+        "--input-height-md: 38px;",
+        "--input-padding-x:",
+        "--input-padding-y:",
+        "--input-font-size:",
     ):
-        assert bare in css
-
-    # Milestone invariant: the non-Bootstrap dead-fallback removal arc
-    # (WP4.3i-d/-e/-f/-g) is complete. Every remaining non-`--bs-*` var() fallback
-    # in the bundle is one of the two intentionally-LIVE ones:
-    #   - var(--superset-row-color, …): assigned dynamically inline per row.
-    #   - var(--wpdd-shadow-lg, …): references an undefined token.
-    fallbacks = [
-        m.group(0)
-        for m in re.finditer(r"var\(\s*--[a-z0-9-]+\s*,", css)
-        if "--bs-" not in m.group(0)
-    ]
-    offenders = [
-        f for f in fallbacks
-        if "--superset-row-color" not in f and "--wpdd-shadow-lg" not in f
-    ]
-    assert offenders == [], offenders
+        assert definition in tokens
 
 
 def test_workout_plan_drops_obsolete_theme_selector_mechanisms() -> None:
@@ -1283,79 +1249,44 @@ def _wp_rule_body(css: str, selector: str) -> str:
 
 
 def test_workout_plan_drops_overridden_rest_state_declarations() -> None:
-    """WP4.3i-dead: 14 permanently-overridden rest-state declarations are gone.
-
-    A sentinel sweep plus a rest-state computed-style differential proved these
-    never reached the rendered page -- the Calm-Glass table system and the
-    exercise-selection action bar in components.css out-specify and !important
-    them. Deleting them left all 31,074 computed-style records byte-identical in
-    both themes. This contract pins the removals AND the rules that actually
-    win, so a future cascade change forces a revisit instead of a silent re-add.
-    """
     css = (ROOT / "static" / "css" / "pages-workout-plan.css").read_text(
         encoding="utf-8"
     )
-    components = (ROOT / "static" / "css" / "components.css").read_text(
-        encoding="utf-8"
-    )
-    wp = '#workout[data-page="workout-plan"]'
-    dark = "[data-theme='dark'] " + wp
+    plan = '#workout[data-page="workout-plan"]'
+    code = COMMENT_RE.sub("", css)
 
-    # --- 1. Dormant declarations are gone from the rules that carried them. ---
-    dropped = {
-        f"{wp} .selection-actions": ("background:", "border:", "box-shadow:"),
-        f"{dark} .selection-actions": ("border:", "box-shadow:"),
-        f"{wp} .workout-plan-table thead th": (
-            "background:", "border-bottom:", "border-top:", "box-shadow:",
-            "text-shadow:",
-        ),
-        f"{dark} .workout-plan-table thead th": ("color:", "text-shadow:"),
-        f"{wp} .workout-plan-table tbody td": ("background:", "box-shadow:"),
-    }
-    for selector, props in dropped.items():
-        body = _wp_rule_body(css, selector)
-        for prop in props:
-            assert prop not in body, f"{selector} still declares {prop}"
-
-    # --- 2. Surviving declarations in those same rules are untouched. ---
-    kept = {
-        f"{wp} .workout-plan-table tbody td": (
-            "padding:", "border-bottom: 1px solid rgba(229, 231, 235, 0.4)",
-            "color: var(--wp-text);",
-        ),
-        f"{wp} .workout-plan-table thead th": ("position: sticky;", "z-index:"),
-        f"{wp} .selection-actions": ("border-radius: 18px;", "width: 100%"),
-    }
-    for selector, props in kept.items():
-        body = _wp_rule_body(css, selector)
-        for prop in props:
-            assert prop in body, f"{selector} lost {prop}"
-
-    # --- 3. The real owners still own the painted surface. ---
-    for owner in (".table.table-calm thead th {", ".table.table-calm tbody td {"):
-        assert owner in components, owner
-    assert '#workout[data-page="workout-plan"], .workout-log-page' in components
-    assert (
-        '#workout[data-page="workout-plan"] #exercise-selection-frame '
-        '#action-buttons-row.selection-actions {'
-    ) in components
-
-    # --- 4. Interaction-state twins are deliberately NOT removed. ---
-    # Those states animate, so the differential could not certify them; they are
-    # deferred rather than deleted on weaker evidence.
-    for deferred in (
-        f"{wp} .selection-actions:hover {{",
-        f"{wp} .workout-plan-table tbody tr:hover td {{",
-        f"{wp} .collapse-toggle:focus-visible {{",
-        f"{wp} .collapse-toggle:disabled {{",
+    for retired in (
+        r"\.btn-calm-[\w-]+",
+        r"\.input-calm-inset\b",
+        r"\.tbl-wrap--full\b",
+        r"\.routine-tab(?:-btn)?\b",
+        r"\.selection-actions\b",
+        r"--superset-color-[1-4]\b",
+        r"#clear-filters-btn\b",
     ):
-        assert deferred in css, deferred
-    assert "box-shadow:" in _wp_rule_body(css, f"{wp} .selection-actions:hover")
+        assert not re.search(retired, code), retired
+    assert not re.search(r"\{\s*\}", code)
+    # The mobile execution picker retains the three declarations it needs
+    # to override its runtime positioning. The redesign adds no annotations.
+    assert re.findall(r"(?mi)^\s*([^\n]*!\s*important\s*;)", code) == [
+        "position: fixed !important;",
+        "left: 10px !important;",
+        "right: 10px !important;",
+    ]
 
-    # --- 5. No empty rule, and the layer split is unchanged. ---
-    assert not re.search(r"\{\s*\}", css)
-    assert css.count("@layer workout {") == 1
-    assert css.count("@layer workout-dropdowns {") == 1
+    # The only remaining Plan selectors in these bundles belong to shared
+    # rules. Their exact text is compared with the control by the frame check.
+    for filename, expected in (("components.css", 14), ("layout.css", 2), ("theme-dark.css", 0)):
+        shared_css = (ROOT / "static" / "css" / filename).read_text(encoding="utf-8")
+        selectors = re.findall(r"([^{};]+)\{", COMMENT_RE.sub("", shared_css))
+        plan_selectors = [selector for selector in selectors if plan in selector]
+        donor = f":is({plan}, .workout-log-page"
+        assert all(donor in selector for selector in plan_selectors), plan_selectors
+        assert sum(selector.count(donor) for selector in plan_selectors) == expected
+
+    log = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(encoding="utf-8")
+    assert "#clearLogModal" not in log
+    assert not re.search(r"!\s*important\b", log, re.IGNORECASE)
 
 
 def test_workout_plan_drops_dead_filter_button_family() -> None:
@@ -1392,9 +1323,13 @@ def test_workout_plan_drops_dead_filter_button_family() -> None:
         assert 'getElementById("filter-btn")' not in stripped, path
         assert "#filter-btn" not in stripped, path
 
-    # --- 3. The live filter hooks are untouched. ---
+    # --- 3. The live filter hooks and shared button remain wired. ---
     template = (ROOT / "templates" / "workout_plan.html").read_text(encoding="utf-8")
-    assert 'id="clear-filters-btn"' in template
+    clear_filters = re.search(r'<button\b[^>]*\bid="clear-filters-btn"[^>]*>', template)
+    assert clear_filters is not None
+    button_class = re.search(r'\bclass="([^"]+)"', clear_filters[0])
+    assert button_class is not None
+    assert "ui-btn" in button_class[1].split()
     assert 'id="filters-form"' in template
     assert "filter-dropdown" in template
     filters_js = (ROOT / "static" / "js" / "modules" / "filters.js").read_text(
@@ -1403,19 +1338,11 @@ def test_workout_plan_drops_dead_filter_button_family() -> None:
     assert "getElementById('clear-filters-btn')" in filters_js
     assert "export async function filterExercises" in filters_js
 
-    # The Clear Filters styling in this bundle must survive the deletion.
-    assert (
-        '#workout[data-page="workout-plan"] #clear-filters-btn.btn {' in css
-    )
-    assert (
-        "[data-theme='dark'] #workout[data-page=\"workout-plan\"] "
-        "#clear-filters-btn.btn {"
-    ) in css
-
-    # --- 4. Nothing was emptied and the layer split is unchanged. ---
-    assert not re.search(r"\{\s*\}", css)
-    assert css.count("@layer workout {") == 1
-    assert css.count("@layer workout-dropdowns {") == 1
+    # Clear Filters uses the shared button; the retired route CSS stays gone.
+    clear_button = re.search(r'<button\b[^>]*id="clear-filters-btn"[^>]*>', template)
+    assert clear_button is not None
+    assert 'class="ui-btn"' in clear_button[0]
+    assert "#clear-filters-btn" not in COMMENT_RE.sub("", css)
 
 
 def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:

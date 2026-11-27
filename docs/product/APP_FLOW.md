@@ -280,9 +280,11 @@ The exercise catalog is not dropped and is not lost.
 
 ## Plan — `/workout_plan`
 
-**Purpose.** Build routines. Filter the catalog, choose an exercise, set sets/reps/weight/RIR,
-and arrange the result. The densest screen in the application — roughly 59 declared controls plus
-per-row controls rendered by JavaScript.
+**Purpose.** Build and edit routines. The workout plan list sits above the Add exercise panel.
+On the first load of a populated plan, the first routine in environment, program and workout
+order is selected. Choose All to see every exercise, or choose a routine tab to see its rows.
+Each tab shows its exercise count. An empty plan offers Generate Starter Plan and Add first
+exercise, which moves focus to the environment field.
 
 **Initialization.** `initializeWorkoutPlan()` wires filters, the routine cascade, plan handlers,
 the volume panel, and the controls animation. It deliberately does **not** call
@@ -293,9 +295,9 @@ the volume panel, and the controls animation. It deliberately does **not** call
 
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
-| Filter form (muscle, equipment, difficulty, …) | API | `POST /filter_exercises` → filtered names. Column names are whitelist-validated server-side; an unknown column is `VALIDATION_ERROR` 400 |
-| Search field | Presentation | Narrows already-loaded options client-side |
-| Clear filters | Presentation → API | Resets the form, then `GET /get_all_exercises` |
+| Filters (muscle, equipment, difficulty, …) | Presentation → API | The filter section starts collapsed. Changes apply through `POST /filter_exercises` and update the exercise match count. Active filters are shown as removable chips even while the section is closed. Removing a chip clears that filter and refreshes the options. The server validates filter column names and returns `VALIDATION_ERROR` 400 for an unknown column |
+| Exercise search | Presentation | The search field inside the exercise picker narrows already-loaded options client-side |
+| Clear filters | Presentation → API | Clears the filters and chips, resets the routine cascade and reloads the catalog via `GET /get_all_exercises` |
 | Routine cascade — environment → program → day | Presentation → API | Three dependent `<select>`s compose the hidden `#routine` value. Completing the cascade with a real day synchronously clears transient superset checkbox, row-highlight, and action-bar state, then — **only when no filter dropdown holds a value** — issues `GET /get_routine_exercises/<routine>`; with active filters it re-applies them via `POST /filter_exercises` instead. Empty intermediate values — including Clear Filters and the stateless page reset — do not clear that selection. The reset never unlinks a persisted superset or changes the plan rows on display. **The endpoint ignores the routine and returns the full catalog** — deliberately: the dropdown it feeds is an *add* control, so every exercise must stay offered no matter which routine already uses it |
 | Exercise `<select>` | API | On change, `GET /get_exercise_info/<name>` for metadata; `GET /api/user_profile/estimate?exercise=…` for the suggested numbers |
 | Weight / sets / RIR / RPE / min-rep / max-rep | Presentation | Local inputs. Sets and both rep fields retain their typed values through submission so validation can catch invalid counts |
@@ -305,21 +307,26 @@ the volume panel, and the controls animation. It deliberately does **not** call
 `GET /get_exercise_info/<name>` for an unknown exercise returns HTTP 404 `NOT_FOUND` — verified
 live.
 
-### Working with the plan table
+### Working with the plan list
+
+Exercise cards appear in one column below 768 px and two columns from 768 px. Each card shows
+the routine, exercise and prescription. Swap and video are available on the card and Details
+reveals the editable numbers, execution style, superset selection and Remove action. From
+1360 px the same rows appear in a table that scrolls horizontally inside the list panel.
 
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | Table load / refresh | API | `GET /get_workout_plan` returns every plan row with its exercise metadata. Called on load and after any mutation |
 | Inline field edit | API | `POST /update_exercise` with `{id, updates}`. Weight is limited to 0–1000 kg and RIR to 0–10. A validation failure returns HTTP 400 `VALIDATION_ERROR`, keeps the last saved value visible and leaves all submitted fields unchanged |
-| Drag to reorder | API | `POST /update_exercise_order`, using the vendored Sortable library. The batch is all-or-nothing: an invalid entry (`VALIDATION_ERROR` 400) or a failed write leaves every row's order unchanged |
+| Drag to reorder | API | Drag by the handle in either layout. A linked partner moves alongside the dragged exercise. `POST /update_exercise_order` saves the order as an atomic batch. Invalid entries return `VALIDATION_ERROR` 400. The list reloads the saved order after validation or write failures |
 | Remove row | API | `POST /remove_exercise`. A non-numeric id is `VALIDATION_ERROR` 400 — verified live |
 | Replace exercise | API | `POST /replace_exercise` — **see the three-outcome table above** |
-| Link superset | API | `POST /api/superset/link` with exactly two ids; one id is `VALIDATION_ERROR` 400 — verified live |
+| Link superset | API | Select two exercises in the list, then choose Link as Superset. `POST /api/superset/link` requires exactly two ids. The linked exercises each show the same neutral Superset badge and side rail |
 | Unlink superset | API | `POST /api/superset/unlink` |
 | Execution style | API | `GET /api/execution_style_options`, then `POST /api/execution_style` |
 | Video / image preview | Presentation | Curated videos open in a modal. The video button opens a YouTube search in a new tab when the exercise lacks a valid video ID. Thumbnails show a preview on hover or focus. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py`. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 | Routine tabs | Presentation | Filters displayed rows |
-| Volume panel toggle | Presentation → API | Expands the panel, which reads `GET /api/volume_progress` |
+| Volume targets | Presentation → API | Opens the right-hand drawer. The page loads `GET /api/volume_progress` on initialization and refreshes after changes that affect volume. Use the close button, Escape or the backdrop to dismiss it. The open state is stored locally |
 
 Plan sets and rep bounds must be whole numbers of at least 1, within SQLite's integer range.
 Inline edits apply these bounds to the submitted count fields. Minimum reps must be at most
@@ -330,12 +337,15 @@ successful save the cell shows the stored number, so `08` displays as `8`.
 
 ### Plan-level actions
 
+Export to Workout Log is in the page header. More opens the menu for Export All Tables,
+Backup Center, Generate Starter Plan and Clear Plan.
+
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | **Generate Starter Plan** | Presentation → API | Modal collects days, environment, experience, goal, volume scale, movement restrictions, equipment whitelist, and up to two priority muscles; submits `POST /generate_starter_plan`. Every dropdown's options are **hardcoded in the template** — `GET /get_generator_options` exists but nothing calls it. Selecting zero equipment is blocked client-side with a warning toast before any request; more than two priority muscles is trimmed to two with a warning |
 | Export to Workout Log | API → Navigation | `POST /export_to_workout_log` validates the full plan before adding log rows or skipping duplicates. Invalid sets or reps return HTTP 400 `VALIDATION_ERROR` with the affected routine, exercise and reason, and no row is imported until that plan row is corrected inline. After a successful import, the browser navigates to `/workout_log` after ~1.5 s |
-| Export to Excel | Download | `GET /export_to_excel?view_mode=…`, response read as a blob and saved via a temporary `<a download>`. The `view_mode` value is read from `localStorage`. If the isolated-muscle statistics read fails, full export returns HTTP 500 with `EXPORT_FAILED`. The Workout Plan shows an error toast and the download does not start. A successful read with no mappings permits a workbook without the Isolated Muscles sheet |
-| Load Program | Navigation | → `/backup?intent=browse` |
+| Export All Tables | Download | `GET /export_to_excel?view_mode=…`, response read as a blob and saved via a temporary `<a download>`. The `view_mode` value is read from `localStorage`. If the isolated-muscle statistics read fails, full export returns HTTP 500 with `EXPORT_FAILED`. The Workout Plan shows an error toast and the download does not start. A successful read with no mappings permits a workbook without the Isolated Muscles sheet |
+| Backup Center | Navigation | → `/backup?intent=browse` |
 | Clear Plan | Presentation → API | Modal, then `POST /clear_workout_plan` |
 
 Unexpected Add Exercise storage failures return HTTP 500 / `INTERNAL_ERROR` with
@@ -684,7 +694,7 @@ the column nullability encodes.
 | Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring, as an ordinary manual backup named `Pre-restore snapshot (<timestamp>)` |
 | Delete | Presentation → API | Confirmation, then `DELETE /api/backups/<id>` |
 
-`/workout_plan`'s "Load Program" button arrives here as `/backup?intent=browse`.
+On `/workout_plan`, More → Backup Center opens `/backup?intent=browse`.
 
 ### What restore actually does
 

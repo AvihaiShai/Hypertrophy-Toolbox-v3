@@ -34,7 +34,7 @@ const SURFACES = [
   { name: 'session-summary', route: ROUTES.SESSION_SUMMARY, table: 'table.tbl--responsive' },
   { name: 'weekly-summary', route: ROUTES.WEEKLY_SUMMARY, table: 'table.tbl--responsive' },
   { name: 'workout-log', route: ROUTES.WORKOUT_LOG, table: '#workout-log-table' },
-  { name: 'workout-plan', route: ROUTES.WORKOUT_PLAN, table: 'table.tbl--responsive' },
+  { name: 'workout-plan', route: ROUTES.WORKOUT_PLAN, table: '[data-testid="exercise-table"]' },
   { name: 'volume-splitter', route: ROUTES.VOLUME_SPLITTER, table: 'table.tbl--responsive' },
 ] as const;
 
@@ -66,8 +66,11 @@ for (const surface of SURFACES) {
         try {
           await page.goto(surface.route);
           await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+          if (surface.name === 'workout-plan') {
+            await expect(page.locator('#workout')).toHaveAttribute('data-plan-state', /^(empty|populated)$/);
+          }
 
-          const measured = await page.evaluate(({ table }) => {
+          const measured = await page.evaluate(({ table, isPlan }) => {
             const tbl = document.querySelector(table);
             if (!tbl) return { missing: true as const };
 
@@ -97,6 +100,13 @@ for (const surface of SURFACES) {
                 row.appendChild(td);
               }
               body.appendChild(row);
+            }
+            if (isPlan) {
+              // The synthetic data rows need the same visible region as loaded plan rows.
+              const plan = tbl.closest<HTMLElement>('#workout');
+              if (!plan) return { missing: true as const };
+              plan.dataset.planState = 'populated';
+              if (!tbl.getClientRects().length) return { missing: true as const };
             }
 
             const tr = dataRows()[0] as HTMLElement;
@@ -135,7 +145,7 @@ for (const surface of SURFACES) {
               trWidth: trs.borderTopWidth,
               backdrop: backdrop(td),
             };
-          }, { table: surface.table });
+          }, { table: surface.table, isPlan: surface.name === 'workout-plan' });
 
           expect(measured.missing, `no ${surface.table} on ${surface.name}`).toBe(false);
           if (measured.missing) return;
@@ -181,6 +191,13 @@ for (const surface of SURFACES) {
           if (surface.name === 'workout-log') {
             expect(parseFloat(measured.tdWidth)).toBeGreaterThan(0);
             expect(() => check('negative control', measured.backdrop, measured.tdWidth)).toThrow();
+          }
+          if (surface.name === 'workout-plan') {
+            if (viewport.name === 'desktop') {
+              expect(parseFloat(measured.tdWidth), 'table cells draw a bottom separator').toBeGreaterThan(0);
+            } else {
+              expect(parseFloat(measured.trWidth), 'cards draw a top border').toBeGreaterThan(0);
+            }
           }
           check('field separator (td bottom border)', measured.tdColor, measured.tdWidth);
           if (surface.name !== 'workout-log') check('row-card outline (tr border)', measured.trColor, measured.trWidth);

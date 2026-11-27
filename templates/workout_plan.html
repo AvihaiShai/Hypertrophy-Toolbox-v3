@@ -6,336 +6,78 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-workout-plan.css') }}?v={{ app_version }}">
 {% endblock %}
 
+{% block main_class %}ui-page-frame{% endblock %}
+
 {% block content %}
-<div id="workout" data-page="workout-plan">
-    <div class="container-fluid">
-        <!-- Page Header - 2026 Glass Style -->
-        <header class="table-header text-center" data-visual-surface data-visual-header>
-            <h1>Workout Plan</h1>
-            <div class="table-header-underline" data-visual-accent aria-hidden="true"></div>
-        </header>
-
-        <div class="vp-header-summary">
-            <button id="vpActiveSummary"
-                    type="button"
-                    class="vp-active-summary"
-                    aria-live="polite">
-                No active plan - activate one to drive the Plan tab.
-            </button>
-            <button id="vpToggle"
-                    type="button"
-                    aria-controls="vpDrawer"
-                    aria-expanded="false"
-                    class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-chart-bar" aria-hidden="true"></i> Volume targets
-            </button>
-        </div>
-
-        <!-- Filters for Exercises -->
-        <div class="unified-frames-container">
-            <!-- Filters Section -->
-            <div class="collapsible-frame filters-section frame-calm-glass" data-visual-surface data-section="filters">
-                <div class="frame-header frame-header-2025">
-                    <div class="frame-header-left">
-                        <span class="filters-title">Filter Exercises</span>
-                    </div>
-                    <div class="frame-header-right">
-                        <button class="collapse-toggle" type="button" title="Collapse filters" aria-expanded="true" aria-controls="filters-content">
-                            <i class="fas fa-chevron-up toggle-icon" data-visual-icon aria-hidden="true"></i>
-                            <span class="toggle-text">Hide</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="frame-content" id="filters-content">
-                    <div class="filters dropdown-group">
-                        <form id="filters-form" class="row gx-4" role="search" aria-label="Filter workout plan exercises">
-                            {% for filter_name, filter_options in filters.items() %}
-                            {% set filter_id = filter_name | lower | replace(' ', '_') %}
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <label for="{{ filter_id }}" class="form-label">{{ filter_name }}</label>
-                                <select id="{{ filter_id }}" name="{{ filter_id }}" data-filter-key="{{ filter_name }}" class="form-select uniform-dropdown filter-dropdown input-calm-inset" aria-label="{{ filter_name }} filter">
-                                    <option value="">All</option>
-                                    {% for option in filter_options %}
-                                    <option value="{{ option }}">{{ option }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% endfor %}
-                        </form>
-                    </div>
-                </div>
-        </div>
-
-        <!-- Workout Controls Section -->
-        <div class="collapsible-frame action-frame frame-calm-glass" data-visual-surface data-section="controls">
-            <div class="frame-header frame-header-2025">
-                <div class="frame-header-left">
-                    <span class="frame-title">Workout Controls</span>
-                </div>
-                <div class="frame-header-right">
-                    <button class="collapse-toggle" type="button" title="Collapse workout controls" aria-expanded="true" aria-controls="controls-content">
-                        <i class="fas fa-chevron-up toggle-icon" data-visual-icon aria-hidden="true"></i>
-                        <span class="toggle-text">Hide</span>
-                    </button>
-                </div>
-            </div>
-            <div class="frame-content" id="controls-content">
-                <div class="horizontal-layout">
-                    <!-- Input Fields Group -->
-                    <div class="input-fields-group" role="group" aria-label="Exercise parameters">
-                        <div class="input-group">
-                            <label for="weight" class="form-label">Weight<small id="weight-hand-hint" class="weight-hand-hint" hidden title="Per hand — one dumbbell"> (per hand)</small></label>
-                            <input type="number" id="weight" name="weight" class="form-control input-calm-inset" min="0" step="any" value="25" aria-label="Weight in kilograms" aria-describedby="weight-hand-hint">
-                        </div>
-                        <div class="input-group">
-                            <label for="sets" class="form-label">Sets</label>
-                            <input type="number" id="sets" name="sets" class="form-control input-calm-inset" min="1" value="3" aria-label="Number of sets">
-                        </div>
-                        <div class="input-group">
-                            <label for="rir" class="form-label">RIR</label>
-                            <input type="number" id="rir" name="rir" class="form-control input-calm-inset" placeholder="RIR" min="0" max="10" value="3" aria-label="Reps in Reserve">
-                        </div>
-                        <div class="input-group">
-                            <label for="rpe" class="form-label">RPE</label>
-                            <input type="number" id="rpe" name="rpe" class="form-control input-calm-inset" placeholder="RPE" min="1" max="10" step="0.5" value="7" aria-label="Rate of Perceived Exertion">
-                        </div>
-                        <div class="input-group">
-                            <label for="min_rep" class="form-label">Min Rep</label>
-                            <input type="number" id="min_rep" name="min_rep" class="form-control input-calm-inset" placeholder="Min Rep" min="1" value="6" aria-label="Minimum repetitions">
-                        </div>
-                        <div class="input-group">
-                            <label for="max_rep_range" class="form-label">Max Rep</label>
-                            <input type="number" id="max_rep_range" name="max_rep_range" class="form-control input-calm-inset" min="1" value="8" aria-label="Maximum repetitions">
-                        </div>
-                    </div>
-                </div>
-                <div class="workout-estimate-provenance-row">
-                    <p id="workout-estimate-provenance" class="workout-estimate-provenance" aria-live="polite">default values</p>
-                    <span id="workout-estimate-learned-badge" class="workout-estimate-learned-badge" data-confidence="" hidden>
-                        <i class="fas fa-magic" aria-hidden="true"></i>
-                        <span class="workout-estimate-learned-badge-label">Learned</span>
-                    </span>
-                    <span id="workout-estimate-fatigue-chip" class="workout-estimate-fatigue-chip" hidden>
-                        <i class="fas fa-battery-half" aria-hidden="true"></i>
-                        <span class="workout-estimate-fatigue-chip-label">Fatigue context</span>
-                    </span>
-                    <button id="workout-estimate-trace-toggle" class="workout-estimate-trace-toggle" type="button" aria-expanded="false" aria-controls="workout-estimate-trace" hidden>
-                        <i class="fas fa-info-circle" aria-hidden="true"></i>
-                        <span class="workout-estimate-trace-toggle-label">Show the math</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </button>
-                </div>
-                <div id="workout-estimate-trace" class="workout-estimate-trace" hidden></div>
-            </div>
-        </div>
-
-        <!-- Exercise Selection Section -->
-        <div id="exercise-selection-frame" class="collapsible-frame action-frame frame-calm-glass" data-visual-surface data-section="exercise selection">
-            <div class="frame-header frame-header-2025">
-                <div class="frame-header-left">
-                    <span class="frame-title">Exercise Selection</span>
-                </div>
-                <div class="frame-header-right">
-                    <button class="collapse-toggle" type="button" title="Collapse exercise selection" aria-expanded="true" aria-controls="exercise-selection-content">
-                        <i class="fas fa-chevron-up toggle-icon" data-visual-icon aria-hidden="true"></i>
-                        <span class="toggle-text">Hide</span>
-                    </button>
-                </div>
-            </div>
-            <div class="frame-content" id="exercise-selection-content">
-                <div class="exercise-selection-grid row gx-4 gy-3 align-items-end" role="group" aria-label="Exercise selection controls">
-                    <!-- Cascading Routine Selector -->
-                    <div class="col-12 routine-selector selection-field">
-                        <label class="form-label">Routine</label>
-                        
-                        <!-- Hidden field to store composite routine value for form submission -->
-                        <input type="hidden" id="routine" name="routine" value="">
-                        
-                        <div id="routine-cascade-container" class="routine-cascade-container">
-                            <!-- Row of 3 cascading dropdowns -->
-                            <div class="cascade-row">
-                                <!-- Step 1: Environment -->
-                                <div class="cascade-dropdown-wrapper">
-                                    <label for="routine-env" data-step="1">Environment</label>
-                                    <select id="routine-env" name="routine-env" 
-                                            data-testid="routine-env"
-                                            class="form-select cascade-dropdown cascade-env input-calm-inset"
-                                            aria-label="Select environment">
-                                        <option value="">Select Environment</option>
-                                        <option value="GYM">🏋️ GYM</option>
-                                        <option value="Home Workout">🏠 Home Workout</option>
-                                    </select>
-                                </div>
-                                
-                                <!-- Connector Arrow 1 -->
-                                <div class="cascade-connector cascade-connector-1" aria-hidden="true">
-                                    <i class="fas fa-arrow-right"></i>
-                                </div>
-                                
-                                <!-- Step 2: Program -->
-                                <div class="cascade-dropdown-wrapper">
-                                    <label for="routine-program" data-step="2">Program</label>
-                                    <select id="routine-program" name="routine-program" 
-                                            data-testid="routine-program"
-                                            class="form-select cascade-dropdown cascade-program input-calm-inset"
-                                            aria-label="Select program" disabled>
-                                        <option value="">Select Program</option>
-                                    </select>
-                                </div>
-                                
-                                <!-- Connector Arrow 2 -->
-                                <div class="cascade-connector cascade-connector-2" aria-hidden="true">
-                                    <i class="fas fa-arrow-right"></i>
-                                </div>
-                                
-                                <!-- Step 3: Workout Day -->
-                                <div class="cascade-dropdown-wrapper">
-                                    <label for="routine-day" data-step="3">Workout</label>
-                                    <select id="routine-day" name="routine-day" 
-                                            data-testid="routine-day"
-                                            class="form-select cascade-dropdown cascade-routine input-calm-inset"
-                                            aria-label="Select workout day" disabled>
-                                        <option value="">Select Workout</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <!-- Selection Breadcrumb -->
-                            <div id="routine-breadcrumb" class="routine-breadcrumb" aria-live="polite">
-                                <span class="breadcrumb-placeholder">Select environment to begin</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Exercise Dropdown -->
-                    <div class="col-12 exercise-selector selection-field">
-                        <label for="exercise" class="form-label">
-                            Exercise
-                            <span id="exercise-match-count" class="exercise-match-count" aria-live="polite" aria-label="Matching exercises count"></span>
-                        </label>
-                        <select id="exercise" name="exercise" data-testid="exercise-search" class="form-select uniform-dropdown exercise-dropdown input-calm-inset" aria-label="Select exercise">
-                            {% for exercise in exercises %}
-                            {% if exercise %}
-                            <option value="{{ exercise }}">{{ exercise }}</option>
-                            {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="col-12">
-                        <div class="selection-actions buttons-row" id="action-buttons-row" role="group" aria-label="Exercise selection actions">
-                            <div class="action-toolbar-group action-toolbar-group-left" role="group" aria-label="Export actions">
-                                <!-- Export to Workout Log Button -->
-                                <div class="inline-control-item">
-                                    <button id="export-to-log-btn" data-testid="export-to-log-btn" class="btn btn-export-log btn-calm-primary" type="button" onclick="exportToWorkoutLog()" aria-label="Export to workout log">
-                                        <i class="fas fa-clipboard-list" aria-hidden="true"></i> Export to Workout Log
-                                    </button>
-                                </div>
-
-                                <!-- Export All Tables Button -->
-                                <div class="inline-control-item">
-                                    <button type="button" data-testid="export-excel-btn" class="btn btn-export-excel btn-calm-ghost" onclick="exportToExcel()" aria-label="Export All Tables from workout plan to Excel">
-                                        <i class="fas fa-file-excel" aria-hidden="true"></i> Export All Tables
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="action-toolbar-group action-toolbar-group-center" role="group" aria-label="Plan editing actions">
-                                <!-- Add Exercise Button -->
-                                <div class="inline-control-item">
-                                    <button id="add_exercise_btn" data-testid="add-exercise-btn" class="btn btn-primary btn-calm-primary" type="button" aria-label="Add exercise to workout plan">
-                                        <i class="fas fa-plus" aria-hidden="true"></i> Add Exercise
-                                    </button>
-                                </div>
-
-                                <!-- Generate Starter Plan Button -->
-                                <div class="inline-control-item">
-                                    <button id="generate-plan-btn" class="btn btn-success btn-calm-primary" type="button" data-bs-toggle="modal" data-bs-target="#generatePlanModal" aria-label="Generate Starter Plan">
-                                        <i class="fas fa-magic" aria-hidden="true"></i> Generate Starter Plan
-                                    </button>
-                                </div>
-
-                                <!-- Clear Filters Button -->
-                                <div class="inline-control-item">
-                                    <button id="clear-filters-btn" data-testid="clear-filters-btn" class="btn btn-outline-secondary btn-calm-ghost" type="button" aria-label="Clear Filters">
-                                        <i class="fas fa-times" aria-hidden="true"></i> Clear Filters
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="action-toolbar-group action-toolbar-group-right" role="group" aria-label="Program actions">
-                                <!-- Backup Center Button -->
-                                <div class="inline-control-item">
-                                    <a id="load-program-btn" class="btn btn-outline-secondary btn-calm-ghost" href="/backup?intent=browse" aria-label="Open Backup Center">
-                                        <i class="fas fa-folder-open" aria-hidden="true"></i> Backup Center
-                                    </a>
-                                </div>
-
-                                <!-- Clear Plan Button -->
-                                <div class="inline-control-item">
-                                    <button id="clear-plan-btn" class="btn btn-outline-danger btn-calm-danger" type="button" data-bs-toggle="modal" data-bs-target="#clearPlanModal" aria-label="Clear Plan (entire workout plan)">
-                                        <i class="fas fa-trash-alt" aria-hidden="true"></i> Clear Plan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-        <!-- Display the Workout Plan -->
-        <!-- AGENT:START B-1 PRIORITY-CLASSES -->
-        <section class="workout-plan table-container frame-calm-glass" data-visual-surface aria-labelledby="workout-plan-table-heading">
-            <div class="table-header" data-visual-surface data-visual-header>
-                <h2 id="workout-plan-table-heading" class="text-center">Workout Plan Table</h2>
-                <div class="table-header-underline" data-visual-accent aria-hidden="true"></div>
-            </div>
-            
-            <!-- Routine Tabs Navigation -->
-            <nav class="routine-tabs-container frame-calm-glass" data-visual-surface aria-label="Filter workout plan by routine">
-                <ul class="routine-tabs" id="routine-tabs" role="tablist">
-                    <li class="routine-tab active" role="presentation">
-                        <button class="routine-tab-btn active" 
-                                data-routine="all" 
-                                role="tab" 
-                                aria-selected="true"
-                                aria-controls="workout_plan_table_body"
-                                id="tab-all">
-                            <span class="tab-label">All</span>
-                            <span class="tab-count" id="tab-count-all"></span>
-                        </button>
-                    </li>
-                    <!-- Dynamic routine tabs will be inserted here by JavaScript -->
-                </ul>
-            </nav>
-            
-            <!-- Superset Action Buttons (shown when exercises are selected) -->
-            <div id="superset-actions" class="superset-actions frame-calm-glass" data-visual-surface style="display: none;">
-                <button id="link-superset-btn" class="btn btn-link-superset btn-calm-primary" type="button" disabled>
-                    <i class="fas fa-link" aria-hidden="true"></i> Link as Superset
+<div id="workout" data-page="workout-plan" data-plan-state="loading">
+    <header class="ui-page-header">
+        <h1 class="ui-page-title">Workout Plan</h1>
+        <div class="ui-page-actions">
+            <button id="export-to-log-btn" data-testid="export-to-log-btn" class="ui-btn" type="button" onclick="exportToWorkoutLog()" aria-label="Export to workout log">Export to Workout Log</button>
+            <div class="ui-menu">
+                <button id="more-btn" class="ui-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="more-menu">
+                    More <i class="fas fa-chevron-down" aria-hidden="true"></i>
                 </button>
-                <button id="unlink-superset-btn" class="btn btn-unlink-superset btn-calm-danger" type="button" hidden>
-                    <i class="fas fa-unlink" aria-hidden="true"></i> Unlink Superset
-                </button>
-                <span id="superset-selection-info" class="superset-selection-info"></span>
+                <div id="more-menu" class="ui-menu__popover" role="menu" aria-labelledby="more-btn" hidden>
+                    <button class="ui-menu__item" role="menuitem" tabindex="-1" type="button" data-testid="export-excel-btn" onclick="exportToExcel()" aria-label="Export All Tables from workout plan to Excel">Export All Tables</button>
+                    <a id="load-program-btn" class="ui-menu__item" role="menuitem" tabindex="-1" href="/backup?intent=browse" aria-label="Open Backup Center">Backup Center</a>
+                    <button id="generate-plan-btn" class="ui-menu__item" role="menuitem" tabindex="-1" type="button" data-bs-toggle="modal" data-bs-target="#generatePlanModal">Generate Starter Plan</button>
+                    <div class="ui-menu__sep" role="separator"></div>
+                    <button id="clear-plan-btn" class="ui-menu__item ui-menu__item--danger" role="menuitem" tabindex="-1" type="button" data-bs-toggle="modal" data-bs-target="#clearPlanModal" aria-label="Clear Plan (entire workout plan)">
+                        <i class="fas fa-trash" aria-hidden="true"></i> Clear Plan
+                    </button>
+                </div>
             </div>
-            
-            <div class="tbl-wrap tbl-wrap--full frame-calm-glass" data-visual-surface role="region" aria-label="Workout plan exercises table">
-                <table class="table table-striped workout-plan-table table-calm tbl tbl--responsive" data-visual-surface
-                       role="table" 
+        </div>
+    </header>
+
+    <section class="ui-panel plan-list" aria-labelledby="workout-plan-table-heading">
+        <div class="plan-list-heading">
+            <h2 id="workout-plan-table-heading">Workout Plan Table</h2>
+            <div class="plan-volume-actions">
+                <button id="vpActiveSummary" type="button" class="ui-btn ui-btn--ghost" aria-live="polite">
+                    No active plan - activate one to drive the Plan tab.
+                </button>
+                <button id="vpToggle" type="button" class="ui-btn" aria-controls="vpDrawer" aria-expanded="false">
+                    <i class="fas fa-chart-bar" aria-hidden="true"></i> Volume targets
+                </button>
+            </div>
+        </div>
+
+        <ul class="ui-tabs" id="routine-tabs" role="tablist" aria-label="Filter workout plan by routine">
+            <li class="routine-tab ui-tabs__item" role="presentation">
+                <button class="routine-tab-btn ui-tab" id="tab-all" type="button" data-routine="all" role="tab" aria-selected="false" aria-controls="workout_plan_table_body">
+                    <span class="tab-label">All</span>
+                    <span class="tab-count" id="tab-count-all"></span>
+                </button>
+            </li>
+        </ul>
+
+        <div id="superset-actions" class="plan-superset-actions" style="display: none;">
+            <button id="link-superset-btn" class="ui-btn" type="button" disabled>
+                <i class="fas fa-link" aria-hidden="true"></i> Link as Superset
+            </button>
+            <button id="unlink-superset-btn" class="ui-btn" type="button" hidden>
+                <i class="fas fa-unlink" aria-hidden="true"></i> Unlink Superset
+            </button>
+            <span id="superset-selection-info" aria-live="polite"></span>
+        </div>
+
+        <div class="tbl-wrap">
+            <div class="tbl-controls"></div>
+            <div class="plan-table-region" role="region" aria-label="Workout plan exercises table" tabindex="0">
+                <table class="workout-plan-table ui-data-table ui-data-table--ruled tbl--view-simple"
+                       role="table"
                        aria-label="Workout plan exercises"
                        data-table-responsive="workout_plan"
                        data-testid="exercise-table">
                     <thead>
                         <tr>
-                            <th scope="col" class="superset-select-col" width="40" aria-label="Select for superset" title="Select exercises to create superset">
+                            <th scope="col" class="superset-select-col" data-label="Select" aria-label="Select for superset" title="Select exercises to create superset">
                                 <span class="superset-header-icon" aria-hidden="true"><i class="fas fa-link"></i></span>
                                 <span class="visually-hidden">Select for Superset</span>
                             </th>
-                            <th scope="col" width="30" aria-label="Drag handle"></th>
+                            <th scope="col" data-label="Reorder" aria-label="Drag handle"></th>
                             <th scope="col" class="col--high" data-label="Routine">Routine</th>
                             <th scope="col" class="col--high" data-label="Exercise">Exercise</th>
                             <th scope="col" class="col--med" data-label="Primary Muscle">Primary Muscle</th>
@@ -358,202 +100,355 @@
                             <th scope="col" class="col--high" data-label="Actions">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="workout_plan_table_body">
-                        <!-- Rows will be populated dynamically via JavaScript -->
-                    </tbody>
+                    <tbody id="workout_plan_table_body" role="rowgroup"></tbody>
                 </table>
             </div>
+        </div>
+
+        <section class="ui-panel ui-empty-state" aria-label="Empty plan">
+            <h2>No exercises in your plan yet</h2>
+            <p>Generate a starter plan, or add your first exercise below.</p>
+            <div class="plan-empty-actions">
+                <button type="button" class="ui-btn" data-bs-toggle="modal" data-bs-target="#generatePlanModal">Generate Starter Plan</button>
+                <button type="button" class="ui-btn" data-focus-add>Add first exercise</button>
+            </div>
         </section>
-        <!-- AGENT:END B-1 PRIORITY-CLASSES -->
-    </div>
+    </section>
 
-    <!-- Generate Starter Plan Modal -->
-    <div class="modal fade" id="generatePlanModal" tabindex="-1" aria-labelledby="generatePlanModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 90vw; width: 1600px;">
-            <div class="modal-content frame-calm-glass" data-visual-surface>
-                <div class="modal-header py-2">
-                    <h5 class="modal-title" id="generatePlanModalLabel">
-                        <i class="fas fa-magic me-2"></i>Generate Starter Plan
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body py-3">
-                    <form id="generatePlanForm">
-                        <!-- Row 1: All 6 dropdowns/controls -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-xl-2 col-lg-4 col-md-6">
-                                <label for="gen-training-days" class="form-label small mb-1">Training Days</label>
-                                <select id="gen-training-days" class="form-select form-select-sm input-calm-inset" required>
-                                    <option value="1">1 day (Full Body: Workout A)</option>
-                                    <option value="2">2 days (2 Days Split: Workout A/B)</option>
-                                    <option value="3" selected>3 days (3 Days Split: Workout A/B/C)</option>
-                                    <option value="4">4 days (Upper Lower: Upper/Lower 1-2)</option>
-                                    <option value="5">5 days (5 Days Split: Day 1-5)</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-2 col-lg-4 col-md-6">
-                                <label for="gen-environment" class="form-label small mb-1">Environment</label>
-                                <select id="gen-environment" class="form-select form-select-sm input-calm-inset" required>
-                                    <option value="gym" selected>🏋️ Gym</option>
-                                    <option value="home">🏠 Home</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-2 col-lg-4 col-md-6">
-                                <label for="gen-experience" class="form-label small mb-1">Experience</label>
-                                <select id="gen-experience" class="form-select form-select-sm input-calm-inset" required>
-                                    <option value="novice" selected>Novice (&lt;1yr)</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advanced">Advanced</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-2 col-lg-4 col-md-6">
-                                <label for="gen-goal" class="form-label small mb-1">Goal</label>
-                                <select id="gen-goal" class="form-select form-select-sm input-calm-inset" required>
-                                    <option value="hypertrophy" selected>💪 Hypertrophy</option>
-                                    <option value="strength">🏆 Strength</option>
-                                    <option value="general">⚖️ General</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-2 col-lg-4 col-md-6">
-                                <label for="gen-volume-scale" class="form-label small mb-1">Volume: <span id="volume-scale-value" class="fw-bold">1.0x</span></label>
-                                <input type="range" class="form-range range-calm" id="gen-volume-scale" min="0.6" max="2.0" step="0.1" value="1.0">
-                            </div>
-                            <div class="col-xl-2 col-lg-4 col-md-6">
-                                <label class="form-label small mb-1">Options</label>
-                                <div class="d-flex flex-nowrap gap-3">
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input" type="checkbox" id="gen-overwrite" checked>
-                                        <label class="form-check-label small" for="gen-overwrite">Overwrite</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input" type="checkbox" id="gen-no-overhead">
-                                        <label class="form-check-label small text-nowrap" for="gen-no-overhead">No Overhead Press</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input" type="checkbox" id="gen-no-deadlift">
-                                        <label class="form-check-label small text-nowrap" for="gen-no-deadlift">No Deadlifts</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    <section class="ui-panel plan-add" aria-labelledby="plan-add-heading">
+        <h2 id="plan-add-heading">Add exercise</h2>
+        <div class="plan-form-field" role="group" aria-labelledby="plan-routine-label">
+            <span class="form-label" id="plan-routine-label">Routine</span>
 
-                        <!-- Row 2: Equipment -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-12">
-                                <label class="form-label small mb-1"><i class="fas fa-dumbbell me-1"></i>Equipment</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-barbell" value="Barbell" checked>
-                                        <label class="form-check-label small" for="gen-eq-barbell"><i class="fas fa-weight-hanging text-secondary"></i> Barbell</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-dumbbells" value="Dumbbells" checked>
-                                        <label class="form-check-label small" for="gen-eq-dumbbells"><i class="fas fa-dumbbell text-secondary"></i> Dumbbells</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-cables" value="Cables" checked>
-                                        <label class="form-check-label small" for="gen-eq-cables"><i class="fas fa-link text-secondary"></i> Cables</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-machine" value="Machine" checked>
-                                        <label class="form-check-label small" for="gen-eq-machine"><i class="fas fa-cogs text-secondary"></i> Machine</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-bodyweight" value="Bodyweight" checked>
-                                        <label class="form-check-label small" for="gen-eq-bodyweight"><i class="fas fa-running text-secondary"></i> Bodyweight</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-kettlebells" value="Kettlebells">
-                                        <label class="form-check-label small" for="gen-eq-kettlebells"><i class="fas fa-bowling-ball text-secondary"></i> Kettlebells</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-smith" value="Smith_Machine">
-                                        <label class="form-check-label small" for="gen-eq-smith"><i class="fas fa-grip-lines-vertical text-secondary"></i> Smith Machine</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-trapbar" value="Trapbar">
-                                        <label class="form-check-label small" for="gen-eq-trapbar"><i class="fas fa-th-large text-secondary"></i> Trap Bar</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-band" value="Band">
-                                        <label class="form-check-label small" for="gen-eq-band"><i class="fas fa-ribbon text-secondary"></i> Band</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-trx" value="Trx">
-                                        <label class="form-check-label small" for="gen-eq-trx"><i class="fas fa-compress-arrows-alt text-secondary"></i> TRX</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-plate" value="Plate">
-                                        <label class="form-check-label small" for="gen-eq-plate"><i class="fas fa-circle text-secondary"></i> Plate</label>
-                                    </div>
-                                    <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-medicine" value="Medicine_Ball">
-                                        <label class="form-check-label small" for="gen-eq-medicine"><i class="fas fa-basketball-ball text-secondary"></i> Medicine Ball</label>
-                                    </div>
-                                    <span class="ms-2">
-                                        <button type="button" class="btn btn-sm btn-link p-0 me-1 btn-calm-link" onclick="document.querySelectorAll('.equipment-check').forEach(c => c.checked = true)">All</button>
-                                        <button type="button" class="btn btn-sm btn-link p-0 btn-calm-link" onclick="document.querySelectorAll('.equipment-check').forEach(c => c.checked = false)">None</button>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Hidden field to store composite routine value for form submission -->
+            <input type="hidden" id="routine" name="routine" value="">
 
-                        <!-- Row 3: Preview -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-12">
-                                <div class="plan-preview-box frame-calm-glass" data-visual-surface id="plan-preview">
-                                    <span class="preview-label"><i class="fas fa-info-circle me-1"></i>Preview</span>
-                                    <div class="preview-badges" id="plan-preview-content">
-                                        <span class="preview-badge badge-routines"><i class="fas fa-calendar-alt me-1"></i><span class="badge-value">3 Days Split: Workout A, Workout B, Workout C</span></span>
-                                        <span class="preview-badge badge-exercises"><i class="fas fa-dumbbell me-1"></i><span class="badge-value">~7</span> exercises</span>
-                                        <span class="preview-badge badge-sets"><i class="fas fa-layer-group me-1"></i><span class="badge-value">18</span> sets</span>
-                                        <span class="preview-badge badge-reps"><i class="fas fa-redo me-1"></i><span class="badge-value">6-15</span> reps</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Muscle selector full width -->
-                        <div class="row">
-                            <div class="col-12">
-                                <label class="form-label small mb-1">
-                                    <i class="fas fa-star me-1"></i>Priority Muscle Groups 
-                                    <span class="text-muted">(Optional – select up to 2 muscles to get extra sets on top of the balanced plan)</span>
-                                </label>
-                                <div id="muscle-selector-container" class="muscle-selector-container">
-                                    <!-- Muscle selector will be rendered here by JavaScript -->
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer py-2">
-                    <div class="plan-disclaimer text-muted me-auto">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Plan covers all muscle groups. Priority muscles (if selected) get extra sets.
+            <div id="routine-cascade-container" class="routine-cascade-container">
+                <!-- Row of 3 cascading dropdowns -->
+                <div class="cascade-row">
+                    <!-- Step 1: Environment -->
+                    <div class="cascade-dropdown-wrapper">
+                        <label for="routine-env" data-step="1">Environment</label>
+                        <select id="routine-env" name="routine-env"
+                                data-testid="routine-env"
+                                class="ui-field-input cascade-dropdown cascade-env"
+                                aria-label="Select environment">
+                            <option value="">Select Environment</option>
+                            <option value="GYM">GYM</option>
+                            <option value="Home Workout">Home Workout</option>
+                        </select>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm btn-calm-ghost" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success btn-sm btn-calm-primary" id="generatePlanSubmit" onclick="generateStarterPlan()">
-                        <i class="fas fa-magic me-1"></i>Generate Plan
-                    </button>
+
+                    <!-- Connector Arrow 1 -->
+                    <div class="cascade-connector cascade-connector-1" aria-hidden="true">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+
+                    <!-- Step 2: Program -->
+                    <div class="cascade-dropdown-wrapper">
+                        <label for="routine-program" data-step="2">Program</label>
+                        <select id="routine-program" name="routine-program"
+                                data-testid="routine-program"
+                                class="ui-field-input cascade-dropdown cascade-program"
+                                aria-label="Select program" disabled>
+                            <option value="">Select Program</option>
+                        </select>
+                    </div>
+
+                    <!-- Connector Arrow 2 -->
+                    <div class="cascade-connector cascade-connector-2" aria-hidden="true">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+
+                    <!-- Step 3: Workout Day -->
+                    <div class="cascade-dropdown-wrapper">
+                        <label for="routine-day" data-step="3">Workout</label>
+                        <select id="routine-day" name="routine-day"
+                                data-testid="routine-day"
+                                class="ui-field-input cascade-dropdown cascade-routine"
+                                aria-label="Select workout day" disabled>
+                            <option value="">Select Workout</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Selection Breadcrumb -->
+                <div id="routine-breadcrumb" class="routine-breadcrumb" aria-live="polite">
+                    <span class="breadcrumb-placeholder">Select environment to begin</span>
                 </div>
             </div>
         </div>
-    </div>
-
-    <aside id="vpDrawer"
-           class="vp-drawer"
-           aria-hidden="true"
-           aria-labelledby="vpDrawerTitle"
-           role="complementary">
-        <header class="vp-drawer__header">
-            <h2 id="vpDrawerTitle">Volume targets</h2>
-            <button type="button" class="vp-close" aria-label="Close volume targets">&times;</button>
-        </header>
-        <section id="vpDrawerBody" class="vp-drawer__body"></section>
-    </aside>
-    <div id="vpBackdrop" class="vp-backdrop" hidden></div>
+        <div class="plan-form-field">
+            <label for="exercise" class="form-label">
+                Exercise
+                <span id="exercise-match-count" class="exercise-match-count" aria-live="polite" aria-label="Matching exercises count"></span>
+            </label>
+            <select id="exercise" name="exercise" data-testid="exercise-search" class="ui-field-input exercise-dropdown" aria-label="Select exercise">
+                {% for exercise in exercises %}
+                {% if exercise %}
+                <option value="{{ exercise }}">{{ exercise }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="plan-filter-actions">
+            <button id="filters-toggle" type="button" class="ui-btn ui-btn--ghost" aria-expanded="false" aria-controls="filters-form"><span id="filters-label">Filters</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <button id="clear-filters-btn" data-testid="clear-filters-btn" class="ui-btn" type="button" aria-label="Clear Filters">
+                <i class="fas fa-times" aria-hidden="true"></i> Clear Filters
+            </button>
+        </div>
+        <div id="filter-chips" class="plan-filter-chips"></div>
+        <form id="filters-form" class="plan-filter-grid" hidden role="search" aria-label="Filter workout plan exercises">
+            {% for filter_name, filter_options in filters.items() %}
+            {% set filter_id = filter_name | lower | replace(' ', '_') %}
+            <div class="plan-form-field">
+                <label for="{{ filter_id }}" class="form-label">{{ filter_name }}</label>
+                <select id="{{ filter_id }}" name="{{ filter_id }}" data-filter-key="{{ filter_name }}" class="ui-field-input filter-dropdown" aria-label="{{ filter_name }} filter">
+                    <option value="">All</option>
+                    {% for option in filter_options %}
+                    <option value="{{ option }}">{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </form>
+        <div class="plan-prescription-grid" role="group" aria-label="Exercise parameters">
+            <div class="plan-form-field">
+                <label for="weight" class="form-label">Weight<small id="weight-hand-hint" class="weight-hand-hint" hidden title="Per hand — one dumbbell"> (per hand)</small></label>
+                <input type="number" id="weight" name="weight" class="ui-field-input" min="0" step="any" value="25" aria-label="Weight in kilograms" aria-describedby="weight-hand-hint">
+            </div>
+            <div class="plan-form-field">
+                <label for="sets" class="form-label">Sets</label>
+                <input type="number" id="sets" name="sets" class="ui-field-input" min="1" value="3" aria-label="Number of sets">
+            </div>
+            <div class="plan-form-field">
+                <label for="rir" class="form-label">RIR</label>
+                <input type="number" id="rir" name="rir" class="ui-field-input" placeholder="RIR" min="0" max="10" value="3" aria-label="Reps in Reserve">
+            </div>
+            <div class="plan-form-field">
+                <label for="rpe" class="form-label">RPE</label>
+                <input type="number" id="rpe" name="rpe" class="ui-field-input" placeholder="RPE" min="1" max="10" step="0.5" value="7" aria-label="Rate of Perceived Exertion">
+            </div>
+            <div class="plan-form-field">
+                <label for="min_rep" class="form-label">Min Rep</label>
+                <input type="number" id="min_rep" name="min_rep" class="ui-field-input" placeholder="Min Rep" min="1" value="6" aria-label="Minimum repetitions">
+            </div>
+            <div class="plan-form-field">
+                <label for="max_rep_range" class="form-label">Max Rep</label>
+                <input type="number" id="max_rep_range" name="max_rep_range" class="ui-field-input" min="1" value="8" aria-label="Maximum repetitions">
+            </div>
+        </div>
+        <div class="workout-estimate-provenance-row">
+            <p id="workout-estimate-provenance" class="workout-estimate-provenance" aria-live="polite">default values</p>
+            <span id="workout-estimate-learned-badge" class="workout-estimate-learned-badge" data-confidence="" hidden>
+                <i class="fas fa-magic" aria-hidden="true"></i>
+                <span class="workout-estimate-learned-badge-label">Learned</span>
+            </span>
+            <span id="workout-estimate-fatigue-chip" class="workout-estimate-fatigue-chip" hidden>
+                <i class="fas fa-battery-half" aria-hidden="true"></i>
+                <span class="workout-estimate-fatigue-chip-label">Fatigue context</span>
+            </span>
+            <button id="workout-estimate-trace-toggle" class="workout-estimate-trace-toggle ui-btn ui-btn--ghost" type="button" aria-expanded="false" aria-controls="workout-estimate-trace" hidden>
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                <span class="workout-estimate-trace-toggle-label">Show the math</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div id="workout-estimate-trace" class="workout-estimate-trace" hidden></div>
+        <button id="add_exercise_btn" data-testid="add-exercise-btn" class="ui-btn ui-btn--primary" type="button" aria-label="Add exercise to workout plan">
+            <i class="fas fa-plus" aria-hidden="true"></i> Add Exercise
+        </button>
+    </section>
 </div>
+
+<!-- Generate Starter Plan Modal -->
+<div class="modal fade" id="generatePlanModal" tabindex="-1" aria-labelledby="generatePlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable ui-modal-dialog ui-modal-dialog--wide">
+        <div class="modal-content ui-modal" data-visual-surface>
+            <div class="modal-header ui-modal__header">
+                <h5 class="modal-title ui-modal__title" id="generatePlanModalLabel">
+                    Generate Starter Plan
+                </h5>
+                <button type="button" class="btn-close ui-modal__close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body ui-modal__body">
+                <form id="generatePlanForm">
+                    <!-- Row 1: All 6 dropdowns/controls -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="gen-training-days" class="ui-modal__caption mb-1">Training Days</label>
+                            <select id="gen-training-days" class="ui-field-input plan-generator-select" required>
+                                <option value="1">1 day (Full Body: Workout A)</option>
+                                <option value="2">2 days (2 Days Split: Workout A/B)</option>
+                                <option value="3" selected>3 days (3 Days Split: Workout A/B/C)</option>
+                                <option value="4">4 days (Upper Lower: Upper/Lower 1-2)</option>
+                                <option value="5">5 days (5 Days Split: Day 1-5)</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="gen-environment" class="ui-modal__caption mb-1">Environment</label>
+                            <select id="gen-environment" class="ui-field-input plan-generator-select" required>
+                                <option value="gym" selected>Gym</option>
+                                <option value="home">Home</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="gen-experience" class="ui-modal__caption mb-1">Experience</label>
+                            <select id="gen-experience" class="ui-field-input plan-generator-select" required>
+                                <option value="novice" selected>Novice (&lt;1yr)</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="gen-goal" class="ui-modal__caption mb-1">Goal</label>
+                            <select id="gen-goal" class="ui-field-input plan-generator-select" required>
+                                <option value="hypertrophy" selected>Hypertrophy</option>
+                                <option value="strength">Strength</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="gen-volume-scale" class="ui-modal__caption mb-1">Volume: <span id="volume-scale-value" class="fw-bold">1.0x</span></label>
+                            <input type="range" class="form-range range-calm" id="gen-volume-scale" min="0.6" max="2.0" step="0.1" value="1.0">
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <span class="ui-modal__caption mb-1">Options</span>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input" type="checkbox" id="gen-overwrite" checked>
+                                    <label class="form-check-label small" for="gen-overwrite">Overwrite</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input" type="checkbox" id="gen-no-overhead">
+                                    <label class="form-check-label small text-nowrap" for="gen-no-overhead">No Overhead Press</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input" type="checkbox" id="gen-no-deadlift">
+                                    <label class="form-check-label small text-nowrap" for="gen-no-deadlift">No Deadlifts</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Equipment -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-12">
+                            <label class="ui-modal__caption mb-1"><i class="fas fa-dumbbell me-1"></i>Equipment</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-barbell" value="Barbell" checked>
+                                    <label class="form-check-label small" for="gen-eq-barbell"><i class="fas fa-weight-hanging text-secondary"></i> Barbell</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-dumbbells" value="Dumbbells" checked>
+                                    <label class="form-check-label small" for="gen-eq-dumbbells"><i class="fas fa-dumbbell text-secondary"></i> Dumbbells</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-cables" value="Cables" checked>
+                                    <label class="form-check-label small" for="gen-eq-cables"><i class="fas fa-link text-secondary"></i> Cables</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-machine" value="Machine" checked>
+                                    <label class="form-check-label small" for="gen-eq-machine"><i class="fas fa-cogs text-secondary"></i> Machine</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-bodyweight" value="Bodyweight" checked>
+                                    <label class="form-check-label small" for="gen-eq-bodyweight"><i class="fas fa-running text-secondary"></i> Bodyweight</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-kettlebells" value="Kettlebells">
+                                    <label class="form-check-label small" for="gen-eq-kettlebells"><i class="fas fa-bowling-ball text-secondary"></i> Kettlebells</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-smith" value="Smith_Machine">
+                                    <label class="form-check-label small" for="gen-eq-smith"><i class="fas fa-grip-lines-vertical text-secondary"></i> Smith Machine</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-trapbar" value="Trapbar">
+                                    <label class="form-check-label small" for="gen-eq-trapbar"><i class="fas fa-th-large text-secondary"></i> Trap Bar</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-band" value="Band">
+                                    <label class="form-check-label small" for="gen-eq-band"><i class="fas fa-ribbon text-secondary"></i> Band</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-trx" value="Trx">
+                                    <label class="form-check-label small" for="gen-eq-trx"><i class="fas fa-compress-arrows-alt text-secondary"></i> TRX</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-plate" value="Plate">
+                                    <label class="form-check-label small" for="gen-eq-plate"><i class="fas fa-circle text-secondary"></i> Plate</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-medicine" value="Medicine_Ball">
+                                    <label class="form-check-label small" for="gen-eq-medicine"><i class="fas fa-basketball-ball text-secondary"></i> Medicine Ball</label>
+                                </div>
+                                <span class="ms-2">
+                                    <button type="button" class="ui-btn ui-btn--ghost ui-btn--small" onclick="document.querySelectorAll('.equipment-check').forEach(c => c.checked = true)">All</button>
+                                    <button type="button" class="ui-btn ui-btn--ghost ui-btn--small" onclick="document.querySelectorAll('.equipment-check').forEach(c => c.checked = false)">None</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Preview -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-12">
+                            <div class="plan-preview-box" id="plan-preview">
+                                <span class="preview-label"><i class="fas fa-info-circle me-1"></i>Preview</span>
+                                <div class="preview-badges" id="plan-preview-content">
+                                    <span class="preview-badge badge-routines"><i class="fas fa-calendar-alt me-1"></i><span class="badge-value">3 Days Split: Workout A, Workout B, Workout C</span></span>
+                                    <span class="preview-badge badge-exercises"><i class="fas fa-dumbbell me-1"></i><span class="badge-value">~7</span> exercises</span>
+                                    <span class="preview-badge badge-sets"><i class="fas fa-layer-group me-1"></i><span class="badge-value">18</span> sets</span>
+                                    <span class="preview-badge badge-reps"><i class="fas fa-redo me-1"></i><span class="badge-value">6-15</span> reps</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Muscle selector full width -->
+                    <div class="row">
+                        <div class="col-12">
+                            <label class="ui-modal__caption mb-1">
+                                <i class="fas fa-star me-1"></i>Priority Muscle Groups
+                                <span>(Optional – select up to 2 muscles to get extra sets on top of the balanced plan)</span>
+                            </label>
+                            <div id="muscle-selector-container" class="muscle-selector-container">
+                                <!-- Muscle selector will be rendered here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer ui-modal__footer">
+                <div class="plan-disclaimer ui-modal__caption me-auto">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Plan covers all muscle groups. Priority muscles (if selected) get extra sets.
+                </div>
+                <button type="button" class="ui-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="ui-btn ui-btn--primary" id="generatePlanSubmit" onclick="generateStarterPlan()">
+                    <i class="fas fa-magic me-1"></i>Generate Plan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<aside id="vpDrawer"
+       class="vp-drawer ui-drawer"
+       aria-hidden="true"
+       aria-labelledby="vpDrawerTitle"
+       role="complementary">
+    <header class="vp-drawer__header">
+        <h2 id="vpDrawerTitle">Volume targets</h2>
+        <button type="button" class="vp-close" aria-label="Close volume targets">&times;</button>
+    </header>
+    <section id="vpDrawerBody" class="vp-drawer__body"></section>
+</aside>
+<div id="vpBackdrop" class="vp-backdrop" hidden></div>
 
 <script src="{{ url_for('static', filename='vendor/sortable/Sortable.min.js') }}?v={{ app_version }}"></script>
 <script src="{{ url_for('static', filename='js/modules/muscle-selector.js') }}?v={{ app_version }}"></script>
@@ -562,25 +457,24 @@
 
 <!-- Clear Plan Confirmation Modal -->
 <div class="modal fade" id="clearPlanModal" tabindex="-1" aria-labelledby="clearPlanModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content frame-calm-glass" data-visual-surface>
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="clearPlanModalLabel">
-                    <i class="fas fa-trash-alt me-2"></i>Clear Workout Plan
+    <div class="modal-dialog modal-dialog-centered ui-modal-dialog ui-modal-dialog--confirm">
+        <div class="modal-content ui-modal" data-visual-surface>
+            <div class="modal-header ui-modal__header">
+                <h5 class="modal-title ui-modal__title" id="clearPlanModalLabel">
+                    Clear Workout Plan
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close ui-modal__close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body ui-modal__body">
                 <p>Are you sure you want to clear the entire workout plan?</p>
-                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-1"></i>This will remove all exercises and cannot be undone.</p>
+                <p class="ui-modal__caption ui-modal__caption--danger mb-0"><i class="fas fa-exclamation-triangle me-1"></i>This will remove all exercises and cannot be undone.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-calm-ghost" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger btn-calm-danger" id="confirmClearPlanBtn" onclick="clearWorkoutPlan()">
-                    <i class="fas fa-trash-alt me-1"></i>Clear Plan
+            <div class="modal-footer ui-modal__footer">
+                <button type="button" class="ui-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="ui-btn ui-btn--danger-fill" id="confirmClearPlanBtn" onclick="clearWorkoutPlan()">
+                    <i class="fas fa-trash me-1"></i>Clear Plan
                 </button>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

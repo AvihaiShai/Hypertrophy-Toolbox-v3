@@ -65,7 +65,7 @@
     background: transparent !important;
 }
 
-:where([data-theme="dark"] .modal-content) {
+:where([data-theme="dark"] .modal-content.frame-calm-glass) {
     background: var(--glass-bg) !important;
     backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
@@ -193,34 +193,6 @@
 :where([data-theme="dark"] .btn-outline-secondary) {
     color: var(--text-primary);
     border-color: var(--border-color);
-}
-
-/* View Mode Toggle - Dark Mode Glass Style */
-:where([data-theme="dark"] .tbl-view-mode-toggle) {
-    background: linear-gradient(135deg, rgba(55, 65, 81, 0.9), rgba(75, 85, 99, 0.85));
-    color: #e5e7eb;
-    border: 1px solid rgba(107, 114, 128, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-:where([data-theme="dark"] .tbl-view-mode-toggle:hover) {
-    background: linear-gradient(135deg, rgba(75, 85, 99, 0.95), rgba(107, 114, 128, 0.9));
-    border-color: rgba(139, 146, 155, 0.5);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-:where([data-theme="dark"] .tbl-view-mode-toggle.active),
-:where([data-theme="dark"] .tbl-view-mode-toggle[data-view-mode="advanced"]) {
-    background: linear-gradient(135deg, rgba(6, 95, 70, 0.9), rgba(4, 120, 87, 0.85));
-    color: #a7f3d0;
-    border: 1px solid rgba(16, 185, 129, 0.4);
-}
-
-:where([data-theme="dark"] .tbl-view-mode-toggle.active:hover),
-:where([data-theme="dark"] .tbl-view-mode-toggle[data-view-mode="advanced"]:hover) {
-    background: linear-gradient(135deg, rgba(4, 120, 87, 0.95), rgba(5, 150, 105, 0.9));
-    border-color: rgba(52, 211, 153, 0.5);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* Headers and Text */
@@ -434,8 +406,6 @@
    ================================================ */
 
 /* Pastel Fuchsia - Min Rep & Max Rep (dark text on pastel background) */
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range),
 :where([data-theme="dark"] .input-fields-group input#min_rep),
 :where([data-theme="dark"] .input-fields-group input#max_rep_range) {
     background: #fce4ec !important;
@@ -443,16 +413,12 @@
     color: #1e293b !important;
 }
 
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep:hover:not(:disabled)),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#min_rep:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#max_rep_range:hover:not(:disabled)) {
     background: #f8bbd9 !important;
     border-color: #ec407a !important;
 }
 
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep:focus),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range:focus),
 :where([data-theme="dark"] .input-fields-group input#min_rep:focus),
 :where([data-theme="dark"] .input-fields-group input#max_rep_range:focus) {
     background: #fce4ec !important;
@@ -461,8 +427,6 @@
 }
 
 /* Pastel Pistachio - RIR & RPE (dark text on pastel background) */
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe),
 :where([data-theme="dark"] .input-fields-group input#rir),
 :where([data-theme="dark"] .input-fields-group input#rpe) {
     background: #e8f5e9 !important;
@@ -470,16 +434,12 @@
     color: #1e293b !important;
 }
 
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir:hover:not(:disabled)),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#rir:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#rpe:hover:not(:disabled)) {
     background: #c8e6c9 !important;
     border-color: #66bb6a !important;
 }
 
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir:focus),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe:focus),
 :where([data-theme="dark"] .input-fields-group input#rir:focus),
 :where([data-theme="dark"] .input-fields-group input#rpe:focus) {
     background: #e8f5e9 !important;
@@ -488,8 +448,6 @@
 }
 
 /* Pastel Banana/Yellow - Weight & Sets (dark text on pastel background) */
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets),
 :where([data-theme="dark"] .input-fields-group input#weight),
 :where([data-theme="dark"] .input-fields-group input#sets) {
     background: #fff9c4 !important;
@@ -497,40 +455,17 @@
     color: #1e293b !important;
 }
 
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight:hover:not(:disabled)),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#weight:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#sets:hover:not(:disabled)) {
     background: #fff176 !important;
     border-color: #fdd835 !important;
 }
 
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight:focus),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets:focus),
 :where([data-theme="dark"] .input-fields-group input#weight:focus),
 :where([data-theme="dark"] .input-fields-group input#sets:focus) {
     background: #fff9c4 !important;
     border-color: #fdd835 !important;
     box-shadow: 0 0 0 3px rgba(253, 216, 53, 0.3) !important;
-}
-
-/* Dark mode value-changed highlight */
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep.value-changed),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range.value-changed) {
-    box-shadow: 0 0 0 3px rgba(236, 64, 122, 0.5) !important;
-    border-color: #ec407a !important;
-}
-
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir.value-changed),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe.value-changed) {
-    box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.5) !important;
-    border-color: #66bb6a !important;
-}
-
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight.value-changed),
-:where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets.value-changed) {
-    box-shadow: 0 0 0 3px rgba(253, 216, 53, 0.5) !important;
-    border-color: #fdd835 !important;
 }
 
 /* Dark mode reduced motion */

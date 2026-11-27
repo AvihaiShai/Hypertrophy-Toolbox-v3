@@ -140,26 +140,26 @@
 
 <!-- Clear Log Confirmation Modal -->
 <div class="modal fade" id="clearLogModal" tabindex="-1" aria-labelledby="clearLogModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content frame-calm-glass" data-visual-surface>
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="clearLogModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Clear Log
+    <div class="modal-dialog modal-dialog-centered ui-modal-dialog ui-modal-dialog--confirm">
+        <div class="modal-content ui-modal" data-visual-surface>
+            <div class="modal-header ui-modal__header">
+                <h5 class="modal-title ui-modal__title" id="clearLogModalLabel">
+                    Confirm Clear Log
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close ui-modal__close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body ui-modal__body">
                 <p class="mb-2"><strong>Are you sure you want to clear all workout log entries?</strong></p>
-                <p class="text-muted mb-0">
+                <p class="ui-modal__caption mb-0">
                     <i class="fas fa-info-circle me-1"></i>
                     This action cannot be undone. All your logged workout data will be permanently deleted.
                 </p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-calm-ghost" data-bs-dismiss="modal">
+            <div class="modal-footer ui-modal__footer">
+                <button type="button" class="ui-btn" data-bs-dismiss="modal">
                     <i class="fas fa-times me-1"></i>Cancel
                 </button>
-                <button type="button" class="btn btn-danger btn-calm-danger" id="confirm-clear-log-btn">
+                <button type="button" class="ui-btn ui-btn--danger-fill" id="confirm-clear-log-btn">
                     <i class="fas fa-trash me-1"></i>Yes, Clear All
                 </button>
             </div>

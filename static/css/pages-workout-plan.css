@@ -1,468 +1,6 @@
-.filter-dropdown.show,
-.filter-dropdown:focus,
-select.filter-dropdown:focus {
-    z-index: 1050 !important;
-}
-
-/* The enhanced native filter remains the positioning anchor for its pseudo
-   element. Its rendered surface is owned by the generated wpdd button. */
-.filter-dropdown {
-    position: relative;
-}
-
-.filter-dropdown::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.9) 50%,
-        transparent 100%);
-    border-radius: 10px 10px 0 0;
-    pointer-events: none;
-}
-
-/* The legacy class remains a JS timing hook; only its live animation survives. */
-.exercise-dropdown.filter-applied {
-    animation: glowPulse 2s ease-in-out;
-}
-
-@keyframes glowPulse {
-    0% {
-        box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 25px rgba(33, 150, 243, 0.8);
-    }
-    100% {
-        box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
-    }
-}
-
-/* Filters Section */
-.filters-section {
-    margin-bottom: 1rem;
-    z-index: 3;
-}
-
-.filters-section .frame-header {
-    z-index: 11;
-}
-
-.filters.dropdown-group {
-    margin-top: 0;
-}
-
-/* Enhance form layout - Reduce vertical spacing between filter rows */
-#filters-form {
-    margin-top: 0;
-    --bs-gutter-y: 0 !important;  /* Force zero row gap */
-    row-gap: 0 !important;  /* No gap between wrapped rows */
-}
-
-/* Force all columns to have no margin-top (Bootstrap applies margin-top via gutter) */
-#filters-form > [class*="col"] {
-    margin-top: 0 !important;  /* No spacing between rows */
-    margin-bottom: 0 !important;  /* No bottom margin */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-
-#filters-form .form-label {
-    margin-bottom: 3px !important;
-    font-size: 0.85rem;
-    line-height: 1;
-}
-
-/* Ensure wpdd containers don't add extra spacing */
-#filters-form .wpdd {
-    margin: 0;
-    padding: 0;
-}
-
-/* Make wpdd buttons in filters compact */
-#filters-form .wpdd-button {
-    min-height: 38px !important;
-    padding: 4px 10px !important;
-    font-size: 0.8rem;
-}
-
-/* Reduce native form-select padding */
-#filters-form .form-select {
-    padding: 0.25rem 2rem 0.25rem 0.5rem !important;
-    height: 38px;
-}
-
-#filters-form .col-lg-3,
-#filters-form .col-md-4,
-#filters-form .col-sm-6 {
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-/* 720p (max-width: 1280px) - Very Compact */
-@media (max-width: 1280px) {
-    .filters-section {
-        margin-bottom: 0.375rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 0.72rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.25rem;
-        padding-right: 0.25rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* 1366x768 (1281px - 1366px) - Compact */
-@media (min-width: 1281px) and (max-width: 1366px) {
-    .filters-section {
-        margin-bottom: 0.4rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 0.75rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.3rem;
-        padding-right: 0.3rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* 1536x864 (1367px - 1536px) - Compact+ */
-@media (min-width: 1367px) and (max-width: 1536px) {
-    .filters-section {
-        margin-bottom: 0.45rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 0.78rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.325rem;
-        padding-right: 0.325rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* 1600x900 (1537px - 1600px) - Medium Compact */
-@media (min-width: 1537px) and (max-width: 1600px) {
-    .filters-section {
-        margin-bottom: 0.475rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 0.8rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.35rem;
-        padding-right: 0.35rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* 1080p (1601px - 1920px) - Standard Compact */
-@media (min-width: 1601px) and (max-width: 1920px) {
-    .filters-section {
-        margin-bottom: 0.5rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 0.82rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.375rem;
-        padding-right: 0.375rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* 1440p (1921px - 2560px) - Standard */
-@media (min-width: 1921px) and (max-width: 2560px) {
-    .filters-section {
-        margin-bottom: 0.75rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 0.85rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* 4K (2561px+) - Large */
-@media (min-width: 2561px) {
-    .filters-section {
-        margin-bottom: 1rem;
-    }
-
-    .filters.dropdown-group {
-        margin-top: 0;
-    }
-
-    #filters-form {
-        margin-top: 0;
-        --bs-gutter-y: 0;
-        row-gap: 0;
-    }
-
-    #filters-form .form-label {
-        margin-bottom: 3px;
-        font-size: 1rem;
-        line-height: 1;
-    }
-
-    #filters-form > [class*="col"] {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    #filters-form .col-lg-3,
-    #filters-form .col-md-4,
-    #filters-form .col-sm-6 {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-
-}
-
-/* Add subtle hover effect to the frame */
-.filters-section:hover {
-    transition: box-shadow 0.3s ease-in-out;
-}
-
-[data-theme='dark'] .filter-dropdown::before {
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        transparent 100%);
-}
-
-/* Filter header layout remains live independently of the retired toggle. */
-.frame-header-2025 .frame-header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.frame-header-2025 .frame-header-right {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-/* Uniform Dropdown Styles */
-.uniform-dropdown {
-    width: 100%;
-    min-width: 200px;
-    max-width: 100%;
-    height: 42px;
-    padding: 8px 12px;
-    font-size: 0.95rem;
-    border-radius: 4px;
-    transition: all 0.2s ease-in-out;
-}
-
-/* Focus States */
-.uniform-dropdown:focus {
-    outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    border-color: #80bdff;
-}
-
-/* Dropdown Container */
-.col-lg-3.col-md-4.col-sm-6 {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Label Styling */
-.form-label {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .uniform-dropdown {
-        min-width: 100%;
-        font-size: 0.9rem;
-    }
-}
-
-/* Ensure consistent spacing */
-.dropdown-group select {
-    margin-bottom: 1rem;
-}
-
-/* Ensure proper alignment in the form */
-#filters-form .col-lg-3,
-#filters-form .col-md-4,
-#filters-form .col-sm-6 {
-    padding: 0.5rem;
-}
-
 /* ==========================================================================
-   Workout Plan Dropdowns - Modern 2025 Enhancement
-   Progressive enhancement for native <select> elements
-   Scoped to #workout wrapper, using CSS cascade layers
+   Workout Plan dropdowns
+   Progressive enhancement for native select elements
    ========================================================================== */
 
 @layer workout-dropdowns {
@@ -470,36 +8,15 @@ select.filter-dropdown:focus {
      CSS Custom Properties (Dropdown-scoped tokens)
      ======================================================================== */
   :root {
-    /* Typography */
-    --wpdd-font: ui-sans-serif, system-ui, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --wpdd-fs: clamp(0.95rem, 0.3vw + 0.85rem, 1.05rem);
-
-    /* Colors - Light Mode Default */
-    --wpdd-bg: #ffffff;
-    --wpdd-surface: #f8f9fa;
-    --wpdd-text: #1a1f2e;
-    --wpdd-muted: #6b7280;
-    --wpdd-border: #e5e7eb;
-    --wpdd-accent: #4f8cff;
-
-    /* Layout */
-    --wpdd-gap: 10px;
-    --wpdd-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
-    --wpdd-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.18);
-
-    /* Transitions */
+    --wpdd-font: Inter, sans-serif;
+    --wpdd-bg: var(--surface-2);
+    --wpdd-surface: var(--ui-field-surface);
+    --wpdd-text: var(--ink-1);
+    --wpdd-muted: var(--ink-2);
+    --wpdd-border: var(--ink-3);
+    --wpdd-accent: var(--ui-primary);
+    --wpdd-shadow: var(--shadow-elev-2);
     --wpdd-transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Dark Mode */
-  [data-theme='dark'] {
-    --wpdd-bg: #0d1015;
-    --wpdd-surface: #141923;
-    --wpdd-text: #e9eef7;
-    --wpdd-muted: #a8b2c1;
-    --wpdd-border: #202838;
-    --wpdd-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
-    --wpdd-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.35);
   }
 
   /* Reduced Motion */
@@ -515,7 +32,6 @@ select.filter-dropdown:focus {
   #workout[data-page="workout-plan"] .wpdd {
     position: relative;
     font-family: var(--wpdd-font);
-    font-size: var(--wpdd-fs);
   }
 
   /* Native select - hidden but functional */
@@ -531,7 +47,6 @@ select.filter-dropdown:focus {
 
   /* Enhanced button */
   #workout[data-page="workout-plan"] .wpdd-button {
-    gap: var(--wpdd-gap);
     transition: background var(--wpdd-transition), border-color var(--wpdd-transition),
                 transform var(--wpdd-transition), box-shadow var(--wpdd-transition);
     text-align: left;
@@ -562,6 +77,17 @@ select.filter-dropdown:focus {
     transform: rotate(180deg);
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .exercise-dropdown.filter-applied {
+      animation: glowPulse 2s ease-in-out;
+    }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 15px color-mix(in srgb, var(--ui-primary) 50%, transparent); }
+    50% { box-shadow: 0 0 25px color-mix(in srgb, var(--ui-primary) 80%, transparent); }
+  }
+
   /* High contrast mode */
   @media (prefers-contrast: high) {
     #workout[data-page="workout-plan"] .wpdd-button {
@@ -585,7 +111,7 @@ select.filter-dropdown:focus {
   background: var(--wpdd-bg);
   color: var(--wpdd-text);
   border: 1px solid var(--wpdd-border);
-  border-radius: 20px !important;
+  border-radius: var(--ui-modal-radius);
   box-shadow: var(--wpdd-shadow);
   padding: 6px;
   list-style: none;
@@ -603,7 +129,7 @@ select.filter-dropdown:focus {
 .wpdd-popover [role="option"],
 .wpdd-popover .wpdd-option {
   padding: 10px 12px;
-  border-radius: 14px !important;
+  border-radius: var(--ui-control-radius);
   cursor: pointer;
   transition: background 180ms cubic-bezier(0.4, 0, 0.2, 1);
   display: block;
@@ -663,16 +189,16 @@ select.filter-dropdown:focus {
   min-height: 36px;
   background: var(--wpdd-surface);
   border: 1px solid var(--wpdd-border);
-  border-radius: 14px !important;
+  border-radius: var(--ui-control-radius);
   color: var(--wpdd-text);
   font-family: inherit;
   font-size: inherit;
 }
 
 .wpdd-popover .wpdd-search:focus {
-  outline: none;
   border-color: var(--wpdd-accent);
-  box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.1);
+  outline: 2px solid var(--ink-2);
+  outline-offset: 1px;
 }
 
 /* Count indicator */
@@ -682,7 +208,7 @@ select.filter-dropdown:focus {
   white-space: nowrap;
   padding: 4px 8px;
   background: var(--wpdd-surface);
-  border-radius: 10px;
+  border-radius: var(--ui-pill-radius);
   border: 1px solid var(--wpdd-border);
   min-width: fit-content;
 }
@@ -697,8 +223,8 @@ select.filter-dropdown:focus {
     max-height: 70vh;
     width: 100%;
     margin: 0;
-    border-radius: 18px 18px 0 0 !important;
-    box-shadow: var(--wpdd-shadow-lg, 0 16px 48px rgba(0, 0, 0, 0.18));
+    border-radius: var(--ui-modal-radius) var(--ui-modal-radius) 0 0;
+    box-shadow: var(--wpdd-shadow);
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
@@ -710,3043 +236,19 @@ select.filter-dropdown:focus {
   }
 }
 
-/* ==========================================================================
-   Workout Plan - Modern 2025 Refresh
-   Scoped to #workout wrapper, using CSS cascade layers
-   ========================================================================== */
-
-@layer workout {
-
-  /* ========================================================================
-     CSS Custom Properties (Workout Plan-scoped tokens)
-     ======================================================================== */
-  :root {
-    /* Colors - Light Mode Default (WCAG AA+ compliant) */
-    --wp-bg: #ffffff;
-    --wp-surface: #f8f9fa;
-    --wp-surface-elevated: #ffffff;
-    --wp-overlay: rgba(255, 255, 255, 0.95);
-    --wp-text: #1a1f2e;
-    --wp-text-muted: #6b7280;
-    --wp-accent: #4f8cff;
-    --wp-accent-hover: #6ba3ff;
-    --wp-accent-press: #3c6ed1;
-    --wp-border: #e5e7eb;
-    --wp-border-subtle: rgba(229, 231, 235, 0.5);
-
-    /* Status Colors */
-    --wp-good: #2cb67d;
-    --wp-warn: #ffb020;
-    --wp-bad: #ef5a5a;
-
-    /* Spacing & Layout */
-    --wp-gap: 12px;
-    --wp-gap-sm: 8px;
-    --wp-gap-lg: 16px;
-    --wp-gap-xl: 24px;
-    --wp-padding: 16px;
-    --wp-padding-sm: 12px;
-    --wp-padding-lg: 24px;
-    --wp-padding-xl: 32px;
-
-    /* Table specific tokens */
-    --wp-table-cell-padding: 10px;
-    --wp-table-fs: 0.9rem;
-
-    /* Border Radius */
-    --wp-radius: 14px;
-    --wp-radius-sm: 8px;
-    --wp-radius-lg: 20px;
-
-    /* Shadows */
-    --wp-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    --wp-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --wp-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.15);
-
-    /* Typography */
-    --wp-font: ui-sans-serif, system-ui, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --wp-fs-title: clamp(1.5rem, 1.5vw + 1rem, 2.25rem);
-    --wp-fs-subtitle: clamp(1.125rem, 0.75vw + 0.9rem, 1.5rem);
-    --wp-fs-body: clamp(0.95rem, 0.3vw + 0.85rem, 1.05rem);
-    --wp-fs-small: clamp(0.85rem, 0.2vw + 0.75rem, 0.95rem);
-    --wp-fw-normal: 400;
-    --wp-fw-medium: 500;
-    --wp-fw-semibold: 600;
-    --wp-fw-bold: 700;
-
-    /* Transitions */
-    --wp-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --wp-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --wp-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* Z-index scale */
-    --wp-z-base: 1;
-    --wp-z-sticky: 10;
-    --wp-z-overlay: 100;
-    --wp-z-modal: 1000;
-  }
-
-  /* Light Mode is now default - removed override */
-
-  /* Dark Mode via data-theme */
-  [data-theme='dark'] {
-    --wp-bg: #0d1015;
-    --wp-surface: #141923;
-    --wp-surface-elevated: #1a202c;
-    --wp-overlay: rgba(13, 16, 21, 0.8);
-    --wp-text: #e9eef7;
-    --wp-text-muted: #a8b2c1;
-    --wp-border: #202838;
-    --wp-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    --wp-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
-    --wp-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.35);
-  }
-
-  /* Reduced Motion */
-  @media (prefers-reduced-motion: reduce) {
-    :root {
-      --wp-transition: 0ms;
-      --wp-transition-fast: 0ms;
-      --wp-transition-slow: 0ms;
-    }
-  }
-
-  /* ========================================================================
-     Base Container
-     ======================================================================== */
-  #workout[data-page="workout-plan"] {
-    min-height: 100vh;
-    background-color: var(--wp-bg);
-    color: var(--wp-text);
-    font-family: var(--wp-font);
-    font-size: var(--wp-fs-body);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    padding: var(--wp-padding);
-    padding-top: 0;
-  }
-
-  /* ========================================================================
-     Page Header - 2026 Glass/Neumorphic Style
-     ======================================================================== */
-  #workout[data-page="workout-plan"]>.container-fluid>.table-header {
-    margin-top: -55px;
-    padding: var(--wp-padding-sm) var(--wp-padding-xl);
-    background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(248, 250, 252, 0.95) 100%);
-    border-radius: var(--wp-radius-lg);
-    box-shadow:
-      0 8px 32px rgba(79, 140, 255, 0.08),
-      0 2px 8px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    position: relative;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"]>.container-fluid>.table-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(79, 140, 255, 0.3) 50%,
-      transparent 100%);
-  }
-
-  #workout[data-page="workout-plan"]>.container-fluid>.table-header h1 {
-    letter-spacing: -0.02em;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    position: relative;
-  }
-
-  #workout[data-page="workout-plan"]>.container-fluid>.table-header .table-header-underline {
-    box-shadow: 0 2px 8px rgba(79, 140, 255, 0.3);
-    transition: width var(--wp-transition), box-shadow var(--wp-transition);
-  }
-
-  #workout[data-page="workout-plan"]>.container-fluid>.table-header:hover .table-header-underline {
-    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.4);
-  }
-
-  /* Dark mode adjustments for glass header */
-  [data-theme='dark'] #workout[data-page="workout-plan"]>.container-fluid>.table-header {
-    background: linear-gradient(135deg,
-      rgba(26, 32, 44, 0.9) 0%,
-      rgba(20, 25, 35, 0.95) 100%);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  [data-theme='dark'] #workout[data-page="workout-plan"]>.container-fluid>.table-header::before {
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(79, 140, 255, 0.2) 50%,
-      transparent 100%);
-  }
-
-  [data-theme='dark'] #workout[data-page="workout-plan"]>.container-fluid>.table-header h1 {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-
-  /* ========================================================================
-     Collapsible Frame Overrides
-     ======================================================================== */
-  /* Shared calm-glass owns the frame surface. Keep blur disabled to avoid
-     repaints during input interactions. */
-  #workout[data-page="workout-plan"] .collapsible-frame {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* Shared frame-title declarations own typography and underline geometry.
-     The route keeps blur disabled for the same input repaint safeguard. */
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* The late global dark theme adds header blur; retain the route's explicit
-     dark override so collapse/expand input interactions remain repaint-safe. */
-  [data-theme='dark'] #workout[data-page="workout-plan"] .frame-header {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* Dark title corrections that still win the shared/global cascade. */
-  [data-theme='dark'] #workout[data-page="workout-plan"] .frame-title,
-  [data-theme='dark'] #workout[data-page="workout-plan"] .filters-title {
-    color: var(--wp-text) !important;
-    border-radius: 0 !important;
-    padding-bottom: 0 !important;
-  }
-
-  /* ========================================================================
-     Collapse Toggle Buttons - Modern 2025 Refresh
-     ======================================================================== */
-  #workout[data-page="workout-plan"] .collapse-toggle {
-    /* Base Modern Styling */
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
-    border: 1px solid #bae6fd !important;
-    color: #0284c7 !important;
-    padding: 10px 18px !important;
-    min-height: 44px !important;
-    /* Accessibility: minimum touch target */
-    min-width: 110px !important;
-    border-radius: 14px !important;
-    /* Modern rounded corners */
-    font-family: var(--wp-font) !important;
-    font-size: 0.9rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.3px !important;
-    line-height: 1.4 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.12), 0 1px 3px rgba(2, 132, 199, 0.08) !important;
-    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-    position: relative !important;
-    overflow: visible !important;
-    margin: 0 !important;
-  }
-
-  #workout[data-page="workout-plan"] .collapse-toggle:hover:not(:disabled) {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
-    border-color: #7dd3fc !important;
-    color: #0369a1 !important;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2), 0 2px 6px rgba(2, 132, 199, 0.15) !important;
-    transform: translateY(-1px) !important;
-  }
-
-  #workout[data-page="workout-plan"] .collapse-toggle:active:not(:disabled) {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
-    border-color: #60a5fa !important;
-    color: #075985 !important;
-    transform: translateY(0) scale(0.97) !important;
-    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.15), 0 1px 2px rgba(2, 132, 199, 0.1) !important;
-  }
-
-  /* Focus State - High Contrast for Accessibility */
-  #workout[data-page="workout-plan"] .collapse-toggle:focus-visible {
-    outline: 3px solid var(--wp-accent) !important;
-    outline-offset: 3px !important;
-    box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.2), 0 4px 12px rgba(2, 132, 199, 0.2) !important;
-  }
-
-  /* Icon Styling */
-  #workout[data-page="workout-plan"] .collapse-toggle i {
-    font-size: 0.9rem !important;
-    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* Icon Rotation on Collapse */
-  #workout[data-page="workout-plan"] .collapse-toggle[aria-expanded="false"] i {
-    transform: rotate(180deg) !important;
-  }
-
-  /* Text Styling */
-  #workout[data-page="workout-plan"] .collapse-toggle .toggle-text {
-    font-size: 0.9rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.2px !important;
-  }
-
-  /* Disabled State */
-  #workout[data-page="workout-plan"] .collapse-toggle:disabled {
-    opacity: 0.5 !important;
-    cursor: not-allowed !important;
-    transform: none !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Reduced Motion */
-  @media (prefers-reduced-motion: reduce) {
-    #workout[data-page="workout-plan"] .collapse-toggle {
-      transition: opacity 0.2s ease !important;
-    }
-
-    #workout[data-page="workout-plan"] .collapse-toggle:hover:not(:disabled) {
-      transform: none !important;
-    }
-
-    #workout[data-page="workout-plan"] .collapse-toggle:active:not(:disabled) {
-      transform: none !important;
-    }
-
-    #workout[data-page="workout-plan"] .collapse-toggle i {
-      transition: none !important;
-    }
-  }
-
-  /* Dark Mode Support */
-  [data-theme='dark'] #workout[data-page="workout-plan"] .collapse-toggle {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.3) !important;
-    color: #7dd3fc !important;
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2), 0 1px 3px rgba(14, 165, 233, 0.15) !important;
-  }
-
-  [data-theme='dark'] #workout[data-page="workout-plan"] .collapse-toggle:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(56, 189, 248, 0.25) 100%) !important;
-    border-color: rgba(56, 189, 248, 0.5) !important;
-    color: #bae6fd !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3), 0 2px 6px rgba(14, 165, 233, 0.25) !important;
-  }
-
-  [data-theme='dark'] #workout[data-page="workout-plan"] .collapse-toggle:active:not(:disabled) {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%) !important;
-    border-color: rgba(56, 189, 248, 0.4) !important;
-    color: #93c5fd !important;
-  }
-
-  /* Frame Content */
-  #workout[data-page="workout-plan"] .frame-content {
-    padding: var(--wp-padding);
-    background-color: var(--wp-surface);
-  }
-
-  /* Ensure horizontal-layout has no background in dark mode */
-  [data-theme='dark'] #workout[data-page="workout-plan"] .horizontal-layout {
-    background-color: transparent;
-    background: none;
-  }
-
-  /* Collapsed State */
-  #workout[data-page="workout-plan"] .collapsible-frame.collapsed {
-    margin-bottom: var(--wp-gap);
-  }
-
-  #workout[data-page="workout-plan"] .collapsible-frame.collapsed .frame-content {
-    display: none;
-  }
-
-  /* ========================================================================
-     Filters Section
-     ======================================================================== */
-  #workout[data-page="workout-plan"] .filters-section {
-    /* Use glass effect from collapsible-frame, not solid background */
-    border-radius: var(--wp-radius);
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown,
-  #workout[data-page="workout-plan"] .form-select,
-  #workout[data-page="workout-plan"] .uniform-input {
-    background-color: var(--wp-surface-elevated);
-    border: 1px solid var(--wp-border);
-    color: var(--wp-text);
-    border-radius: var(--wp-radius-sm);
-    padding: var(--wp-gap-sm) var(--wp-padding);
-    font-size: var(--wp-fs-body);
-    min-height: 40px;
-    transition: all var(--wp-transition-fast);
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown:hover,
-  #workout[data-page="workout-plan"] .form-select:hover,
-  #workout[data-page="workout-plan"] .uniform-input:hover {
-    border-color: var(--wp-accent);
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown:focus,
-  #workout[data-page="workout-plan"] .form-select:focus,
-  #workout[data-page="workout-plan"] .uniform-input:focus {
-    outline: none;
-    border-color: var(--wp-accent);
-    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.1);
-  }
-
-  #workout[data-page="workout-plan"] .form-label {
-    color: var(--wp-text);
-    font-weight: var(--wp-fw-medium);
-    font-size: var(--wp-fs-small);
-    margin-bottom: var(--wp-gap-sm);
-    background: none;
-    background-color: transparent;
-    border-radius: 0;
-    padding: 0;
-    box-shadow: none;
-  }
-
-  /* Dark Mode - Remove squared dark backgrounds from form labels */
-  [data-theme='dark'] #workout[data-page="workout-plan"] .form-label {
-    background: none !important;
-    background-color: transparent !important;
-    color: var(--wp-text) !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-
-  /* ========================================================================
-     Workout Controls
-     ======================================================================== */
-  #workout[data-page="workout-plan"] .action-frame {
-    background-color: var(--wp-surface);
-    border-radius: var(--wp-radius);
-  }
-
-  #workout[data-page="workout-plan"] .horizontal-layout {
-    gap: var(--wp-gap-xl);
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  @media (min-width: 992px) {
-    #workout[data-page="workout-plan"] .horizontal-layout {
-      align-items: center;
-      flex-wrap: nowrap;
-    }
-  }
-
-  /* ========================================================================
-     Inline Controls Row - Single Line Layout
-     ======================================================================== */
-  #workout[data-page="workout-plan"] #exercise-selection-frame .buttons-row,
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row {
-    margin-top: calc(var(--wp-gap) * 2) !important;
-    margin-bottom: 0 !important;
-    width: 100% !important;
-    clear: both !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-  }
-
-  /* Keep Bootstrap row but ensure controls break out */
-  #workout[data-page="workout-plan"] #filters-form.row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-  }
-
-  #workout[data-page="workout-plan"] .buttons-row,
-  #workout[data-page="workout-plan"] #action-buttons-row {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: flex-start !important;
-    width: 100% !important;
-    gap: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-  }
-
-  #workout[data-page="workout-plan"] #action-buttons-row {
-    justify-content: center !important;
-    align-items: center !important;
-    gap: var(--wp-gap) !important;
-    flex-wrap: wrap !important;
-  }
-
-  #workout[data-page="workout-plan"] #action-buttons-row .inline-control-item {
-    margin: 0 !important;
-    align-self: center !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* Ensure all inline-control-items align at the bottom with consistent baseline */
-  #workout[data-page="workout-plan"] .buttons-row .inline-control-item,
-  #workout[data-page="workout-plan"] #action-buttons-row .inline-control-item {
-    align-self: flex-start !important;
-    vertical-align: top !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
-
-  #workout[data-page="workout-plan"] .buttons-row .inline-control-item:not(:last-child) {
-    margin-right: calc(var(--wp-gap) * 0.5);
-  }
-
-  #workout[data-page="workout-plan"] .inline-control-item:nth-of-type(n+3) {
-    margin-left: calc(var(--wp-gap) * 0.5);
-    margin-right: 0;
-  }
-
-  #workout[data-page="workout-plan"] .inline-control-item {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-    align-items: flex-start !important;
-    justify-content: flex-end !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    flex-shrink: 0 !important;
-    flex-grow: 0 !important;
-    width: auto !important;
-    max-width: none !important;
-  }
-
-  /* Centered routine/exercise selectors within filter grid */
-  #workout[data-page="workout-plan"] .routine-selector,
-  #workout[data-page="workout-plan"] .exercise-selector {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: stretch;
-  }
-
-  #workout[data-page="workout-plan"] .routine-selector .form-select,
-  #workout[data-page="workout-plan"] .exercise-selector .form-select {
-    min-height: 44px;
-  }
-
-  /* Buttons - Compact width, don't grow, add invisible label spacer for alignment */
-  #workout[data-page="workout-plan"] .inline-control-item:nth-of-type(n+3),
-  #workout[data-page="workout-plan"] .inline-control-item:has(.btn) {
-    flex: 0 0 auto;
-    min-width: auto;
-    order: 10 !important;
-    /* Ensure buttons come after dropdowns */
-  }
-
-  /* Remove label spacer for buttons-row since buttons don't have labels */
-  #workout[data-page="workout-plan"] .buttons-row .inline-control-item::before,
-  #workout[data-page="workout-plan"] #action-buttons-row .inline-control-item::before {
-    display: none !important;
-  }
-
-  #workout[data-page="workout-plan"] .inline-control-item .form-label {
-    margin-bottom: 0;
-    font-size: clamp(0.875rem, 0.3vw + 0.8rem, 0.95rem);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  /* Dropdowns - Full width within their container */
-  #workout[data-page="workout-plan"] .inline-control-item select {
-    width: 100%;
-    min-height: 44px;
-  }
-
-  /* Buttons - Compact with reduced padding */
-  #workout[data-page="workout-plan"] .inline-control-item .btn,
-  #workout[data-page="workout-plan"] .inline-control-item a.btn {
-    width: auto;
-    min-width: auto;
-    padding: 10px 16px;
-    min-height: 44px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    font-size: 0.875rem;
-  }
-
-  #workout[data-page="workout-plan"] .exercise-selection-grid {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    row-gap: calc(var(--wp-gap) * 1.5) !important;
-  }
-
-  #workout[data-page="workout-plan"] .exercise-selection-grid .selection-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  /* Selection Actions Container - 2026 Glass/Neumorphic Style */
-  #workout[data-page="workout-plan"] .selection-actions {
-    width: 100% !important;
-    padding: calc(var(--wp-gap) * 1.5) calc(var(--wp-gap) * 2);
-    border-radius: 18px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions:hover {
-    background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(250, 252, 255, 1) 50%,
-      rgba(245, 248, 252, 0.98) 100%);
-    border-color: rgba(79, 140, 255, 0.25);
-    box-shadow:
-      0 12px 40px rgba(79, 140, 255, 0.12),
-      0 6px 16px rgba(0, 0, 0, 0.06),
-      inset 0 2px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.04);
-    transform: translateY(-2px);
-  }
-
-  [data-theme='dark'] #workout[data-page="workout-plan"] .selection-actions {
-    background: linear-gradient(135deg,
-      rgba(30, 41, 59, 0.95) 0%,
-      rgba(15, 23, 42, 0.98) 50%,
-      rgba(10, 15, 30, 0.95) 100%);
-  }
-
-  [data-theme='dark'] #workout[data-page="workout-plan"] .selection-actions:hover {
-    background: linear-gradient(135deg,
-      rgba(30, 41, 59, 0.98) 0%,
-      rgba(20, 30, 48, 0.95) 50%,
-      rgba(15, 25, 40, 0.98) 100%);
-    border-color: rgba(96, 165, 250, 0.35);
-    box-shadow:
-      0 12px 40px rgba(79, 140, 255, 0.15),
-      0 6px 16px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.25);
-    transform: translateY(-2px);
-  }
-
-  @media (max-width: 991.98px) {
-    #workout[data-page="workout-plan"] .inline-control-item {
-      flex: 1 1 calc(50% - var(--wp-gap));
-      min-width: 140px;
-    }
-  }
-
-  @media (max-width: 767.98px) {
-    #workout[data-page="workout-plan"] .inline-control-item {
-      flex: 1 1 100%;
-    }
-
-    #workout[data-page="workout-plan"] .selection-actions {
-      justify-content: center !important;
-      padding: calc(var(--wp-gap) * 1.25);
-    }
-  }
-
-  @media (max-width: 575.98px) {
-    #workout[data-page="workout-plan"] .selection-actions {
-      gap: calc(var(--wp-gap) * 0.75) !important;
-    }
-
-    #workout[data-page="workout-plan"] .frame-header-2025 .frame-header-right {
-      padding-left: 0;
-      padding-right: 0;
-      justify-content: flex-start;
-    }
-  }
-
-  /* ========================================================================
-     Input Fields Group - Modern 2025 Refresh
-     ======================================================================== */
-  #workout[data-page="workout-plan"] .input-fields-group {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: calc(var(--wp-gap) * 2) !important;
-    align-items: flex-end !important;
-    justify-content: center !important;
-    width: 100% !important;
-    padding: 0 !important;
-    margin: 0 auto !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 8px !important;
-    min-width: 160px !important;
-    flex: 1 1 220px !important;
-    flex-basis: 220px !important;
-    max-width: 240px !important;
-    position: relative !important;
-  }
-
-  /* Label Styling - Modern 2025 */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    color: var(--wp-text);
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin: 0;
-    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.3;
-    text-align: center !important;
-    width: 100%;
-    align-self: stretch;
-  }
-
-  /* Input Field Styling - 2026 Glass/Neumorphic */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.95) 0%,
-      rgba(248, 250, 252, 0.98) 100%);
-    border: 1px solid rgba(229, 231, 235, 0.6);
-    color: #1e293b;
-    border-radius: 14px;
-    padding: 12px 16px;
-    font-size: 1rem;
-    font-weight: 500;
-    min-height: 48px;
-    /* Narrow transition to border-color only - box-shadow transitions cause glitches */
-    transition: border-color 200ms ease;
-    box-shadow:
-      0 4px 16px rgba(79, 140, 255, 0.06),
-      0 1px 3px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.02);
-    width: 100%;
-    flex: 0 0 auto;
-    box-sizing: border-box;
-    text-align: left;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: textfield;
-    /* Disable backdrop-filter on inputs to prevent glitches */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  @media (max-width: 768px) {
-    #workout[data-page="workout-plan"] .input-fields-group {
-      flex-wrap: wrap !important;
-      gap: var(--wp-gap) !important;
-    }
-
-    #workout[data-page="workout-plan"] .input-fields-group .input-group {
-      flex-direction: column !important;
-      align-items: center !important;
-      max-width: 100% !important;
-      gap: 6px !important;
-    }
-
-    #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-      text-align: center;
-      width: 100%;
-    }
-
-    #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-    #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-      width: 100%;
-    }
-  }
-
-  /* Remove number input spinners */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]::-webkit-inner-spin-button,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    appearance: textfield;
-    -moz-appearance: textfield;
-  }
-
-  /* Hover State - Glass Micro-interaction */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:hover:not(:disabled),
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:hover:not(:disabled) {
-    border-color: rgba(79, 140, 255, 0.25);
-    box-shadow:
-      0 6px 20px rgba(79, 140, 255, 0.1),
-      0 2px 6px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.02);
-    /* transform removed to prevent glitches */
-  }
-
-  /* Focus State - Glass with Blue Glow */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:focus,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:focus {
-    outline: none;
-    border-color: rgba(79, 140, 255, 0.5);
-    box-shadow:
-      0 0 0 4px rgba(79, 140, 255, 0.12),
-      0 8px 24px rgba(79, 140, 255, 0.15),
-      0 2px 8px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 1);
-    background: linear-gradient(135deg,
-      rgba(255, 255, 255, 1) 0%,
-      rgba(252, 253, 255, 0.98) 100%);
-    /* transform removed to prevent glitches */
-  }
-
-  /* Active/Focused Label - using focus-within on parent */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group:focus-within .form-label {
-    color: #4f8cff;
-  }
-
-  /* ================================================
-     COLOR-CODED BACKGROUNDS FOR WORKOUT CONTROLS
-     2026 Glass/Neumorphic Style
-     ================================================ */
-
-  /* Light Pastel Fuchsia - Min Rep & Max Rep - Glass Style */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range {
-    background: linear-gradient(135deg,
-      rgba(252, 228, 236, 0.95) 0%,
-      rgba(248, 187, 217, 0.9) 100%) !important;
-    border: 1px solid rgba(244, 143, 177, 0.5) !important;
-    box-shadow:
-      0 4px 16px rgba(236, 64, 122, 0.08),
-      0 1px 3px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 0 rgba(236, 64, 122, 0.05) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep:hover:not(:disabled),
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range:hover:not(:disabled) {
-    background: linear-gradient(135deg,
-      rgba(252, 228, 236, 0.98) 0%,
-      rgba(248, 187, 217, 0.95) 100%) !important;
-    border-color: rgba(236, 64, 122, 0.4) !important;
-    box-shadow:
-      0 6px 20px rgba(236, 64, 122, 0.12),
-      0 2px 6px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep:focus,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range:focus {
-    background: linear-gradient(135deg,
-      rgba(252, 228, 236, 1) 0%,
-      rgba(252, 235, 242, 0.98) 100%) !important;
-    border-color: rgba(236, 64, 122, 0.6) !important;
-    box-shadow:
-      0 0 0 4px rgba(236, 64, 122, 0.12),
-      0 8px 24px rgba(236, 64, 122, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 1) !important;
-  }
-
-  /* Light Pastel Pistachio/Green - RIR & RPE - Glass Style */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe {
-    background: linear-gradient(135deg,
-      rgba(232, 245, 233, 0.95) 0%,
-      rgba(200, 230, 201, 0.9) 100%) !important;
-    border: 1px solid rgba(165, 214, 167, 0.5) !important;
-    box-shadow:
-      0 4px 16px rgba(102, 187, 106, 0.08),
-      0 1px 3px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 0 rgba(102, 187, 106, 0.05) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir:hover:not(:disabled),
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe:hover:not(:disabled) {
-    background: linear-gradient(135deg,
-      rgba(232, 245, 233, 0.98) 0%,
-      rgba(200, 230, 201, 0.95) 100%) !important;
-    border-color: rgba(102, 187, 106, 0.4) !important;
-    box-shadow:
-      0 6px 20px rgba(102, 187, 106, 0.12),
-      0 2px 6px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir:focus,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe:focus {
-    background: linear-gradient(135deg,
-      rgba(232, 245, 233, 1) 0%,
-      rgba(240, 248, 240, 0.98) 100%) !important;
-    border-color: rgba(102, 187, 106, 0.6) !important;
-    box-shadow:
-      0 0 0 4px rgba(102, 187, 106, 0.12),
-      0 8px 24px rgba(102, 187, 106, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 1) !important;
-  }
-
-  /* Light Pastel Banana/Yellow - Weight & Sets - Glass Style */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets {
-    background: linear-gradient(135deg,
-      rgba(255, 249, 196, 0.95) 0%,
-      rgba(255, 245, 157, 0.9) 100%) !important;
-    border: 1px solid rgba(255, 241, 118, 0.6) !important;
-    box-shadow:
-      0 4px 16px rgba(253, 216, 53, 0.1),
-      0 1px 3px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      inset 0 -1px 0 rgba(253, 216, 53, 0.08) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight:hover:not(:disabled),
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets:hover:not(:disabled) {
-    background: linear-gradient(135deg,
-      rgba(255, 249, 196, 0.98) 0%,
-      rgba(255, 241, 118, 0.95) 100%) !important;
-    border-color: rgba(253, 216, 53, 0.5) !important;
-    box-shadow:
-      0 6px 20px rgba(253, 216, 53, 0.15),
-      0 2px 6px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight:focus,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets:focus {
-    background: linear-gradient(135deg,
-      rgba(255, 249, 196, 1) 0%,
-      rgba(255, 253, 231, 0.98) 100%) !important;
-    border-color: rgba(253, 216, 53, 0.7) !important;
-    box-shadow:
-      0 0 0 4px rgba(253, 216, 53, 0.15),
-      0 8px 24px rgba(253, 216, 53, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 1) !important;
-  }
-
-  /* Value Changed Animation Highlight */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#min_rep.value-changed,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range.value-changed {
-    box-shadow: 0 0 0 4px rgba(236, 64, 122, 0.4), 0 0 16px rgba(236, 64, 122, 0.3) !important;
-    border-color: #ec407a !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rir.value-changed,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe.value-changed {
-    box-shadow: 0 0 0 4px rgba(102, 187, 106, 0.4), 0 0 16px rgba(102, 187, 106, 0.3) !important;
-    border-color: #66bb6a !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#weight.value-changed,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets.value-changed {
-    box-shadow: 0 0 0 4px rgba(253, 216, 53, 0.4), 0 0 16px rgba(253, 216, 53, 0.3) !important;
-    border-color: #fdd835 !important;
-  }
-
-  /* Placeholder Styling */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control::placeholder,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]::placeholder {
-    color: #94a3b8;
-    opacity: 0.7;
-    font-weight: 400;
-  }
-
-  /* Disabled State */
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:disabled,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:disabled {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
-    color: #94a3b8;
-    cursor: not-allowed;
-    opacity: 0.6;
-    transform: none !important;
-    box-shadow: none;
-  }
-
-  /* Input Animation on Focus */
-  @keyframes inputFocus {
-    0% {
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-    }
-
-    50% {
-      box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.15), 0 4px 12px rgba(79, 140, 255, 0.2);
-      padding: var(--wp-padding);
-      overflow-x: auto;
-    }
-
-  }
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:focus,
-#workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:focus {
-  animation: inputFocus 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    transition: opacity 0.2s ease, background-color 0.2s ease;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:hover:not(:disabled),
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:hover:not(:disabled),
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:focus,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:focus {
-    transform: none;
-    animation: none;
-  }
-}
-
-/* Dark Mode Support - Glass Style */
-/* Ensure input-fields-group background matches frame-content */
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group {
-  background-color: transparent !important;
-  background: none !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-  color: #e2e8f0;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-  background: linear-gradient(135deg,
-    rgba(30, 41, 59, 0.95) 0%,
-    rgba(15, 23, 42, 0.98) 100%);
-  border: 1px solid rgba(51, 65, 85, 0.6);
-  color: #f1f5f9;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:hover:not(:disabled),
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:hover:not(:disabled) {
-  border-color: rgba(71, 85, 105, 0.8);
-  background: linear-gradient(135deg,
-    rgba(30, 41, 59, 0.98) 0%,
-    rgba(26, 31, 46, 0.95) 100%);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.25),
-    0 2px 6px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:focus,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:focus {
-  border-color: rgba(96, 165, 250, 0.6);
-  background: linear-gradient(135deg,
-    rgba(30, 41, 59, 1) 0%,
-    rgba(20, 30, 48, 0.98) 100%);
-  box-shadow:
-    0 0 0 4px rgba(96, 165, 250, 0.15),
-    0 8px 24px rgba(96, 165, 250, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group:focus-within .form-label {
-  color: #93c5fd;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control::placeholder,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]::placeholder {
-  color: #64748b;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control:disabled,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"]:disabled {
-  background: linear-gradient(135deg,
-    rgba(15, 23, 42, 0.9) 0%,
-    rgba(10, 15, 30, 0.95) 100%);
-  border-color: rgba(30, 41, 59, 0.5);
-  color: #475569;
-}
-
-/* Color-coded Inputs - Dark Mode Glass/Neumorphic 2026 */
-/* Min Rep & Max Rep - Pink Glass Dark */
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group #min_rep,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group #max_rep_range {
-  background: linear-gradient(135deg,
-    rgba(131, 24, 67, 0.35) 0%,
-    rgba(157, 23, 77, 0.25) 100%) !important;
-  border: 1px solid rgba(190, 24, 93, 0.4) !important;
-  color: #fda4af !important;
-  box-shadow:
-    0 4px 16px rgba(190, 24, 93, 0.15),
-    0 1px 3px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 100, 150, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15) !important;
-}
-
-/* RIR & RPE - Green Glass Dark */
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group #rir,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group #rpe {
-  background: linear-gradient(135deg,
-    rgba(6, 78, 59, 0.35) 0%,
-    rgba(5, 102, 74, 0.25) 100%) !important;
-  border: 1px solid rgba(16, 185, 129, 0.4) !important;
-  color: #6ee7b7 !important;
-  box-shadow:
-    0 4px 16px rgba(16, 185, 129, 0.15),
-    0 1px 3px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(100, 255, 180, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Weight & Sets - Yellow/Gold Glass Dark */
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group #weight,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group #sets {
-  background: linear-gradient(135deg,
-    rgba(113, 63, 18, 0.35) 0%,
-    rgba(133, 77, 14, 0.25) 100%) !important;
-  border: 1px solid rgba(217, 119, 6, 0.4) !important;
-  color: #fcd34d !important;
-  box-shadow:
-    0 4px 16px rgba(217, 119, 6, 0.15),
-    0 1px 3px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 220, 100, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15) !important;
-}
-
-/* ========================================================================
-     Buttons
-     ======================================================================== */
-#workout[data-page="workout-plan"] .btn {
-  border-radius: var(--wp-radius-sm);
-  padding: var(--wp-gap-sm) var(--wp-padding);
-  font-size: var(--wp-fs-body);
-  font-weight: var(--wp-fw-medium);
-  min-height: 40px;
-  transition: all var(--wp-transition-fast);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--wp-gap-sm);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* ========================================================================
-     Workout Controls Buttons - 2026 Glass/Neumorphic Style
-     ======================================================================== */
-/* Add Exercise Button - Seafoam/Teal Glass */
-#workout[data-page="workout-plan"] #add_exercise_btn.btn {
-  background: linear-gradient(135deg,
-    rgba(152, 223, 214, 0.95) 0%,
-    rgba(131, 209, 196, 0.98) 100%);
-  color: #006d77;
-  border: 1px solid rgba(0, 109, 119, 0.15);
-  box-shadow:
-    0 4px 16px rgba(0, 109, 119, 0.18),
-    0 2px 6px rgba(0, 109, 119, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -1px 0 rgba(0, 109, 119, 0.1);
-}
-
-#workout[data-page="workout-plan"] #add_exercise_btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(131, 209, 196, 0.98) 0%,
-    rgba(110, 193, 180, 1) 100%);
-  color: #005762;
-  border-color: rgba(0, 109, 119, 0.25);
-  box-shadow:
-    0 8px 24px rgba(0, 109, 119, 0.22),
-    0 4px 10px rgba(0, 109, 119, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(0, 109, 119, 0.15);
-  transform: translateY(-2px);
-}
-
-#workout[data-page="workout-plan"] #add_exercise_btn.btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow:
-    0 2px 8px rgba(0, 109, 119, 0.2),
-    inset 0 2px 4px rgba(0, 109, 119, 0.1);
-}
-
-/* Clear Filters Button - Midnight Blue Glass */
-#workout[data-page="workout-plan"] #clear-filters-btn.btn {
-  background: linear-gradient(135deg,
-    rgba(232, 234, 246, 0.95) 0%,
-    rgba(197, 202, 233, 0.98) 100%);
-  color: #283593;
-  border: 1px solid rgba(40, 53, 147, 0.12);
-  box-shadow:
-    0 4px 16px rgba(40, 53, 147, 0.12),
-    0 2px 6px rgba(40, 53, 147, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(40, 53, 147, 0.08);
-}
-
-#workout[data-page="workout-plan"] #clear-filters-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(197, 202, 233, 0.98) 0%,
-    rgba(159, 168, 218, 1) 100%);
-  color: #1a237e;
-  border-color: rgba(40, 53, 147, 0.2);
-  box-shadow:
-    0 8px 24px rgba(40, 53, 147, 0.18),
-    0 4px 10px rgba(40, 53, 147, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(40, 53, 147, 0.12);
-  transform: translateY(-2px);
-}
-
-#workout[data-page="workout-plan"] #clear-filters-btn.btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow:
-    0 2px 8px rgba(40, 53, 147, 0.15),
-    inset 0 2px 4px rgba(40, 53, 147, 0.1);
-}
-
-/* Export All Tables Button - Fuchsia/Pink Glass */
-#workout[data-page="workout-plan"] .btn-export-excel.btn {
-  background: linear-gradient(135deg,
-    rgba(252, 228, 236, 0.95) 0%,
-    rgba(248, 187, 208, 0.98) 100%);
-  color: #d81b60;
-  border: 1px solid rgba(216, 27, 96, 0.15);
-  box-shadow:
-    0 4px 16px rgba(216, 27, 96, 0.15),
-    0 2px 6px rgba(216, 27, 96, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(216, 27, 96, 0.1);
-}
-
-#workout[data-page="workout-plan"] .btn-export-excel.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(248, 187, 208, 0.98) 0%,
-    rgba(244, 143, 177, 1) 100%);
-  color: #c2185b;
-  border-color: rgba(216, 27, 96, 0.25);
-  box-shadow:
-    0 8px 24px rgba(216, 27, 96, 0.2),
-    0 4px 10px rgba(216, 27, 96, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(216, 27, 96, 0.15);
-  transform: translateY(-2px);
-}
-
-#workout[data-page="workout-plan"] .btn-export-excel.btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow:
-    0 2px 8px rgba(216, 27, 96, 0.18),
-    inset 0 2px 4px rgba(216, 27, 96, 0.1);
-}
-
-/* Export to Workout Log Button - Pastel Pink Glass */
-#workout[data-page="workout-plan"] #export-to-log-btn.btn {
-  background: linear-gradient(135deg,
-    rgba(255, 226, 228, 0.95) 0%,
-    rgba(255, 208, 212, 0.98) 100%);
-  color: #d94a5a;
-  border: 1px solid rgba(217, 74, 90, 0.15);
-  box-shadow:
-    0 4px 16px rgba(217, 74, 90, 0.15),
-    0 2px 6px rgba(217, 74, 90, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(217, 74, 90, 0.08);
-}
-
-#workout[data-page="workout-plan"] #export-to-log-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(255, 208, 212, 0.98) 0%,
-    rgba(255, 197, 202, 1) 100%);
-  color: #c73545;
-  border-color: rgba(217, 74, 90, 0.25);
-  box-shadow:
-    0 8px 24px rgba(217, 74, 90, 0.2),
-    0 4px 10px rgba(217, 74, 90, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(217, 74, 90, 0.12);
-  transform: translateY(-2px);
-}
-
-#workout[data-page="workout-plan"] #export-to-log-btn.btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow:
-    0 2px 8px rgba(217, 74, 90, 0.18),
-    inset 0 2px 4px rgba(217, 74, 90, 0.1);
-}
-
-/* Generate Starter Plan Button - Emerald Green Glass */
-#workout[data-page="workout-plan"] #generate-plan-btn.btn {
-  background: linear-gradient(135deg,
-    rgba(187, 247, 208, 0.95) 0%,
-    rgba(134, 239, 172, 0.98) 100%) !important;
-  color: #166534 !important;
-  border: 1px solid rgba(22, 163, 74, 0.2) !important;
-  box-shadow:
-    0 4px 16px rgba(22, 163, 74, 0.18),
-    0 2px 6px rgba(22, 163, 74, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(22, 163, 74, 0.1) !important;
-}
-
-#workout[data-page="workout-plan"] #generate-plan-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(134, 239, 172, 0.98) 0%,
-    rgba(74, 222, 128, 1) 100%) !important;
-  color: #14532d !important;
-  border-color: rgba(22, 163, 74, 0.3) !important;
-  box-shadow:
-    0 8px 24px rgba(22, 163, 74, 0.22),
-    0 4px 10px rgba(22, 163, 74, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(22, 163, 74, 0.15) !important;
-  transform: translateY(-2px);
-}
-
-/* Backup Center Button - Slate Glass */
-#workout[data-page="workout-plan"] #load-program-btn.btn {
-  background: linear-gradient(135deg,
-    rgba(241, 245, 249, 0.95) 0%,
-    rgba(226, 232, 240, 0.98) 100%) !important;
-  color: #475569 !important;
-  border: 1px solid rgba(100, 116, 139, 0.2) !important;
-  box-shadow:
-    0 4px 16px rgba(100, 116, 139, 0.12),
-    0 2px 6px rgba(100, 116, 139, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(100, 116, 139, 0.06) !important;
-}
-
-#workout[data-page="workout-plan"] #load-program-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(226, 232, 240, 0.98) 0%,
-    rgba(203, 213, 225, 1) 100%) !important;
-  color: #334155 !important;
-  border-color: rgba(100, 116, 139, 0.3) !important;
-  box-shadow:
-    0 8px 24px rgba(100, 116, 139, 0.18),
-    0 4px 10px rgba(100, 116, 139, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(100, 116, 139, 0.1) !important;
-  transform: translateY(-2px);
-}
-
-/* Clear Plan Button - Rose/Red Glass */
-#workout[data-page="workout-plan"] #clear-plan-btn.btn {
-  background: linear-gradient(135deg,
-    rgba(254, 226, 226, 0.95) 0%,
-    rgba(254, 202, 202, 0.98) 100%) !important;
-  color: #dc2626 !important;
-  border: 1px solid rgba(220, 38, 38, 0.2) !important;
-  box-shadow:
-    0 4px 16px rgba(220, 38, 38, 0.12),
-    0 2px 6px rgba(220, 38, 38, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(220, 38, 38, 0.08) !important;
-}
-
-#workout[data-page="workout-plan"] #clear-plan-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    rgba(254, 202, 202, 0.98) 0%,
-    rgba(252, 165, 165, 1) 100%) !important;
-  color: #b91c1c !important;
-  border-color: rgba(220, 38, 38, 0.3) !important;
-  box-shadow:
-    0 8px 24px rgba(220, 38, 38, 0.18),
-    0 4px 10px rgba(220, 38, 38, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(220, 38, 38, 0.12) !important;
-  transform: translateY(-2px);
-}
-
-/* Dark Mode Support */
-[data-theme='dark'] #workout[data-page="workout-plan"] #add_exercise_btn.btn {
-  background: linear-gradient(135deg, rgba(152, 223, 214, 0.25) 0%, rgba(131, 209, 196, 0.25) 100%);
-  color: #83d1c4;
-  border: 1px solid rgba(152, 223, 214, 0.25);
-  box-shadow:
-    0 4px 16px rgba(152, 223, 214, 0.15),
-    0 2px 6px rgba(152, 223, 214, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #add_exercise_btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(152, 223, 214, 0.35) 0%, rgba(131, 209, 196, 0.35) 100%);
-  color: #98dfd6;
-  border-color: rgba(152, 223, 214, 0.35);
-  box-shadow:
-    0 8px 24px rgba(152, 223, 214, 0.2),
-    0 4px 10px rgba(152, 223, 214, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #clear-filters-btn.btn {
-  background: linear-gradient(135deg, rgba(232, 234, 246, 0.15) 0%, rgba(197, 202, 233, 0.15) 100%);
-  color: #c5cae9;
-  border: 1px solid rgba(197, 202, 233, 0.2);
-  box-shadow:
-    0 4px 16px rgba(197, 202, 233, 0.12),
-    0 2px 6px rgba(197, 202, 233, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #clear-filters-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(197, 202, 233, 0.25) 0%, rgba(159, 168, 218, 0.25) 100%);
-  color: #e8eaf6;
-  border-color: rgba(197, 202, 233, 0.3);
-  box-shadow:
-    0 8px 24px rgba(197, 202, 233, 0.18),
-    0 4px 10px rgba(197, 202, 233, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .btn-export-excel.btn {
-  background: linear-gradient(135deg, rgba(252, 228, 236, 0.2) 0%, rgba(248, 187, 208, 0.2) 100%);
-  color: #f8bbd0;
-  border: 1px solid rgba(248, 187, 208, 0.2);
-  box-shadow:
-    0 4px 16px rgba(248, 187, 208, 0.15),
-    0 2px 6px rgba(248, 187, 208, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .btn-export-excel.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(248, 187, 208, 0.3) 0%, rgba(244, 143, 177, 0.3) 100%);
-  color: #fce4ec;
-  border-color: rgba(248, 187, 208, 0.3);
-  box-shadow:
-    0 8px 24px rgba(248, 187, 208, 0.2),
-    0 4px 10px rgba(248, 187, 208, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #export-to-log-btn.btn {
-  background: linear-gradient(135deg, rgba(255, 226, 228, 0.2) 0%, rgba(255, 208, 212, 0.2) 100%);
-  color: #ffd0d4;
-  border: 1px solid rgba(255, 208, 212, 0.2);
-  box-shadow:
-    0 4px 16px rgba(255, 208, 212, 0.15),
-    0 2px 6px rgba(255, 208, 212, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #export-to-log-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(255, 208, 212, 0.3) 0%, rgba(255, 197, 202, 0.3) 100%);
-  color: #ffe2e4;
-  border-color: rgba(255, 208, 212, 0.3);
-  box-shadow:
-    0 8px 24px rgba(255, 208, 212, 0.2),
-    0 4px 10px rgba(255, 208, 212, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-/* Dark Mode - Generate Starter Plan Button */
-[data-theme='dark'] #workout[data-page="workout-plan"] #generate-plan-btn.btn {
-  background: linear-gradient(135deg, rgba(134, 239, 172, 0.2) 0%, rgba(74, 222, 128, 0.2) 100%) !important;
-  color: #86efac !important;
-  border: 1px solid rgba(74, 222, 128, 0.25) !important;
-  box-shadow:
-    0 4px 16px rgba(74, 222, 128, 0.15),
-    0 2px 6px rgba(74, 222, 128, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #generate-plan-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(134, 239, 172, 0.3) 0%, rgba(74, 222, 128, 0.3) 100%) !important;
-  color: #bbf7d0 !important;
-  border-color: rgba(74, 222, 128, 0.35) !important;
-}
-
-/* Dark Mode - Backup Center Button */
-[data-theme='dark'] #workout[data-page="workout-plan"] #load-program-btn.btn {
-  background: linear-gradient(135deg, rgba(203, 213, 225, 0.15) 0%, rgba(148, 163, 184, 0.15) 100%) !important;
-  color: #cbd5e1 !important;
-  border: 1px solid rgba(148, 163, 184, 0.25) !important;
-  box-shadow:
-    0 4px 16px rgba(148, 163, 184, 0.12),
-    0 2px 6px rgba(148, 163, 184, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #load-program-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(203, 213, 225, 0.25) 0%, rgba(148, 163, 184, 0.25) 100%) !important;
-  color: #e2e8f0 !important;
-  border-color: rgba(148, 163, 184, 0.35) !important;
-}
-
-/* Dark Mode - Clear Plan Button */
-[data-theme='dark'] #workout[data-page="workout-plan"] #clear-plan-btn.btn {
-  background: linear-gradient(135deg, rgba(252, 165, 165, 0.2) 0%, rgba(248, 113, 113, 0.2) 100%) !important;
-  color: #fca5a5 !important;
-  border: 1px solid rgba(248, 113, 113, 0.25) !important;
-  box-shadow:
-    0 4px 16px rgba(248, 113, 113, 0.12),
-    0 2px 6px rgba(248, 113, 113, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #clear-plan-btn.btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(252, 165, 165, 0.3) 0%, rgba(248, 113, 113, 0.3) 100%) !important;
-  color: #fee2e2 !important;
-  border-color: rgba(248, 113, 113, 0.35) !important;
-}
-
-/* ========================================================================
-     Workout Plan Table - 2026 Glass/Neumorphic Style
-     ======================================================================== */
-#workout[data-page="workout-plan"] .workout-plan.table-container {
-  background: linear-gradient(135deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(248, 250, 252, 0.98) 100%) !important;
-  border: 1px solid rgba(229, 231, 235, 0.4) !important;
-  border-radius: var(--wp-radius-lg) !important;
-  padding: var(--wp-padding-lg);
-  box-shadow:
-    0 8px 32px rgba(79, 140, 255, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  margin-top: var(--wp-gap-lg);
-  position: relative;
-  overflow: visible !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(79, 140, 255, 0.3) 50%,
-    transparent 100%);
-  border-radius: var(--wp-radius-lg) var(--wp-radius-lg) 0 0;
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container:hover {
-  box-shadow:
-    0 12px 40px rgba(79, 140, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
-}
-
-/* Dark mode table container */
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan.table-container {
-  background: linear-gradient(135deg,
-    rgba(26, 32, 44, 0.95) 0%,
-    rgba(20, 25, 35, 0.98) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.35),
-    0 2px 8px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan.table-container::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(79, 140, 255, 0.2) 50%,
-    transparent 100%);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan.table-container:hover {
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.45),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Glass/Neumorphic style for table header - 2026 */
-#workout[data-page="workout-plan"] .workout-plan.table-container > .table-header {
-  margin-bottom: var(--wp-gap-lg);
-  padding: var(--wp-padding) var(--wp-padding-lg);
-  background: linear-gradient(135deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(248, 250, 252, 0.9) 100%);
-  border-radius: var(--wp-radius);
-  box-shadow:
-    0 4px 20px rgba(79, 140, 255, 0.06),
-    0 1px 4px rgba(0, 0, 0, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  position: relative;
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container > .table-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(79, 140, 255, 0.25) 50%,
-    transparent 100%);
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container > .table-header h2 {
-  font-weight: var(--wp-fw-semibold);
-  letter-spacing: -0.02em;
-  margin-bottom: var(--wp-gap-sm);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container > .table-header .table-header-underline {
-  height: 3px;
-  width: 50px;
-  background: linear-gradient(90deg,
-    var(--wp-accent) 0%,
-    rgba(79, 140, 255, 0.5) 100%);
-  margin: var(--wp-gap-sm) auto 0;
-  border-radius: 3px;
-  box-shadow: 0 2px 6px rgba(79, 140, 255, 0.25);
-  transition: width var(--wp-transition), box-shadow var(--wp-transition);
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container > .table-header:hover .table-header-underline {
-  width: 70px;
-  box-shadow: 0 3px 10px rgba(79, 140, 255, 0.35);
-}
-
-/* Dark mode for table header glass effect */
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan.table-container > .table-header {
-  background: linear-gradient(135deg,
-    rgba(26, 32, 44, 0.85) 0%,
-    rgba(20, 25, 35, 0.9) 100%);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.25),
-    0 1px 4px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan.table-container > .table-header::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(79, 140, 255, 0.15) 50%,
-    transparent 100%);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan.table-container > .table-header h2 {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-#workout[data-page="workout-plan"] .workout-plan.table-container .tbl-controls {
-  margin: 0 0 var(--wp-gap);
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  overflow: visible !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table thead th {
-  color: var(--wp-text) !important;
-  font-weight: var(--wp-fw-semibold);
-  font-size: var(--wp-table-fs);
-  /* Removed uppercase and letter-spacing to save horizontal space */
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  padding: var(--wp-table-cell-padding);
-  position: sticky;
-  top: 0;
-  z-index: var(--wp-z-base);
-  white-space: nowrap;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan-table thead th {
-  background: linear-gradient(180deg,
-    rgba(40, 48, 64, 0.98) 0%,
-    rgba(32, 40, 54, 0.95) 50%,
-    rgba(26, 32, 44, 0.92) 100%) !important;
-  border-bottom: 2px solid rgba(79, 140, 255, 0.25) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 -1px 0 rgba(79, 140, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.2) !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table tbody td {
-  padding: var(--wp-table-cell-padding);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.4) !important;
-  color: var(--wp-text);
-  transition: background var(--wp-transition-fast), box-shadow var(--wp-transition-fast);
-  font-size: var(--wp-table-fs);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan-table tbody td {
-  background: linear-gradient(180deg,
-    rgba(26, 32, 44, 0.98) 0%,
-    rgba(22, 27, 38, 0.95) 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
-}
-
-/* Ensure Utility and Grips columns show full text - prevent text cutoff */
-#workout[data-page="workout-plan"] .workout-plan-table td[data-label="Utility"],
-#workout[data-page="workout-plan"] .workout-plan-table td[data-label="Grips"] {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  word-wrap: break-word;
-}
-
-/* Allow table to expand page width - User Preference (with scrolling at constrained widths) */
-#workout[data-page="workout-plan"] .workout-plan.table-container {
-  width: 100%;
-  min-width: 100%;
-  overflow: visible !important;
-}
-
-#workout[data-page="workout-plan"] .tbl-wrap,
-#workout[data-page="workout-plan"] .tbl-wrap--full {
-  overflow: visible !important;
-  max-width: 100%;
-  display: block !important;
-}
-
-/* Compact Table Buttons (Remove) - Icon only */
-#workout[data-page="workout-plan"] .workout-plan-table .btn {
-  padding: 6px 8px;
-  font-size: 0 !important;
-  /* Hide text */
-  min-height: 30px;
-  height: auto;
-  width: auto;
-  gap: 0;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn i {
-  font-size: 0.9rem !important;
-  /* Restore icon size */
-  margin: 0 !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: color-mix(in srgb, var(--surface-2) 90%, var(--accent) 10%) !important;
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent) !important;
-  border-radius: 999px !important;
-  color: var(--ink-2) !important;
-  font-size: 0.65rem !important;
-  font-weight: 600 !important;
-  gap: 4px !important;
-  height: 22px !important;
-  line-height: 1 !important;
-  min-height: 22px !important;
-  min-width: auto !important;
-  padding: 0 8px !important;
-  vertical-align: middle;
-  width: auto !important;
-  white-space: nowrap !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap .btn-swap-icon {
-  align-items: center !important;
-  display: inline-flex !important;
-  flex: 0 0 10px;
-  justify-content: center !important;
-  width: 10px;
-  height: 10px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap .btn-swap-icon svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap .btn-swap-label {
-  display: block;
-  font-size: 0.65rem;
-  line-height: 1;
-}
-
-/* Reference-video play button — without this it inherits btn-calm-ghost's
-   40px min-height + 8px/24px padding, which dwarfs the exercise text. Size
-   it to match the Swap pill so the action cluster stays visually balanced. */
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-video {
-  width: 22px !important;
-  height: 22px !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  font-size: 0.65rem !important;
-  vertical-align: middle;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-video > i {
-  font-size: 0.7rem !important;
-  line-height: 1;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap:hover,
-#workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap:focus-visible {
-  background: color-mix(in srgb, var(--surface-2) 82%, var(--accent) 18%) !important;
-  border-color: color-mix(in srgb, var(--accent) 34%, transparent) !important;
-  color: var(--ink-1) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan-table .btn.btn-swap {
-  background: color-mix(in srgb, var(--surface-1) 84%, var(--accent) 16%) !important;
-  border-color: color-mix(in srgb, var(--accent) 38%, transparent) !important;
-  color: var(--ink-2) !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table tbody tr:hover td {
-  background: linear-gradient(180deg,
-    rgba(79, 140, 255, 0.12) 0%,
-    rgba(79, 140, 255, 0.06) 100%) !important;
-  box-shadow: inset 0 0 0 1px rgba(79, 140, 255, 0.15) !important;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table tbody tr:nth-child(even) td {
-  background: linear-gradient(180deg,
-    rgba(248, 250, 252, 0.99) 0%,
-    rgba(244, 247, 250, 0.96) 100%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
-}
-
-/* Dark mode row adjustments */
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan-table tbody tr:hover td {
-  background: linear-gradient(180deg,
-    rgba(79, 140, 255, 0.15) 0%,
-    rgba(79, 140, 255, 0.08) 100%) !important;
-  box-shadow: inset 0 0 0 1px rgba(79, 140, 255, 0.2) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .workout-plan-table tbody tr:nth-child(even) td {
-  background: linear-gradient(180deg,
-    rgba(32, 40, 52, 0.98) 0%,
-    rgba(28, 35, 46, 0.95) 100%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
-}
-
-/* ========================================================================
-     Responsive Design
-     ======================================================================== */
-@media (max-width: 991.98px) {
-  #workout[data-page="workout-plan"] {
-    padding: var(--wp-padding-sm);
-    padding-top: calc(var(--wp-padding-sm) + 1rem);
-  }
-
-  #workout[data-page="workout-plan"] .horizontal-layout {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  }
-
-  #workout[data-page="workout-plan"] .workout-plan.table-container {
-    padding: var(--wp-padding);
-    overflow-x: auto;
-  }
-
-  #workout[data-page="workout-plan"] .workout-plan.table-container .tbl-controls {
-    position: static;
-    width: 100%;
-    margin-top: var(--wp-gap);
-    justify-content: center;
-  }
-
-}
-
-@media (max-width: 576px) {
-  #workout[data-page="workout-plan"]>.container-fluid>.table-header h2 {
-    font-size: clamp(1.25rem, 4vw, 1.75rem);
-  }
-
-  #workout[data-page="workout-plan"] .frame-content {
-    padding: var(--wp-padding-sm);
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ========================================================================
-     Accessibility
-     ======================================================================== */
-/* Visually hidden utility for screen readers */
-#workout[data-page="workout-plan"] .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-#workout[data-page="workout-plan"] *:focus-visible {
-  outline: 2px solid var(--wp-accent);
-  outline-offset: 2px;
-  border-radius: var(--wp-radius-sm);
-}
-
-@media (prefers-contrast: high) {
-  #workout[data-page="workout-plan"] {
-    --wp-border: var(--wp-text);
-    --wp-shadow: none;
-  }
-
-  #workout[data-page="workout-plan"] .collapsible-frame,
-  #workout[data-page="workout-plan"] .workout-plan.table-container {
-    border-width: 2px;
-  }
-}
-
-/* ========================================================================
-   Routine Tabs - Filter workout plan by routine
-   ======================================================================== */
-#workout[data-page="workout-plan"] .routine-tabs-container {
-  margin: var(--wp-gap-lg) 0;
-  padding: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: var(--wp-border) transparent;
-}
-
-#workout[data-page="workout-plan"] .routine-tabs-container::-webkit-scrollbar {
-  height: 6px;
-}
-
-#workout[data-page="workout-plan"] .routine-tabs-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-#workout[data-page="workout-plan"] .routine-tabs-container::-webkit-scrollbar-thumb {
-  background: var(--wp-border);
-  border-radius: 3px;
-}
-
-#workout[data-page="workout-plan"] .routine-tabs {
-  display: flex;
-  align-items: stretch;
-  flex-wrap: nowrap;
-  gap: var(--wp-gap-sm);
-  list-style: none;
-  margin: 0;
-  padding: 4px;
-  background: var(--wp-surface);
-  border: 1px solid var(--wp-border);
-  border-radius: var(--wp-radius);
-  min-width: max-content;
-}
-
-#workout[data-page="workout-plan"] .routine-tab {
-  display: flex;
-  flex: 0 0 auto;
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: transparent;
-  border: none;
-  border-radius: var(--wp-radius-sm);
-  color: var(--wp-text-muted);
-  font-family: var(--wp-font);
-  font-size: var(--wp-fs-small);
-  font-weight: var(--wp-fw-medium);
-  cursor: pointer;
-  transition: all var(--wp-transition-fast);
-  white-space: nowrap;
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn:hover {
-  background: var(--wp-surface-elevated);
-  color: var(--wp-text);
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn.active {
-  background: var(--wp-accent);
-  color: #ffffff;
-  box-shadow: var(--wp-shadow-sm);
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn.active:hover {
-  background: var(--wp-accent-hover);
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-label {
-  /* Moved to end of file for advanced mode optimization */
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  font-size: 0.75rem;
-  font-weight: var(--wp-fw-semibold);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.15);
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn.active .tab-count {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn:not(.active) .tab-count {
-  background: var(--wp-border);
-  color: var(--wp-text-muted);
-}
-
-/* Hide count if empty */
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-count:empty {
-  display: none;
-}
-
-/* Matching-exercises badge next to "Exercise" label */
-#workout[data-page="workout-plan"] .exercise-match-count {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 8px;
-  padding: 2px 8px;
-  font-size: 0.7rem;
-  font-weight: var(--wp-fw-medium);
-  color: var(--wp-text-muted);
-  background: var(--wp-border);
-  border-radius: 10px;
-  vertical-align: middle;
-}
-
-#workout[data-page="workout-plan"] .exercise-match-count:empty {
-  display: none;
-}
-
-/* Responsive: wrap tabs on smaller screens if needed */
-@media (max-width: 768px) {
-  #workout[data-page="workout-plan"] .routine-tabs {
-    flex-wrap: wrap;
-  }
-
-  #workout[data-page="workout-plan"] .routine-tab-btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-  }
-
-  #workout[data-page="workout-plan"] .routine-tab-btn .tab-label {
-    max-width: 150px;
-  }
-}
-
-/* Animation for tab switching */
-#workout[data-page="workout-plan"] .workout-plan-table tbody tr {
-  transition: opacity var(--wp-transition-fast);
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table tbody tr.filtered-out {
-  display: none;
-}
-
-/* ========================================================================
-   720p (max-width: 1280px) - Very Compact UI
-   ======================================================================== */
-@media (max-width: 1280px) {
-  #workout[data-page="workout-plan"] .exercise-selection-grid {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.3rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 65px !important;
-    flex: 1 1 75px !important;
-    flex-basis: 75px !important;
-    max-width: 100px !important;
-    gap: 2px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.55rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 24px;
-    padding: 2px 5px;
-    font-size: 0.68rem;
-    border-radius: 6px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    width: 100%;
-    max-width: 100%;
-    height: 24px;
-    font-size: 0.68rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 24px;
-    font-size: 0.65rem;
-    padding: 0.1rem 0.3rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 0.58rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.35rem 0.5rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 26px !important;
-    min-width: 75px !important;
-    padding: 0 0.35rem !important;
-    font-size: 0.6rem !important;
-  }
-}
-
-/* ========================================================================
-   1366x768 (1281px - 1366px) - Compact UI
-   ======================================================================== */
-@media (min-width: 1281px) and (max-width: 1366px) {
-  #workout[data-page="workout-plan"] .exercise-selection-grid {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.35rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 70px !important;
-    flex: 1 1 80px !important;
-    flex-basis: 80px !important;
-    max-width: 105px !important;
-    gap: 2px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.57rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 26px;
-    padding: 3px 6px;
-    font-size: 0.7rem;
-    border-radius: 6px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    width: 100%;
-    max-width: 100%;
-    height: 26px;
-    font-size: 0.7rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 26px;
-    font-size: 0.68rem;
-    padding: 0.125rem 0.325rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 0.6rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.4rem 0.55rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 28px !important;
-    min-width: 80px !important;
-    padding: 0 0.4rem !important;
-    font-size: 0.62rem !important;
-  }
-}
-
-/* ========================================================================
-   1536x864 (1367px - 1536px) - Compact+ UI
-   ======================================================================== */
-@media (min-width: 1367px) and (max-width: 1536px) {
-  #workout[data-page="workout-plan"] .exercise-selection-grid {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.4rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 75px !important;
-    flex: 1 1 85px !important;
-    flex-basis: 85px !important;
-    max-width: 115px !important;
-    gap: 3px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.6rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 28px;
-    padding: 3px 6px;
-    font-size: 0.72rem;
-    border-radius: 7px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    width: 100%;
-    max-width: 100%;
-    height: 28px;
-    font-size: 0.72rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 28px;
-    font-size: 0.7rem;
-    padding: 0.15rem 0.35rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 0.63rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.425rem 0.6rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 29px !important;
-    min-width: 85px !important;
-    padding: 0 0.425rem !important;
-    font-size: 0.65rem !important;
-  }
-}
-
-/* ========================================================================
-   1600x900 (1537px - 1600px) - Medium Compact UI
-   ======================================================================== */
-@media (min-width: 1537px) and (max-width: 1600px) {
-  #workout[data-page="workout-plan"] .exercise-selection-grid {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.45rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 80px !important;
-    flex: 1 1 90px !important;
-    flex-basis: 90px !important;
-    max-width: 120px !important;
-    gap: 3px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.62rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 30px;
-    padding: 4px 7px;
-    font-size: 0.75rem;
-    border-radius: 7px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    width: 100%;
-    max-width: 100%;
-    height: 29px;
-    font-size: 0.75rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 29px;
-    font-size: 0.72rem;
-    padding: 0.175rem 0.375rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 0.67rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.45rem 0.65rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 30px !important;
-    min-width: 90px !important;
-    padding: 0 0.45rem !important;
-    font-size: 0.67rem !important;
-  }
-}
-
-/* ========================================================================
-   1080p (1601px - 1920px) - Standard Compact UI
-   ======================================================================== */
-@media (min-width: 1601px) and (max-width: 1920px) {
-  #workout[data-page="workout-plan"] .exercise-selection-grid {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"] .exercise-selection-grid .selection-field {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #workout[data-page="workout-plan"] .routine-cascade-container {
-    max-width: 100%;
-  }
-
-  #workout[data-page="workout-plan"] .cascade-row {
-    max-width: 100%;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.5rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 90px !important;
-    flex: 1 1 100px !important;
-    flex-basis: 100px !important;
-    max-width: 130px !important;
-    gap: 4px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.65rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 32px;
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    border-radius: 8px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    width: 100%;
-    max-width: 100%;
-    height: 30px;
-    font-size: 0.8rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 30px;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 0.7rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.5rem 0.75rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 32px !important;
-    min-width: 100px !important;
-    padding: 0 0.5rem !important;
-    font-size: 0.7rem !important;
-  }
-
-  /* ========================================================================
-     1080p Table Optimizations - Fit all columns in 1920x1080 viewport
-     ======================================================================== */
-
-  /* Reduce table cell padding and font size for compact display */
-  #workout[data-page="workout-plan"] .workout-plan-table thead th {
-    padding: 6px 5px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-  }
-
-  #workout[data-page="workout-plan"] .workout-plan-table tbody td {
-    padding: 5px 4px;
-    font-size: 0.75rem;
-  }
-
-  /* Make table container fit without scrollbar (except in advanced mode) */
-  #workout[data-page="workout-plan"] .workout-plan.table-container:not(:has(.tbl--view-advanced)) {
-    width: 100%;
-    min-width: unset;
-    overflow-x: hidden;
-    padding: var(--wp-padding-sm);
-  }
-
-  #workout[data-page="workout-plan"] .tbl-wrap:not(:has(.tbl--view-advanced)),
-  #workout[data-page="workout-plan"] .tbl-wrap--full:not(:has(.tbl--view-advanced)) {
-    overflow-x: hidden;
-    overflow-y: visible;
-    max-width: 100%;
-  }
-
-  /* Table should fit viewport width without scrolling */
-  #workout[data-page="workout-plan"] .workout-plan-table:not(.tbl--view-advanced) {
-    table-layout: auto;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  /* Specific column width assignments for optimal fit at 1920x1080 */
-  #workout[data-page="workout-plan"] .workout-plan-table th.superset-select-col,
-  #workout[data-page="workout-plan"] .workout-plan-table td:nth-child(1) {
-    width: 28px;
-    min-width: 28px;
-    max-width: 28px;
-    padding: 3px 2px;
-  }
-
-  /* Drag handle column */
-  #workout[data-page="workout-plan"] .workout-plan-table th:nth-child(2),
-  #workout[data-page="workout-plan"] .workout-plan-table td:nth-child(2) {
-    width: 22px;
-    min-width: 22px;
-    max-width: 22px;
-    padding: 3px 2px;
-  }
-
-  /* Routine column - 3-line format */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Routine"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Routine"] {
-    width: 85px;
-    min-width: 75px;
-    max-width: 100px;
-  }
-
-  /* Exercise column - needs more space */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Exercise"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Exercise"] {
-    width: 160px;
-    min-width: 140px;
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* Muscle columns */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Primary Muscle"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Primary Muscle"],
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Secondary Muscle"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Secondary Muscle"] {
-    width: 85px;
-    min-width: 75px;
-    max-width: 95px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-
-  /* Utility, Movement Pattern, Subpattern columns */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Utility"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Utility"] {
-    width: 60px;
-    min-width: 55px;
-    max-width: 70px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Movement Pattern"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Movement Pattern"],
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Movement Subpattern"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Movement Subpattern"] {
-    width: 90px;
-    min-width: 80px;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Numeric columns - compact */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Sets"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Sets"],
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Min Rep"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Min Rep"],
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Max Rep"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Max Rep"],
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="RIR"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="RIR"],
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="RPE"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="RPE"] {
-    width: 42px;
-    min-width: 38px;
-    max-width: 48px;
-    text-align: center;
-    padding: 4px 3px;
-  }
-
-  /* Weight column */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Weight"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Weight"] {
-    width: 55px;
-    min-width: 50px;
-    max-width: 65px;
-    text-align: center;
-    padding: 4px 3px;
-  }
-
-  /* Style column */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Execution Style"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Execution Style"] {
-    width: 55px;
-    min-width: 50px;
-    max-width: 65px;
-    text-align: center;
-    padding: 4px 3px;
-  }
-
-  /* Grips column */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Grips"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Grips"] {
-    width: 65px;
-    min-width: 58px;
-    max-width: 75px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Actions column - compact */
-  #workout[data-page="workout-plan"] .workout-plan-table th[data-label="Actions"],
-  #workout[data-page="workout-plan"] .workout-plan-table td[data-label="Actions"] {
-    width: 36px;
-    min-width: 32px;
-    max-width: 40px;
-    text-align: center;
-    padding: 2px 1px;
-  }
-
-  /* Compact table buttons - icon only, minimal size */
-  #workout[data-page="workout-plan"] .workout-plan-table .btn {
-    padding: 2px 3px;
-    min-height: 22px;
-    width: 22px;
-    height: 22px;
-  }
-
-  #workout[data-page="workout-plan"] .workout-plan-table .btn i {
-    font-size: 0.75rem !important;
-  }
-
-  /* Execution badge compact */
-  #workout[data-page="workout-plan"] .execution-badge {
-    padding: 2px 5px;
-    font-size: 0.65rem;
-  }
-}
-
-/* ========================================================================
-   1440p (1921px - 2560px) - Standard UI
-   ======================================================================== */
-@media (min-width: 1921px) and (max-width: 2560px) {
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.65rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 110px !important;
-    flex: 1 1 120px !important;
-    flex-basis: 120px !important;
-    max-width: 160px !important;
-    gap: 5px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.78rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 38px;
-    padding: 6px 10px;
-    font-size: 0.88rem;
-    border-radius: 10px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    height: 36px;
-    font-size: 0.88rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 36px;
-    font-size: 0.85rem;
-    padding: 0.35rem 0.55rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 0.85rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.65rem 1rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 38px !important;
-    min-width: 120px !important;
-    padding: 0 0.75rem !important;
-    font-size: 0.85rem !important;
-  }
-}
-
-/* ========================================================================
-   4K (2561px+) - Large UI
-   ======================================================================== */
-@media (min-width: 2561px) {
-  #workout[data-page="workout-plan"] .input-fields-group {
-    gap: 0.85rem !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group {
-    min-width: 140px !important;
-    flex: 1 1 160px !important;
-    flex-basis: 160px !important;
-    max-width: 200px !important;
-    gap: 6px !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-label {
-    font-size: 0.95rem;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control,
-  #workout[data-page="workout-plan"] .input-fields-group .input-group input[type="number"] {
-    min-height: 48px;
-    padding: 8px 14px;
-    font-size: 1.05rem;
-    border-radius: 12px;
-  }
-
-  #workout[data-page="workout-plan"] .uniform-dropdown,
-  #workout[data-page="workout-plan"] .exercise-dropdown {
-    height: 46px;
-    font-size: 1.05rem;
-  }
-
-  #workout[data-page="workout-plan"] .filter-dropdown {
-    height: 46px;
-    font-size: 1rem;
-    padding: 0.5rem 0.8rem;
-  }
-
-  #workout[data-page="workout-plan"] .frame-title,
-  #workout[data-page="workout-plan"] .filters-title {
-    font-size: 1rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions {
-    padding: 0.85rem 1.25rem;
-  }
-
-  #workout[data-page="workout-plan"] .selection-actions .btn {
-    height: 48px !important;
-    min-width: 150px !important;
-    padding: 0 1rem !important;
-    font-size: 1rem !important;
-  }
-}
-
-/* ==========================================================================
-   SUPERSET FEATURE STYLES
-   Visual styling for exercise supersets in the workout plan table
-   ========================================================================== */
-
-/* Superset color palette - cycles through 4 distinct colors */
-:root {
-  --superset-color-1: #7C3AED;  /* Purple */
-  --superset-color-2: #0891B2;  /* Teal */
-  --superset-color-3: #059669;  /* Green */
-  --superset-color-4: #D97706;  /* Orange */
-  --superset-bg-1: rgba(124, 58, 237, 0.08);
-  --superset-bg-2: rgba(8, 145, 178, 0.08);
-  --superset-bg-3: rgba(5, 150, 105, 0.08);
-  --superset-bg-4: rgba(217, 119, 6, 0.08);
-}
-
-/* Superset action buttons container */
-.superset-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--wp-surface);
-  border-radius: var(--wp-radius-sm);
-  margin-bottom: 16px;
-  box-shadow: var(--wp-shadow-sm);
-  border: 1px solid var(--wp-border);
-}
-
-/* `hidden` must actually hide. The shared button rules in components.css set
-   `display: inline-flex !important` (on `button.btn` and twice on
-   `.btn-calm-danger`), which outranks both the UA `[hidden]` rule and a plain
-   inline `display: none` — so the Unlink button rendered for a non-superset
-   selection. An id-scoped important rule is the one weight that wins here. */
-#superset-actions .btn[hidden] {
-  display: none !important;
-}
-
-.superset-selection-info {
-  font-size: 0.875rem;
-  color: var(--wp-text-muted);
-  margin-left: auto;
-}
-
-/* Link/Unlink button styling */
-.btn-link-superset {
-  background: linear-gradient(135deg, #7C3AED, #5B21B6);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-link-superset:hover:not(:disabled) {
-  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-}
-
-.btn-link-superset:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-unlink-superset {
-  background: linear-gradient(135deg, #EF4444, #DC2626);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-unlink-superset:hover {
-  background: linear-gradient(135deg, #F87171, #EF4444);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-/* Column header for superset selection */
-th.superset-select-col {
-  width: 40px !important;
-  min-width: 40px !important;
-  text-align: center;
-  padding: 8px 4px !important;
-}
-
-.superset-header-icon {
-  color: var(--superset-color-1);
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-/* Checkbox column for superset selection */
-td.superset-select-col {
-  width: 40px !important;
-  min-width: 40px !important;
-  text-align: center;
-  padding: 8px 4px !important;
-  position: relative;
-}
-
-.superset-checkbox {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--superset-color-1);
-}
-
-/* Superset row styling - base class */
-tr.superset-group {
-  position: relative;
-}
-
-/* Left border indicator for superset rows */
-tr.superset-group td:first-child::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--superset-row-color, var(--superset-color-1));
-  border-radius: 0;
-}
-
-tr.superset-first td:first-child::before {
-  border-radius: 4px 4px 0 0;
-  top: 4px;
-}
-
-tr.superset-last td:first-child::before {
-  border-radius: 0 0 4px 4px;
-  bottom: 4px;
-}
-
-/* Superset group color variations */
-tr.superset-group-1 {
-  --superset-row-color: var(--superset-color-1);
-  background-color: var(--superset-bg-1) !important;
-}
-
-tr.superset-group-2 {
-  --superset-row-color: var(--superset-color-2);
-  background-color: var(--superset-bg-2) !important;
-}
-
-tr.superset-group-3 {
-  --superset-row-color: var(--superset-color-3);
-  background-color: var(--superset-bg-3) !important;
-}
-
-tr.superset-group-4 {
-  --superset-row-color: var(--superset-color-4);
-  background-color: var(--superset-bg-4) !important;
-}
-
-/* Superset badge */
-.superset-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--superset-row-color, var(--superset-color-1));
-  color: white;
-  margin-left: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  vertical-align: middle;
-}
-
-.superset-badge i {
-  font-size: 0.6rem;
-}
-
-/* Superset connector line between rows */
-tr.superset-first td.superset-select-col::after {
-  content: '';
-  position: absolute;
-  left: 19px;
-  bottom: -1px;
-  width: 2px;
-  height: 50%;
-  background: var(--superset-row-color, var(--superset-color-1));
-}
-
-tr.superset-last td.superset-select-col::after {
-  content: '';
-  position: absolute;
-  left: 19px;
-  top: -1px;
-  width: 2px;
-  height: 50%;
-  background: var(--superset-row-color, var(--superset-color-1));
-}
-
-/* Selection highlight for checkbox selection - MORE VISIBLE */
-tr.superset-selected {
-  outline: 3px solid var(--superset-color-1) !important;
-  outline-offset: -1px;
-  background-color: rgba(124, 58, 237, 0.15) !important;
-  box-shadow: inset 0 0 0 1px var(--superset-color-1);
-}
-
-tr.superset-selected td {
-  background-color: rgba(124, 58, 237, 0.12) !important;
-}
-
-/* Hover effect on superset rows */
-tr.superset-group:hover {
-  filter: brightness(0.97);
-}
-
-/* Visual feedback when dragging superset partner */
-tr.superset-partner-dragging {
-  outline: 2px dashed var(--superset-color-1);
-  outline-offset: -2px;
-  opacity: 0.7;
-  animation: partner-pulse 0.8s ease-in-out infinite;
-}
-
-@keyframes partner-pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0.9; }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .superset-actions {
-    flex-wrap: wrap;
-    padding: 10px;
-  }
-
-  .superset-selection-info {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 8px;
-    text-align: center;
-  }
-
-  .superset-badge {
-    font-size: 0.6rem;
-    padding: 1px 4px;
-  }
-}
-
-/* ==========================================================================
-   Execution Style Feature (AMRAP/EMOM)
-   ========================================================================== */
-
-/* Execution Style Badge */
-.execution-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: var(--wp-radius-sm);
-  font-size: 0.75rem;
-  font-weight: var(--wp-fw-semibold);
-  cursor: pointer;
-  transition: var(--wp-transition);
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.execution-badge:hover {
-  transform: scale(1.05);
-}
-
-.execution-badge--standard {
-  background: var(--wp-surface);
-  color: var(--wp-text-muted);
-  border-color: var(--wp-border);
-}
-
-.execution-badge--standard:hover {
-  background: var(--wp-surface-elevated);
-  border-color: var(--wp-accent);
-  color: var(--wp-accent);
-}
-
-.execution-badge--amrap {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-  color: white;
-  border-color: #ff6b6b;
-}
-
-.execution-badge--amrap:hover {
-  background: linear-gradient(135deg, #ff5252 0%, #e53935 100%);
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
-}
-
-.execution-badge--emom {
-  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-  color: white;
-  border-color: #4ecdc4;
-}
-
-.execution-badge--emom:hover {
-  background: linear-gradient(135deg, #3dbdb4 0%, #3a9080 100%);
-  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.4);
-}
-
-.execution-label {
-  font-weight: var(--wp-fw-bold);
-  letter-spacing: 0.5px;
-}
-
-.execution-details {
-  font-size: 0.65rem;
-  opacity: 0.9;
-  margin-left: 2px;
-}
-
 /* Execution Style Picker Popup */
 .execution-style-picker {
-  background: var(--wp-surface-elevated);
-  border: 1px solid var(--wp-border);
-  border-radius: var(--wp-radius);
-  box-shadow: var(--wp-shadow-lg);
-  min-width: 280px;
-  max-width: 320px;
+  position: fixed;
+  z-index: 1050;
+  background: var(--surface-2);
+  border: 1px solid var(--ink-3);
+  border-radius: var(--ui-modal-radius);
+  box-shadow: var(--shadow-elev-2);
+  min-width: min(280px, calc(100vw / var(--ui-scale) - 20px));
+  max-width: min(320px, calc(100vw / var(--ui-scale) - 20px));
+  max-height: calc(100dvh / var(--ui-scale) - 20px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: picker-appear 0.2s ease-out;
 }
 
@@ -3785,30 +287,30 @@ tr.superset-partner-dragging {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--wp-border);
-  background: var(--wp-surface);
-  border-radius: var(--wp-radius) var(--wp-radius) 0 0;
+  border-bottom: 1px solid var(--ink-3);
+  background: var(--surface-1);
+  border-radius: var(--ui-modal-radius) var(--ui-modal-radius) 0 0;
 }
 
 .execution-picker-header h6 {
   margin: 0;
   font-size: 0.9rem;
-  font-weight: var(--wp-fw-semibold);
-  color: var(--wp-text);
+  font-weight: 600;
+  color: var(--ink-1);
 }
 
 .btn-close-picker {
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: var(--wp-text-muted);
+  color: var(--ink-2);
   cursor: pointer;
   padding: 0;
   line-height: 1;
 }
 
 .btn-close-picker:hover {
-  color: var(--wp-text);
+  color: var(--ink-1);
 }
 
 .execution-picker-body {
@@ -3826,20 +328,20 @@ tr.superset-partner-dragging {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border: 2px solid var(--wp-border);
-  border-radius: var(--wp-radius-sm);
+  border: 2px solid var(--ink-3);
+  border-radius: var(--ui-control-radius);
   cursor: pointer;
-  transition: var(--wp-transition);
+  transition: border-color 200ms ease, background-color 200ms ease;
 }
 
 .execution-option:hover {
-  border-color: var(--wp-accent);
-  background: var(--wp-surface);
+  border-color: var(--ui-primary);
+  background: var(--surface-1);
 }
 
 .execution-option.active {
-  border-color: var(--wp-accent);
-  background: rgba(79, 140, 255, 0.1);
+  border-color: var(--ui-primary);
+  background: color-mix(in srgb, var(--ui-primary) 10%, var(--surface-2));
 }
 
 .execution-option input[type="radio"] {
@@ -3852,15 +354,15 @@ tr.superset-partner-dragging {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--wp-surface);
+  background: var(--surface-1);
   border-radius: 50%;
   font-size: 0.9rem;
-  color: var(--wp-text-muted);
+  color: var(--ink-2);
 }
 
 .execution-option.active .option-icon {
-  background: var(--wp-accent);
-  color: white;
+  background: var(--ui-primary);
+  color: var(--accent-ink);
 }
 
 .option-text {
@@ -3870,19 +372,19 @@ tr.superset-partner-dragging {
 
 .option-text strong {
   font-size: 0.85rem;
-  color: var(--wp-text);
+  color: var(--ink-1);
 }
 
 .option-text small {
   font-size: 0.7rem;
-  color: var(--wp-text-muted);
+  color: var(--ink-2);
 }
 
 /* Execution style parameters */
 .execution-params {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid var(--wp-border);
+  border-top: 1px solid var(--ink-3);
 }
 
 .param-label {
@@ -3894,7 +396,7 @@ tr.superset-partner-dragging {
 
 .param-label span {
   font-size: 0.8rem;
-  color: var(--wp-text-muted);
+  color: var(--ink-2);
 }
 
 .param-label input {
@@ -3907,22 +409,9 @@ tr.superset-partner-dragging {
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 16px;
-  border-top: 1px solid var(--wp-border);
-  background: var(--wp-surface);
-  border-radius: 0 0 var(--wp-radius) var(--wp-radius);
-}
-
-/* Dark mode adjustments */
-[data-theme='dark'] .execution-badge--standard {
-  background: var(--wp-surface-elevated);
-}
-
-[data-theme='dark'] .execution-option:hover {
-  background: var(--wp-surface-elevated);
-}
-
-[data-theme='dark'] .execution-option.active {
-  background: rgba(79, 140, 255, 0.15);
+  border-top: 1px solid var(--ink-3);
+  background: var(--surface-1);
+  border-radius: 0 0 var(--ui-modal-radius) var(--ui-modal-radius);
 }
 
 /* Responsive */
@@ -3934,963 +423,62 @@ tr.superset-partner-dragging {
     max-width: none;
     width: auto;
   }
-
-  .execution-badge {
-    padding: 3px 6px;
-    font-size: 0.7rem;
-  }
-
-  .execution-details {
-    display: none;
-  }
 }
 
-/* ========================================================================
-   ADVANCED MODE TABLE OPTIMIZATIONS
-   Ensures table fits on 1920x1080 at higher zoom levels (scale 6+)
-   by allowing text wrapping and compact column widths
-   ======================================================================== */
-
-/* Advanced mode: Allow horizontal scrolling since there are many columns */
-#workout[data-page="workout-plan"] .workout-plan.table-container:has(.tbl--view-advanced),
-#workout[data-page="workout-plan"] .tbl-wrap:has(.tbl--view-advanced),
-#workout[data-page="workout-plan"] .tbl-wrap--full:has(.tbl--view-advanced) {
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  max-width: none !important;
-  padding-right: 10px !important;
-}
-
-/* Advanced mode table - spread to use full width, override base .table overflow:hidden */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: none !important;
-  table-layout: auto !important;
-  overflow: visible !important;
-}
-
-/* Ensure base table class doesn't clip content in advanced mode */
-#workout[data-page="workout-plan"] .table.tbl--view-advanced {
-  overflow: visible !important;
-}
-
-/* Advanced mode: Allow text wrapping in cells to reduce column width */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced tbody td {
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.3;
-}
-
-/* Advanced mode: Set max-widths on text columns to encourage 2-line wrapping */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Exercise"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Exercise"] {
-  max-width: 130px;
-  min-width: 100px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced .exercise-cell .exercise-cell-content {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: flex-start;
-  column-gap: 6px;
-  row-gap: 4px;
-  width: 100%;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced .exercise-cell .exercise-name {
-  flex: 1 0 100%;
-  max-width: 100%;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced .exercise-cell .superset-badge {
-  margin-left: 0;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced .exercise-cell .btn.btn-swap {
-  align-self: flex-start;
-  margin-top: 0;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced .exercise-cell .exercise-thumbnail {
-  flex: 0 0 auto;
-  align-self: flex-start;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Primary Muscle"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Primary Muscle"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Secondary Muscle"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Secondary Muscle"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Tertiary Muscle"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Tertiary Muscle"] {
-  max-width: 95px;
-  min-width: 70px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Isolated Muscles"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Isolated Muscles"] {
-  max-width: 100px;
-  min-width: 70px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Movement Pattern"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Movement Pattern"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Movement Subpattern"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Movement Subpattern"] {
-  max-width: 95px;
-  min-width: 70px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Stabilizers"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Stabilizers"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Synergists"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Synergists"] {
-  max-width: 85px;
-  min-width: 60px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Grips"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Grips"] {
-  max-width: 70px;
-  min-width: 55px;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Utility"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Utility"] {
-  max-width: 65px;
-  min-width: 50px;
-}
-
-/* Advanced mode: Compact numeric columns */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td.is-num,
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th.is-num {
-  white-space: nowrap;
-  min-width: 40px;
-  max-width: 55px;
-}
-
-/* Advanced mode: Reduced cell padding */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th,
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td {
-  padding: 6px 5px;
-  font-size: 0.82rem;
-}
-
-/* Advanced mode: Allow header text wrapping */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced thead th {
-  white-space: normal;
-  word-wrap: break-word;
-  line-height: 1.2;
-  vertical-align: bottom;
-}
-
-/* Routine cell - 3-line vertical layout (Environment, Program, Workout) */
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell {
-  min-width: 80px !important;
-  max-width: 120px !important;
-  width: auto !important;
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-  vertical-align: middle;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell .routine-env,
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell .routine-program,
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell .routine-workout {
-  display: block;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell .routine-env {
-  font-weight: 600;
-  font-size: 0.72rem;
-  color: var(--wp-text-muted);
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell .routine-program {
-  font-weight: 500;
-  font-size: 0.78rem;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table .routine-cell .routine-workout {
-  font-weight: 400;
-  font-size: 0.72rem;
-  color: var(--wp-text-muted);
-}
-
-/* Advanced mode: Routine column - 3-line format */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Routine"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Routine"] {
-  min-width: 85px !important;
-  max-width: 110px !important;
-  width: 95px !important;
-}
-
-/* Advanced mode: Actions column - ensure button is visible */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Actions"],
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced th[data-label="Actions"] {
-  min-width: 80px !important;
-  width: 80px !important;
-  white-space: nowrap !important;
-  padding: 6px 10px !important;
-  overflow: visible !important;
-  text-align: center;
-}
-
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced thead th[data-label="Actions"] {
-  background-color: var(--wp-surface);
-}
-
-/* Advanced mode: Remove button - ensure fully visible */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Actions"] .btn {
-  padding: 5px 8px !important;
-  min-height: 30px !important;
-  min-width: 36px !important;
-  width: auto !important;
-  height: auto !important;
-}
-
-/* Advanced mode: Compact remove button */
-#workout[data-page="workout-plan"] .workout-plan-table.tbl--view-advanced td[data-label="Actions"] .btn {
-  padding: 4px 6px !important;
-  min-height: 28px !important;
-  width: 30px !important;
-  height: 30px !important;
-}
-
-/* ========================================================================
-   ROUTINE TABS - 3-line format (Environment, Program, Workout)
-   ======================================================================== */
-
-/* Tab label container - 3 line vertical layout */
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-label {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-  max-width: none;
-  overflow: visible;
-  text-overflow: clip;
-  text-align: left;
-}
-
-/* Tab environment line */
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-label .tab-env {
-  display: block;
-  font-weight: 600;
-  font-size: 0.68rem;
-  color: var(--wp-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-/* Tab program line */
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-label .tab-program {
-  display: block;
-  font-weight: 500;
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
-/* Tab workout line */
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-label .tab-workout {
-  display: block;
-  font-weight: 400;
-  font-size: 0.68rem;
-  color: var(--wp-text-muted);
-}
-
-/* Active tab - override child text colors to white for visibility */
-#workout[data-page="workout-plan"] .routine-tab-btn.active .tab-label .tab-env,
-#workout[data-page="workout-plan"] .routine-tab-btn.active .tab-label .tab-workout {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-#workout[data-page="workout-plan"] .routine-tab-btn.active .tab-label .tab-program {
-  color: #ffffff;
-}
-
-/* Compact tab button padding for more tabs */
-#workout[data-page="workout-plan"] .routine-tab-btn {
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Smaller tab count badge */
-#workout[data-page="workout-plan"] .routine-tab-btn .tab-count {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  font-size: 0.7rem;
-  align-self: center;
-}
-
-/* At smaller viewport, further reduce tab sizes */
-@media (max-width: 1366px) {
-  #workout[data-page="workout-plan"] .routine-tab-btn {
-    padding: 5px 8px;
-    font-size: 0.72rem;
-  }
-
-  #workout[data-page="workout-plan"] .routine-tab-btn .tab-label .tab-env,
-  #workout[data-page="workout-plan"] .routine-tab-btn .tab-label .tab-workout {
-    font-size: 0.62rem;
-  }
-
-  #workout[data-page="workout-plan"] .routine-tab-btn .tab-label .tab-program {
-    font-size: 0.68rem;
-  }
-
-  #workout[data-page="workout-plan"] .routine-tab-btn .tab-count {
-    min-width: 16px;
-    height: 16px;
-    font-size: 0.65rem;
-  }
-}
-
-
-/* ============================================
-   Routine Cascade Selector Styles
-   3-step cascading dropdown for routine selection
-   ============================================ */
-
-/* Main container */
+/* Routine selection and validation */
 .routine-cascade-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    width: 100%;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
 }
 
-/* Row containing the 3 dropdowns and connectors */
-.cascade-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
-    flex-wrap: nowrap;
-    width: 100%;
-    max-width: 100%;
-}
-
-/* Individual dropdown wrapper */
 .cascade-dropdown-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 0;
-    min-width: 120px;
-    max-width: calc(33.333% - 1.5rem);
+    display: grid;
+    transition: opacity 200ms ease;
 }
 
-.cascade-dropdown-wrapper label {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #6c757d;
-    margin-bottom: 0.35rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Cascade dropdown styling */
-.cascade-dropdown {
-    height: var(--input-height-md);
-    padding: var(--input-padding-y) var(--input-padding-x);
-    font-size: var(--input-font-size);
-    border-radius: 6px;
-    border: 1px solid #ced4da;
-    background-color: #fff;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-.cascade-dropdown:focus {
-    outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    border-color: #80bdff;
-}
+.cascade-dropdown { cursor: pointer; }
 
 .cascade-dropdown:disabled {
-    background-color: #e9ecef;
-    color: #6c757d;
     cursor: not-allowed;
     opacity: 0.7;
 }
 
-/* Environment dropdown - Blue theme */
-.cascade-dropdown.cascade-env {
-    background-color: #e3f2fd;
-    border-color: #90caf9;
-}
-
-.cascade-dropdown.cascade-env:not(:disabled):hover {
-    background-color: #bbdefb;
-    border-color: #64b5f6;
-}
-
-/* Program dropdown - Amber theme */
-.cascade-dropdown.cascade-program {
-    background-color: #fff8e1;
-    border-color: #ffca28;
-}
-
-.cascade-dropdown.cascade-program:not(:disabled):hover {
-    background-color: #ffecb3;
-    border-color: #ffc107;
-}
-
-/* Routine dropdown - Green theme */
-.cascade-dropdown.cascade-routine {
-    background-color: #e8f5e9;
-    border-color: #81c784;
-}
-
-.cascade-dropdown.cascade-routine:not(:disabled):hover {
-    background-color: #c8e6c9;
-    border-color: #66bb6a;
-}
-
-/* Visual connector arrows between dropdowns */
 .cascade-connector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 42px;
-    color: #dee2e6;
-    font-size: 1.2rem;
-    transition: color 0.2s ease;
-    flex-shrink: 0;
-    align-self: flex-end;
+    display: grid;
+    place-items: center;
 }
 
-.cascade-connector.active {
-    color: #28a745;
-}
+.cascade-connector.active i { transform: scale(1.1); }
 
-.cascade-connector i {
-    transition: transform 0.2s ease;
-}
-
-.cascade-connector.active i {
-    transform: scale(1.1);
-}
-
-/* Selection breadcrumb - 2026 Glass Style */
-.routine-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(248, 250, 252, 0.98) 100%);
-    border-radius: 10px;
-    font-size: 0.875rem;
-    min-height: 36px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow:
-        0 4px 16px rgba(79, 140, 255, 0.06),
-        0 1px 3px rgba(0, 0, 0, 0.03),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: all 0.3s ease-in-out;
-}
-
-.routine-breadcrumb:hover {
-    box-shadow:
-        0 6px 20px rgba(79, 140, 255, 0.1),
-        0 2px 5px rgba(0, 0, 0, 0.04),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.routine-breadcrumb.has-selection {
-    background: linear-gradient(135deg,
-        rgba(212, 237, 218, 0.95) 0%,
-        rgba(195, 230, 203, 0.98) 100%);
-    border-color: rgba(40, 167, 69, 0.3);
-    box-shadow:
-        0 4px 16px rgba(40, 167, 69, 0.1),
-        0 1px 3px rgba(0, 0, 0, 0.03),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.breadcrumb-placeholder {
-    color: #6c757d;
-    font-style: italic;
-}
-
-.breadcrumb-separator {
-    color: #6c757d;
-}
-
-.breadcrumb-env {
-    color: #1976d2;
-    font-weight: 500;
-}
-
-.breadcrumb-program {
-    color: #f57c00;
-    font-weight: 500;
-}
-
-.breadcrumb-routine {
-    color: #388e3c;
-    font-weight: 600;
-}
-
-/* Validation error states */
 .cascade-dropdown.is-invalid-required {
-    border-color: #dc3545 !important;
-    background-color: #fff5f5 !important;
-    animation: shake 0.3s ease-in-out;
+    border-color: var(--ui-danger);
+    animation: shake 300ms ease-in-out;
 }
 
-.cascade-dropdown-wrapper.has-validation-error label {
-    color: #dc3545;
-}
+.plan-add .cascade-dropdown-wrapper.has-validation-error label { color: var(--ui-danger); }
 
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
+    25%, 75% { transform: translateX(-4px); }
     50% { transform: translateX(4px); }
-    75% { transform: translateX(-4px); }
 }
 
-/* Responsive layout */
-@media (max-width: 992px) {
-    .cascade-row {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 100%;
-        max-width: 100%;
-    }
-
-    .cascade-connector {
-        display: none;
-    }
-
-    /* Show step numbers on mobile instead of arrows */
-    .cascade-dropdown-wrapper label::before {
-        content: attr(data-step) ". ";
-        font-weight: 600;
-    }
-}
-
-@media (min-width: 993px) and (max-width: 1200px) {
-    .cascade-dropdown-wrapper {
-        min-width: 100px;
-        max-width: calc(33.333% - 1.25rem);
-    }
-}
-
-/* 720p (max-width: 1280px) - Very Compact */
-@media (min-width: 1201px) and (max-width: 1280px) {
-    .cascade-row {
-        gap: 0.2rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 100px;
-        max-width: calc(33.333% - 0.6rem);
-    }
-
-    .cascade-dropdown {
-        height: 24px;
-        font-size: 0.68rem;
-        padding: 0.125rem 0.325rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.58rem;
-        margin-bottom: 0.15rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.2rem 0.375rem;
-        font-size: 0.62rem;
-        min-height: 22px;
-    }
-
-    .cascade-connector {
-        width: 16px;
-        height: 24px;
-        font-size: 0.75rem;
-    }
-}
-
-/* 1366x768 (1281px - 1366px) - Compact */
-@media (min-width: 1281px) and (max-width: 1366px) {
-    .cascade-row {
-        gap: 0.22rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 105px;
-        max-width: calc(33.333% - 0.65rem);
-    }
-
-    .cascade-dropdown {
-        height: 26px;
-        font-size: 0.7rem;
-        padding: 0.15rem 0.35rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.6rem;
-        margin-bottom: 0.175rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.22rem 0.4rem;
-        font-size: 0.65rem;
-        min-height: 24px;
-    }
-
-    .cascade-connector {
-        width: 17px;
-        height: 26px;
-        font-size: 0.8rem;
-    }
-}
-
-/* 1536x864 (1367px - 1536px) - Compact+ */
-@media (min-width: 1367px) and (max-width: 1536px) {
-    .cascade-row {
-        gap: 0.23rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 110px;
-        max-width: calc(33.333% - 0.7rem);
-    }
-
-    .cascade-dropdown {
-        height: 28px;
-        font-size: 0.72rem;
-        padding: 0.175rem 0.375rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.62rem;
-        margin-bottom: 0.185rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.23rem 0.45rem;
-        font-size: 0.68rem;
-        min-height: 25px;
-    }
-
-    .cascade-connector {
-        width: 18px;
-        height: 28px;
-        font-size: 0.825rem;
-    }
-}
-
-/* 1600x900 (1537px - 1600px) - Medium Compact */
-@media (min-width: 1537px) and (max-width: 1600px) {
-    .cascade-row {
-        gap: 0.24rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 115px;
-        max-width: calc(33.333% - 0.72rem);
-    }
-
-    .cascade-dropdown {
-        height: 29px;
-        font-size: 0.74rem;
-        padding: 0.185rem 0.385rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.64rem;
-        margin-bottom: 0.19rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.24rem 0.475rem;
-        font-size: 0.69rem;
-        min-height: 25.5px;
-    }
-
-    .cascade-connector {
-        width: 19px;
-        height: 29px;
-        font-size: 0.85rem;
-    }
-}
-
-/* 1080p (1601px - 1920px) - Standard Compact */
-@media (min-width: 1601px) and (max-width: 1920px) {
-    .cascade-row {
-        gap: 0.25rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 120px;
-        max-width: calc(33.333% - 0.75rem);
-    }
-
-    .cascade-dropdown {
-        height: 30px;
-        font-size: 0.75rem;
-        padding: 0.2rem 0.4rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.65rem;
-        margin-bottom: 0.2rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.7rem;
-        min-height: 26px;
-    }
-
-    .cascade-connector {
-        width: 20px;
-        height: 30px;
-        font-size: 0.875rem;
-    }
-}
-
-/* 1440p (1921px - 2560px) - Standard */
-@media (min-width: 1921px) and (max-width: 2560px) {
-    .cascade-row {
-        gap: 0.4rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 160px;
-        max-width: calc(33.333% - 1rem);
-    }
-
-    .cascade-dropdown {
-        height: 36px;
-        font-size: 0.85rem;
-        padding: 0.35rem 0.55rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.75rem;
-        margin-bottom: 0.3rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.4rem 0.65rem;
-        font-size: 0.8rem;
-        min-height: 32px;
-    }
-
-    .cascade-connector {
-        width: 24px;
-        height: 36px;
-        font-size: 1rem;
-    }
-}
-
-/* 4K (2561px+) - Large */
-@media (min-width: 2561px) {
-    .cascade-row {
-        gap: 0.6rem;
-    }
-
-    .cascade-dropdown-wrapper {
-        min-width: 200px;
-        max-width: calc(33.333% - 1.25rem);
-    }
-
-    .cascade-dropdown {
-        height: 44px;
-        font-size: 1rem;
-        padding: 0.5rem 0.8rem;
-    }
-
-    .cascade-dropdown-wrapper label {
-        font-size: 0.9rem;
-        margin-bottom: 0.4rem;
-    }
-
-    .routine-breadcrumb {
-        padding: 0.5rem 0.85rem;
-        font-size: 0.95rem;
-        min-height: 40px;
-    }
-
-    .cascade-connector {
-        width: 30px;
-        height: 44px;
-        font-size: 1.25rem;
-    }
-}
-
-/* ============================================
-   Dark Mode Support
-   ============================================ */
-
-[data-theme='dark'] .cascade-dropdown {
-    background-color: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
-}
-
-[data-theme='dark'] .cascade-dropdown:disabled {
-    background-color: #1a202c;
-    color: #718096;
-}
-
-[data-theme='dark'] .cascade-dropdown:focus {
-    box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.4);
-    border-color: #4299e1;
-}
-
-/* Dark mode - Environment dropdown */
-[data-theme='dark'] .cascade-dropdown.cascade-env {
-    background-color: rgba(33, 150, 243, 0.15);
-    border-color: rgba(100, 181, 246, 0.4);
-}
-
-[data-theme='dark'] .cascade-dropdown.cascade-env:not(:disabled):hover {
-    background-color: rgba(33, 150, 243, 0.25);
-    border-color: rgba(100, 181, 246, 0.6);
-}
-
-/* Dark mode - Program dropdown */
-[data-theme='dark'] .cascade-dropdown.cascade-program {
-    background-color: rgba(255, 193, 7, 0.15);
-    border-color: rgba(255, 193, 7, 0.4);
-}
-
-[data-theme='dark'] .cascade-dropdown.cascade-program:not(:disabled):hover {
-    background-color: rgba(255, 193, 7, 0.25);
-    border-color: rgba(255, 193, 7, 0.6);
-}
-
-/* Dark mode - Routine dropdown */
-[data-theme='dark'] .cascade-dropdown.cascade-routine {
-    background-color: rgba(76, 175, 80, 0.15);
-    border-color: rgba(129, 199, 132, 0.4);
-}
-
-[data-theme='dark'] .cascade-dropdown.cascade-routine:not(:disabled):hover {
-    background-color: rgba(76, 175, 80, 0.25);
-    border-color: rgba(129, 199, 132, 0.6);
-}
-
-/* Dark mode - Connectors */
-[data-theme='dark'] .cascade-connector {
-    color: #4a5568;
-}
-
-[data-theme='dark'] .cascade-connector.active {
-    color: #68d391;
-}
-
-/* Dark mode - Breadcrumb - 2026 Glass Style */
-[data-theme='dark'] .routine-breadcrumb {
-    background: linear-gradient(135deg,
-        rgba(45, 55, 72, 0.95) 0%,
-        rgba(55, 65, 81, 0.98) 100%);
-    border-color: rgba(74, 85, 104, 0.6);
-    box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.2),
-        0 1px 3px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] .routine-breadcrumb:hover {
-    box-shadow:
-        0 6px 20px rgba(0, 0, 0, 0.25),
-        0 2px 5px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] .routine-breadcrumb.has-selection {
-    background: linear-gradient(135deg,
-        rgba(72, 187, 120, 0.15) 0%,
-        rgba(72, 187, 120, 0.25) 100%);
-    border-color: rgba(72, 187, 120, 0.4);
-    box-shadow:
-        0 4px 16px rgba(72, 187, 120, 0.15),
-        0 1px 3px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] .breadcrumb-placeholder {
-    color: #718096;
-}
-
-[data-theme='dark'] .breadcrumb-separator {
-    color: #718096;
-}
-
-[data-theme='dark'] .breadcrumb-env {
-    color: #63b3ed;
-}
-
-[data-theme='dark'] .breadcrumb-program {
-    color: #fbd38d;
-}
-
-[data-theme='dark'] .breadcrumb-routine {
-    color: #68d391;
-}
-
-/* Dark mode - Validation errors */
-[data-theme='dark'] .cascade-dropdown.is-invalid-required {
-    border-color: #fc8181 !important;
-    background-color: rgba(252, 129, 129, 0.1) !important;
-}
-
-[data-theme='dark'] .cascade-dropdown-wrapper.has-validation-error label {
-    color: #fc8181;
-}
-
-/* ============================================
-   Transition animations
-   ============================================ */
-
-.cascade-dropdown-wrapper {
-    transition: opacity 0.2s ease;
-}
-
-.cascade-dropdown option {
-    padding: 8px 12px;
-}
-
-/* Highlight effect when dropdown becomes enabled */
-.cascade-dropdown:not(:disabled) {
-    animation: enablePulse 0.3s ease-out;
+/* Feedback when selecting an environment or program enables the next field. */
+.cascade-dropdown:is(.cascade-program, .cascade-routine):not(:disabled) {
+    animation: enablePulse 300ms ease-out;
 }
 
 @keyframes enablePulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
-    }
-    100% {
-        box-shadow: none;
+    0% { box-shadow: 0 0 0 0 var(--ui-achieved-bg); }
+    70% { box-shadow: 0 0 0 6px var(--ui-achieved-bg); }
+    100% { box-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cascade-dropdown.is-invalid-required,
+    .cascade-dropdown:is(.cascade-program, .cascade-routine):not(:disabled) {
+        animation: none;
     }
 }
 
@@ -4949,14 +537,14 @@ tr.superset-partner-dragging {
    ============================================================================ */
 
 .muscle-body-tabs {
-    border-bottom-color: var(--bs-border-color, #dee2e6);
+    border-bottom-color: var(--ink-3);
     margin-bottom: 0;
 }
 
 .muscle-body-tabs .nav-link {
     font-size: 0.875rem;
     padding: 0.5rem 1rem;
-    color: var(--bs-secondary-color, #6c757d);
+    color: var(--ink-2);
     border: 1px solid transparent;
     border-bottom: none;
     margin-bottom: -1px;
@@ -4964,16 +552,16 @@ tr.superset-partner-dragging {
 }
 
 .muscle-body-tabs .nav-link:hover {
-    color: var(--bs-body-color, #212529);
-    background-color: rgba(0, 0, 0, 0.03);
-    border-color: var(--bs-border-color, #dee2e6) var(--bs-border-color, #dee2e6) transparent;
+    color: var(--ink-1);
+    background-color: var(--surface-1);
+    border-color: var(--ink-3) var(--ink-3) transparent;
 }
 
 .muscle-body-tabs .nav-link.active {
-    color: var(--bs-primary, #0d6efd);
+    color: var(--ink-1);
     font-weight: 600;
-    background-color: var(--bs-body-bg, #fff);
-    border-color: var(--bs-border-color, #dee2e6) var(--bs-border-color, #dee2e6) var(--bs-body-bg, #fff);
+    background-color: var(--surface-2);
+    border-color: var(--ink-3) var(--ink-3) var(--surface-2);
 }
 
 /* ============================================================================
@@ -5336,7 +924,7 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
 
 .selection-summary {
     padding: 0.375rem 0.625rem;
-    background: var(--bs-tertiary-bg, #f0f0f0);
+    background: var(--surface-1);
     border-radius: 4px;
     font-size: 0.75rem;
     display: flex;
@@ -5346,12 +934,12 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
 
 .summary-label {
     font-weight: 600;
-    color: var(--bs-body-color, #212529);
+    color: var(--ink-1);
     white-space: nowrap;
 }
 
 .summary-value {
-    color: var(--bs-secondary-color, #6c757d);
+    color: var(--ink-2);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -5388,14 +976,10 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
     }
 }
 
-/* ============================================================================
-   DARK MODE
-   ============================================================================ */
-
+/* Estimate feedback */
 .workout-estimate-provenance {
-    color: var(--ink-3);
-    font-size: 0.82rem;
-    font-weight: 600;
+    color: var(--ink-2);
+    font: 600 12px/16px Inter, sans-serif;
     margin: 0.65rem 0 0;
     min-height: 1.25rem;
 }
@@ -5808,3 +1392,608 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
 [data-theme='dark'] .workout-estimate-trace-action.is-primary {
     color: #fff;
 }
+
+/* Workout Plan frame */
+#workout[data-plan-state] > .ui-page-header {
+    position: relative;
+    z-index: 22;
+}
+
+.plan-list, .plan-add {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.plan-list { margin-bottom: 16px; }
+.plan-list > *, .plan-add > *, .plan-table-region { min-width: 0; }
+
+.plan-list-heading,
+.plan-volume-actions,
+.plan-filter-actions,
+.plan-filter-chips,
+.plan-empty-actions,
+.plan-superset-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.plan-list-heading { justify-content: space-between; }
+.plan-volume-actions { min-width: 0; }
+.plan-volume-actions > * { max-width: 100%; }
+
+.plan-list-heading h2,
+.plan-add h2 {
+    margin: 0;
+    font: 600 18px/24px Inter, sans-serif;
+}
+
+#vpActiveSummary {
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+#workout:not([data-plan-state="empty"]) .ui-empty-state,
+#workout:not([data-plan-state="populated"]) .plan-table-region,
+#workout[data-plan-state="loading"] #routine-tabs,
+#workout[data-plan-state="loading"] .plan-list .tbl-controls,
+.plan-superset-actions [hidden],
+.plan-filter-grid[hidden],
+.plan-filter-chips:empty {
+    display: none;
+}
+
+.plan-empty-actions {
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.plan-list .tbl-controls {
+    min-height: 32px;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+}
+
+#workout[data-plan-state="empty"] .tbl-controls { margin-bottom: 0; }
+
+.ui-tab .tab-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.ui-tab .tab-label > span:not(:empty) ~ span:not(:empty)::before { content: " · "; }
+.ui-tab .tab-count { font-variant-numeric: tabular-nums; }
+
+.plan-superset-actions {
+    padding: 8px;
+    color: var(--ink-2);
+    background: var(--surface-1);
+    border: 1px solid var(--ui-hairline);
+    border-radius: var(--ui-control-radius);
+}
+
+.plan-superset-actions button:disabled { opacity: 0.6; }
+
+#superset-selection-info {
+    flex: 1 1 160px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#superset-selection-info[data-state="danger"] { color: var(--ui-danger); }
+#superset-selection-info[data-state="pending"] { color: var(--ui-pending); }
+#superset-selection-info[data-state="achieved"] { color: var(--ui-achieved); }
+
+.plan-add .form-label,
+.plan-add .cascade-dropdown-wrapper label {
+    margin: 0;
+    color: var(--ink-2);
+    font: 500 12px/16px Inter, sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+    overflow-wrap: anywhere;
+}
+
+.plan-form-field {
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.plan-add .cascade-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: end;
+    gap: 8px;
+}
+
+.plan-add .cascade-dropdown-wrapper {
+    min-width: 0;
+    max-width: none;
+    gap: 4px;
+}
+
+.plan-add .cascade-connector {
+    width: 16px;
+    height: 40px;
+    color: var(--ink-2);
+    font-size: 12px;
+}
+
+.plan-add .routine-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    font: 400 12px/16px Inter, sans-serif;
+    overflow-wrap: anywhere;
+}
+
+.plan-add .routine-breadcrumb,
+.exercise-match-count { color: var(--ink-2); }
+
+.exercise-match-count {
+    margin-inline-start: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.exercise-match-count:empty { display: none; }
+
+.plan-prescription-grid,
+.plan-filter-grid {
+    display: grid;
+    gap: 8px;
+    align-items: end;
+}
+
+.plan-prescription-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.plan-filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.plan-form-field .ui-field-input:not(.wpdd-native),
+.plan-form-field .wpdd-button,
+.plan-generator-select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 40px;
+    height: auto;
+    font: 400 14px/20px Inter, sans-serif;
+    padding: 4px 8px;
+}
+
+.plan-form-field input[type="number"],
+.workout-plan-table .editable input {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+.plan-add .cascade-dropdown:focus {
+    box-shadow: none;
+    outline: 2px solid var(--ink-2);
+    outline-offset: 1px;
+}
+
+.plan-form-field .wpdd-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--ink-1);
+    background: var(--ui-field-surface);
+    border: 1px solid var(--ink-3);
+    border-radius: var(--ui-control-radius);
+    text-align: start;
+    white-space: normal;
+    overflow: visible;
+}
+
+.plan-form-field .wpdd-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.plan-form-field .wpdd-button-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.plan-form-field .wpdd-button .wpdd-caret {
+    flex: none;
+}
+
+.plan-form-field .wpdd.is-invalid-required .wpdd-button {
+    border-color: var(--ui-danger);
+}
+
+.plan-add #add_exercise_btn { justify-self: start; }
+.plan-add .workout-estimate-provenance-row { margin: 0; }
+.plan-add .workout-estimate-trace-toggle:not([hidden]) { min-width: 44px; }
+#filters-toggle[aria-expanded="true"] i,
+.plan-details-toggle[aria-expanded="true"] i { transform: rotate(180deg); }
+
+.plan-table-region:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 2px; }
+
+.workout-plan-table .exercise-cell-content,
+.workout-plan-table .plan-card-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.workout-plan-table .plan-card-actions {
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.workout-plan-table .plan-exercise-heading {
+    display: grid;
+    justify-items: start;
+    min-width: 0;
+    gap: 2px;
+}
+
+.workout-plan-table .exercise-name {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    color: var(--ink-1);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.workout-plan-table .exercise-thumbnail {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    max-width: 100%;
+    border-radius: var(--ui-control-radius);
+    object-fit: cover;
+}
+
+.workout-plan-table .btn-swap.ui-btn { width: auto; height: auto; }
+.workout-plan-table .btn-swap-icon { display: inline-flex; }
+.workout-plan-table .btn-swap-icon svg { width: 16px; height: 16px; }
+
+.workout-plan-table .drag-handle {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    cursor: grab;
+    color: var(--ink-2);
+}
+
+.workout-plan-table .btn-video { min-width: 32px; }
+.workout-plan-table .plan-prescription { margin: 0; font: 400 14px/20px Inter, sans-serif; font-variant-numeric: tabular-nums; }
+.workout-plan-table .plan-superset-choice { display: inline-flex; align-items: center; gap: 8px; }
+.workout-plan-table .superset-checkbox {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--ui-primary);
+}
+
+.workout-plan-table .superset-badge { margin: 0; text-transform: none; letter-spacing: normal; }
+.workout-plan-table .superset-header-icon { color: var(--ink-2); }
+.workout-plan-table .is-num { text-align: end; }
+
+.workout-plan-table .ui-field { justify-content: flex-end; }
+.workout-plan-table .editable input {
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    padding-inline: 4px;
+}
+
+.workout-plan-table .execution-badge {
+    min-height: 32px;
+    min-width: 44px;
+    max-width: 100%;
+    border: 1px solid var(--ink-3);
+    white-space: normal;
+}
+
+.workout-plan-table .execution-details { margin-inline-start: 2px; }
+
+.workout-plan-table .superset-partner-dragging {
+    outline: 2px dashed var(--ink-2);
+    outline-offset: -2px;
+    opacity: 0.7;
+    animation: partner-pulse 800ms ease-in-out infinite;
+}
+
+@keyframes partner-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .workout-plan-table .superset-partner-dragging { animation: none; }
+}
+
+@media (max-width: 767.98px) {
+    .plan-list-heading, .plan-volume-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .muscle-selector-controls button,
+    .muscle-body-tabs .nav-link { min-height: 44px; }
+
+    .plan-list .tbl-controls { min-height: 44px; }
+    .plan-add .cascade-row { grid-template-columns: minmax(0, 1fr); }
+    .plan-add .cascade-connector { display: none; }
+    .plan-prescription-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .plan-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .plan-form-field .ui-field-input:not(.wpdd-native),
+    .plan-generator-select { height: 44px; }
+
+    .plan-form-field .wpdd-button { min-height: 44px; }
+}
+
+@media (max-width: 1359.98px) {
+    .workout-plan-table { display: block; }
+    .workout-plan-table thead { display: none; }
+
+    #workout_plan_table_body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+    }
+
+    .workout-plan-table tbody tr {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 4px 8px;
+        min-width: 0;
+        container-type: inline-size;
+    }
+
+    .workout-plan-table tbody td {
+        display: none;
+        grid-column: span 3;
+        min-width: 0;
+        padding: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .workout-plan-table tbody :is(.plan-drag-cell, .exercise-cell, .routine-cell),
+    .workout-plan-table tbody .details-open > td:not(:where(.plan-drag-cell, .exercise-cell, .routine-cell)) {
+        display: block;
+    }
+
+    .workout-plan-table .plan-drag-cell {
+        position: absolute;
+        inset-inline-start: 16px;
+        inset-block-start: 12px;
+        z-index: 1;
+    }
+
+    .workout-plan-table .drag-handle,
+    .workout-plan-table .btn-video { width: 44px; height: 44px; }
+
+    .workout-plan-table .btn-swap.ui-btn { min-width: 44px; }
+
+    .workout-plan-table tbody .exercise-cell {
+        display: grid;
+        grid-template-rows: subgrid;
+        grid-row: 1 / 5;
+        grid-column: 1 / -1;
+    }
+
+    .workout-plan-table .exercise-cell-content {
+        grid-row: 1;
+        min-height: 44px;
+        padding-inline-start: 48px;
+    }
+
+    .workout-plan-table .exercise-thumbnail { width: 40px; height: 40px; }
+    .workout-plan-table .exercise-name { font-size: 16px; line-height: 22px; }
+
+    .workout-plan-table tbody .routine-cell {
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        grid-row: 2;
+        grid-column: 1 / -1;
+        padding-inline-start: 48px;
+        color: var(--ink-2);
+        font: 400 12px/16px Inter, sans-serif;
+    }
+
+    .workout-plan-table .routine-workout { order: -1; }
+    .workout-plan-table .routine-cell > :is(.routine-workout, .routine-env):not(:empty)::after {
+        content: " · ";
+        white-space: pre;
+    }
+    .workout-plan-table .routine-cell > span:empty { display: none; }
+
+    .workout-plan-table .plan-prescription { grid-row: 3; }
+    .workout-plan-table .plan-card-actions { grid-row: 4; }
+    .workout-plan-table .plan-card-actions .ui-btn { min-height: 44px; }
+    .workout-plan-table .plan-details-toggle { margin-inline-start: auto; }
+
+    .workout-plan-table .details-open > td:not(:where(.plan-drag-cell, .exercise-cell, .routine-cell)) {
+        margin-top: 4px;
+        order: 2;
+    }
+
+    .workout-plan-table .details-open > [data-field] {
+        grid-column: span 2;
+        order: 1;
+    }
+
+    .workout-plan-table .details-open > :is(.execution-style-cell, .superset-select-col, [data-label="Actions"]) {
+        grid-column: 1 / -1;
+        order: 3;
+    }
+
+    .workout-plan-table .details-open > .superset-select-col { order: 4; }
+    .workout-plan-table .details-open > [data-label="Actions"] { order: 5; }
+
+    .workout-plan-table .details-open > td:not(.exercise-cell, .routine-cell, .plan-drag-cell, .superset-select-col, [data-label="Actions"])::before {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--ink-2);
+        font: 500 12px/16px Inter, sans-serif;
+        text-align: start;
+        content: attr(data-label);
+    }
+
+    .workout-plan-table .details-open :is(.editable input, .execution-badge, .plan-superset-choice, [data-action="delete"]) {
+        min-height: 44px;
+    }
+
+    .workout-plan-table .editable input { font-size: 16px; line-height: 24px; }
+    .workout-plan-table .plan-superset-choice { text-align: start; cursor: pointer; }
+
+    .workout-plan-table tr[data-superset-group]::before {
+        content: "";
+        position: absolute;
+        inset: 12px auto 12px 0;
+        width: 4px;
+        border-radius: var(--ui-pill-radius);
+        background: var(--ink-2);
+    }
+
+    .workout-plan-table tr.superset-selected { border-color: var(--ink-1); }
+}
+
+@media (min-width: 768px) and (max-width: 1359.98px) {
+    #workout_plan_table_body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@container (max-width: 239px) {
+    .workout-plan-table .details-open > [data-field] { grid-column: span 3; }
+}
+
+@media (min-width: 1360px) {
+    .workout-plan-table { min-width: 1542px; }
+    .workout-plan-table.tbl--view-advanced { min-width: 2294px; }
+
+    .workout-plan-table th,
+    .workout-plan-table td {
+        padding: 6px 8px;
+        text-align: start;
+    }
+
+    .workout-plan-table td {
+        vertical-align: middle;
+        overflow-wrap: break-word;
+    }
+
+    .workout-plan-table th { vertical-align: bottom; }
+    .workout-plan-table th[data-label="Select"] { width: 44px; text-align: center; }
+    .workout-plan-table th[data-label="Reorder"] { width: 44px; }
+    .workout-plan-table th[data-label="Routine"] { width: 132px; }
+    .workout-plan-table th[data-label="Exercise"] { width: 228px; }
+    .workout-plan-table th:is([data-label="Primary Muscle"], [data-label="Utility"]) { width: 96px; }
+    .workout-plan-table th:is([data-label="Secondary Muscle"], [data-label="Tertiary Muscle"], [data-label="Grips"]) {
+        width: 104px;
+    }
+    .workout-plan-table th:is([data-label="Isolated Muscles"], [data-label="Movement Subpattern"], [data-label="Stabilizers"], [data-label="Synergists"]) {
+        width: 144px;
+    }
+    .workout-plan-table th[data-label="Movement Pattern"] { width: 120px; }
+    .workout-plan-table th.is-num { width: 68px; }
+    .workout-plan-table th.is-num[data-label="Weight"] { width: 84px; }
+    .workout-plan-table th[data-label="Execution Style"] { width: 112px; }
+    .workout-plan-table th[data-label="Actions"] { width: 108px; }
+
+    .workout-plan-table :is(th, td).is-num { text-align: end; }
+    .workout-plan-table td.is-num .ui-field,
+    .workout-plan-table td[data-label="Actions"] [data-action="delete"] { white-space: nowrap; }
+    .workout-plan-table .superset-select-col { position: relative; text-align: center; }
+
+    .workout-plan-table .plan-card-actions { margin-top: 4px; }
+    .workout-plan-table .routine-cell span { display: block; }
+    .workout-plan-table .routine-cell :is(.routine-env, .routine-program) { color: var(--ink-2); }
+
+    .workout-plan-table :is(.plan-details-toggle, .plan-superset-label, .plan-prescription) { display: none; }
+
+    .workout-plan-table tr[data-superset-group] td:first-child::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: var(--ink-2);
+    }
+
+    .workout-plan-table tr.superset-selected td { background: var(--surface-1); }
+}
+
+/* Volume targets drawer rows are moved to body when the drawer is initialized. */
+.ui-drawer .vp-list {
+    display: grid;
+    gap: 12px;
+}
+
+.ui-drawer .vp-state,
+.ui-drawer .vp-row {
+    border: 1px solid var(--ui-hairline);
+    border-radius: var(--ui-panel-radius);
+    background: var(--surface-2);
+}
+
+.ui-drawer .vp-state { padding: 16px; color: var(--ink-2); }
+.ui-drawer .vp-state p { margin: 0 0 8px; }
+.ui-drawer .vp-state--error { color: var(--ui-danger); background: var(--surface-1); border-color: var(--ui-danger); }
+.ui-drawer .vp-row { padding: 12px; }
+
+.ui-drawer .vp-row__header,
+.ui-drawer .vp-row__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ui-drawer .vp-row__name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    color: var(--ink-1);
+}
+
+.ui-drawer .vp-row__sets {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+}
+
+.ui-drawer .vp-progress { width: 100%; height: 10px; margin: 8px 0 4px; }
+
+.ui-drawer .vp-row__meta {
+    justify-content: flex-start;
+    color: var(--ink-2);
+    font-size: 12px;
+    text-transform: capitalize;
+}
+
+.ui-drawer .vp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bs-blue);
+}
+
+.ui-drawer .status-on_target .vp-dot { background: var(--bs-green); }
+.ui-drawer :is(.status-over_target, .status-high) .vp-dot { background: var(--bs-orange); }
+.ui-drawer :is(.status-planned_without_target, .status-unplanned_target, .status-under_target) .vp-dot { background: var(--bs-blue); }
+
+.ui-drawer .vp-bonus { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--ui-hairline); }
+.ui-drawer .vp-bonus__heading { margin: 0 0 4px; color: var(--ink-1); font-size: 16px; font-weight: 600; }
+.ui-drawer .vp-bonus__note { margin: 0 0 8px; color: var(--ink-2); font-size: 12px; }
+.ui-drawer .vp-row--bonus { background: var(--surface-1); border-style: dashed; }
+.ui-drawer .vp-row--bonus .vp-row__sets { font-style: italic; }

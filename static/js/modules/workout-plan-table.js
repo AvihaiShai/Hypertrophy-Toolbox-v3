@@ -1,9 +1,7 @@
 // Workout plan table module (Refactor Plan v3 WP3.4b).
 //
-// Mechanical feature-split extracted from workout-plan.js: the plan table
-// renderer, routine tabs, muscle-column display transforms, inline cell
-// editing, per-row cache/metadata operations, and drag-and-drop reordering.
-// Behavior is preserved exactly — this is a move-only change.
+// The plan record renderer, routine tabs, muscle-column display transforms,
+// inline cell editing, per-row cache/metadata operations, and drag reordering.
 //
 // The table renderer and drag behavior call into features that stay in
 // workout-plan.js for later slices (swap → WP3.4e, supersets → WP3.4g,
@@ -38,6 +36,8 @@ const COUNT_FIELD_LABELS = {
     min_rep_range: 'Minimum reps',
     max_rep_range: 'Maximum reps',
 };
+// A tab change can replace a saving cell before its request settles.
+const savingCells = new Map();
 
 // Feature callbacks injected by workout-plan.js so the table module never
 // imports back into the monolith (no circular import). Defaults are no-ops so a
@@ -45,6 +45,7 @@ const COUNT_FIELD_LABELS = {
 // real path workout-plan.js runs configureWorkoutPlanTable() at import time.
 const tableDeps = {
     onSwap: () => {},                       // swap/replace an exercise (WP3.4e)
+    onRoutineTabSelect: () => {},
     onSupersetToggle: () => {},             // superset checkbox change (WP3.4g)
     onExecutionStyleClick: () => {},        // open execution-style picker (WP3.4d)
     updateSupersetActionButtons: () => {},  // superset action bar sync (WP3.4g)
@@ -160,20 +161,25 @@ export function updateRoutineTabs(exercises) {
     if (!tabsContainer) return;
 
     // Get unique routines and count exercises per routine
-    const routineCounts = {};
+    const routineCounts = new Map();
     exercises.forEach(ex => {
         const routine = ex.routine || 'Unknown';
-        routineCounts[routine] = (routineCounts[routine] || 0) + 1;
+        routineCounts.set(routine, (routineCounts.get(routine) || 0) + 1);
     });
 
     // Sort routines by Environment > Program > Workout for consistent ordering
-    const sortedRoutines = Object.keys(routineCounts).sort(compareRoutines);
+    const sortedRoutines = [...routineCounts.keys()].sort(compareRoutines);
+    if (!routineCounts.has(workoutPlanState.currentRoutineTabFilter)) {
+        workoutPlanState.currentRoutineTabFilter = 'all';
+    }
 
     // Update "All" tab count
     const allCountEl = document.getElementById('tab-count-all');
     if (allCountEl) {
         allCountEl.textContent = exercises.length;
     }
+    const allTab = tabsContainer.querySelector('[data-routine="all"]');
+    if (allTab) setRoutineTabSelected(allTab, workoutPlanState.currentRoutineTabFilter === 'all');
 
     // Remove existing dynamic tabs (keep the "All" tab)
     const existingDynamicTabs = tabsContainer.querySelectorAll('.routine-tab[data-dynamic="true"]');
@@ -184,33 +190,23 @@ export function updateRoutineTabs(exercises) {
         const tabId = `tab-${routine.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
 
         const tabLi = document.createElement('li');
-        tabLi.className = 'routine-tab';
+        tabLi.className = 'routine-tab ui-tabs__item';
         tabLi.setAttribute('data-dynamic', 'true');
         tabLi.setAttribute('role', 'presentation');
 
         const tabBtn = document.createElement('button');
-        tabBtn.className = 'routine-tab-btn';
+        tabBtn.className = 'routine-tab-btn ui-tab';
+        tabBtn.type = 'button';
         tabBtn.setAttribute('data-routine', routine);
         tabBtn.setAttribute('role', 'tab');
-        tabBtn.setAttribute('aria-selected', 'false');
         tabBtn.setAttribute('aria-controls', 'workout_plan_table_body');
         tabBtn.setAttribute('id', tabId);
 
-        // Mark as active if this is the currently selected tab
-        if (routine === workoutPlanState.currentRoutineTabFilter) {
-            tabBtn.classList.add('active');
-            tabBtn.setAttribute('aria-selected', 'true');
-            // Also remove active from "All" tab
-            const allTab = tabsContainer.querySelector('[data-routine="all"]');
-            if (allTab) {
-                allTab.classList.remove('active');
-                allTab.setAttribute('aria-selected', 'false');
-            }
-        }
+        setRoutineTabSelected(tabBtn, routine === workoutPlanState.currentRoutineTabFilter);
 
         tabBtn.innerHTML = `
             <span class="tab-label">${formatRoutineForTab(routine)}</span>
-            <span class="tab-count">${routineCounts[routine]}</span>
+            <span class="tab-count">${routineCounts.get(routine)}</span>
         `;
 
         tabBtn.addEventListener('click', () => handleRoutineTabClick(routine));
@@ -218,24 +214,13 @@ export function updateRoutineTabs(exercises) {
         tabLi.appendChild(tabBtn);
         tabsContainer.appendChild(tabLi);
     });
+}
 
-    // If current filter is "all", ensure the "All" tab is active
-    if (workoutPlanState.currentRoutineTabFilter === 'all') {
-        const allTabBtn = tabsContainer.querySelector('[data-routine="all"]');
-        if (allTabBtn) {
-            allTabBtn.classList.add('active');
-            allTabBtn.setAttribute('aria-selected', 'true');
-        }
-    }
-
-    // If the current filter's routine no longer exists, reset to "all"
-    if (workoutPlanState.currentRoutineTabFilter !== 'all' && !sortedRoutines.includes(workoutPlanState.currentRoutineTabFilter)) {
-        workoutPlanState.currentRoutineTabFilter = 'all';
-        const allTabBtn = tabsContainer.querySelector('[data-routine="all"]');
-        if (allTabBtn) {
-            allTabBtn.classList.add('active');
-            allTabBtn.setAttribute('aria-selected', 'true');
-        }
+function setRoutineTabSelected(button, selected) {
+    button.classList.toggle('active', selected);
+    const value = String(selected);
+    if (button.getAttribute('aria-selected') !== value) {
+        button.setAttribute('aria-selected', value);
     }
 }
 
@@ -250,12 +235,12 @@ function handleRoutineTabClick(routine) {
     // Update active state on all tabs
     tabsContainer.querySelectorAll('.routine-tab-btn').forEach(btn => {
         const isTarget = btn.getAttribute('data-routine') === routine;
-        btn.classList.toggle('active', isTarget);
-        btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+        setRoutineTabSelected(btn, isTarget);
     });
 
     // Update current filter
     workoutPlanState.currentRoutineTabFilter = routine;
+    tableDeps.onRoutineTabSelect();
 
     // Apply filter and re-render table
     const filteredExercises = applyRoutineTabFilter(workoutPlanState.allExercisesCache, routine);
@@ -304,6 +289,35 @@ export function initializeRoutineTabs() {
     }
 }
 
+export function initializePlanDetails() {
+    const tbody = document.getElementById('workout_plan_table_body');
+    tbody?.addEventListener('click', event => {
+        const button = event.target.closest('.plan-details-toggle');
+        if (!button) return;
+
+        const row = button.closest('tr');
+        const open = row.classList.toggle('details-open');
+        button.setAttribute('aria-expanded', String(open));
+    });
+}
+
+function formatPrescription({ sets, min_rep_range, max_rep_range, weight, rir, rpe }) {
+    const count = sets ?? 'N/A';
+    const min = min_rep_range ?? 'N/A';
+    const reps = max_rep_range == null || String(min) === String(max_rep_range)
+        ? min
+        : `${min}–${max_rep_range}`;
+    const perceivedExertion = rpe == null || rpe === '' ? '' : ` · RPE ${rpe}`;
+    return `${count} ${Number(count) === 1 ? 'set' : 'sets'} × ${reps} · ${weight ?? 'N/A'} kg · RIR ${rir ?? 'N/A'}${perceivedExertion}`;
+}
+
+function renderValueCell(field, label, value) {
+    const text = escapeHtml(value ?? 'N/A');
+    return `<td role="cell" class="is-num editable" data-field="${field}" data-label="${label}">
+        <button type="button" class="ui-field" aria-label="Edit ${label}: ${text}">${text}</button>
+    </td>`;
+}
+
 export function updateWorkoutPlanTable(exercises) {
     const tbody = document.querySelector('#workout_plan_table_body');
     if (!tbody) {
@@ -311,7 +325,7 @@ export function updateWorkoutPlanTable(exercises) {
         return;
     }
 
-    tbody.innerHTML = '';
+    const rows = document.createDocumentFragment();
 
     // Reset selection state when table is rebuilt
     workoutPlanState.selectedExerciseIds.clear();
@@ -349,6 +363,7 @@ export function updateWorkoutPlanTable(exercises) {
 
     exercises.forEach((exercise, idx) => {
         const row = document.createElement('tr');
+        row.setAttribute('role', 'row');
         row.dataset.exerciseId = exercise.id;
         row.dataset.routine = exercise.routine || '';
 
@@ -365,41 +380,51 @@ export function updateWorkoutPlanTable(exercises) {
             row.dataset.supersetGroup = supersetGroup;
             supersetClasses = supersetRowClasses(colorNum, posInGroup, groupIndices);
 
-            supersetBadgeHtml = `<span class="superset-badge" style="--superset-row-color: var(--superset-color-${colorNum})"><i class="fas fa-link"></i> SS</span>`;
+            supersetBadgeHtml = '<span class="badge ui-badge ui-badge--neutral superset-badge">Superset</span>';
         }
 
-        if (supersetClasses) {
-            row.className = supersetClasses;
-        }
+        row.classList.add('ui-record-card', 'ui-record-card--ruled');
+        if (supersetClasses) row.classList.add(...supersetClasses.split(' '));
 
         const exerciseName = exercise.exercise || 'N/A';
         const thumbnailHtml = buildExerciseThumbnailHtml(exercise);
 
         // Add checkbox column, drag handle and other cells with priority classes and data-labels
         row.innerHTML = `
-            <td class="superset-select-col" data-label="Select">
-                <input type="checkbox" class="superset-checkbox"
-                       data-exercise-id="${exercise.id}"
-                       data-routine="${escapeHtml(exercise.routine || '')}"
-                       data-superset-group="${escapeHtml(supersetGroup || '')}"
-                       aria-label="Select ${escapeHtml(exerciseName)} for superset">
+            <td role="cell" class="superset-select-col" data-label="Select">
+                <label class="plan-superset-choice">
+                    <input type="checkbox" class="superset-checkbox"
+                           data-exercise-id="${escapeHtml(exercise.id)}"
+                           data-routine="${escapeHtml(exercise.routine || '')}"
+                           data-superset-group="${escapeHtml(supersetGroup || '')}"
+                           aria-label="Select ${escapeHtml(exerciseName)} for superset">
+                    <span class="plan-superset-label">Select for superset</span>
+                </label>
             </td>
-            <td class="drag-handle" title="Drag to reorder">
-                <i class="fas fa-grip-vertical"></i>
+            <td role="cell" class="plan-drag-cell" data-label="Reorder">
+                <span class="drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical" aria-hidden="true"></i></span>
             </td>
-            <td class="col--high routine-cell" data-label="Routine">${formatRoutineForDisplay(exercise.routine)}</td>
-            <td class="col--high exercise-cell" data-label="Exercise">
+            <td role="cell" class="routine-cell" data-label="Routine">${formatRoutineForDisplay(exercise.routine)}</td>
+            <td role="cell" class="exercise-cell" data-label="Exercise">
                 <div class="exercise-cell-content">
                     ${thumbnailHtml}
-                    <span class="exercise-name">${escapeHtml(exerciseName)}</span>
-                    ${supersetBadgeHtml}
+                    <div class="plan-exercise-heading">
+                        <span class="exercise-name">${escapeHtml(exerciseName)}</span>
+                        ${supersetBadgeHtml}
+                    </div>
+                </div>
+                <p class="plan-prescription">${escapeHtml(formatPrescription(exercise))}</p>
+                <div class="plan-card-actions">
                     <button type="button"
-                            class="btn btn-swap btn-calm-ghost"
+                            class="ui-btn ui-btn--ghost ui-btn--small btn-swap"
                             data-action="replace"
-                            data-exercise-id="${exercise.id}"
+                            data-exercise-id="${escapeHtml(exercise.id)}"
                             title="Replace with similar exercise (same muscle + equipment)"
                             aria-label="Swap exercise">
                         ${getSwapButtonMarkup()}
+                    </button>
+                    <button type="button" class="ui-btn ui-btn--ghost plan-details-toggle" aria-expanded="false">
+                        Details <i class="fas fa-chevron-down" aria-hidden="true"></i>
                     </button>
                 </div>
             </td>
@@ -410,12 +435,12 @@ export function updateWorkoutPlanTable(exercises) {
             <td class="col--low" data-label="Utility">${escapeHtml(exercise.utility || 'N/A')}</td>
             <td class="col--low" data-label="Movement Pattern">${escapeHtml(exercise.movement_pattern || 'N/A')}</td>
             <td class="col--low" data-label="Movement Subpattern">${escapeHtml(exercise.movement_subpattern || 'N/A')}</td>
-            <td class="col--high is-num editable" data-field="sets" data-label="Sets">${escapeHtml(exercise.sets ?? 'N/A')}</td>
-            <td class="col--high is-num editable" data-field="min_rep_range" data-label="Min Rep">${escapeHtml(exercise.min_rep_range ?? 'N/A')}</td>
-            <td class="col--high is-num editable" data-field="max_rep_range" data-label="Max Rep">${escapeHtml(exercise.max_rep_range ?? 'N/A')}</td>
-            <td class="col--med is-num editable" data-field="rir" data-label="RIR">${escapeHtml(exercise.rir ?? 'N/A')}</td>
-            <td class="col--med is-num editable" data-field="rpe" data-label="RPE">${escapeHtml(exercise.rpe ?? 'N/A')}</td>
-            <td class="col--high is-num editable" data-field="weight" data-label="Weight">${escapeHtml(exercise.weight ?? 'N/A')}</td>
+            ${renderValueCell('sets', 'Sets', exercise.sets)}
+            ${renderValueCell('min_rep_range', 'Min Rep', exercise.min_rep_range)}
+            ${renderValueCell('max_rep_range', 'Max Rep', exercise.max_rep_range)}
+            ${renderValueCell('rir', 'RIR', exercise.rir)}
+            ${renderValueCell('rpe', 'RPE', exercise.rpe)}
+            ${renderValueCell('weight', 'Weight', exercise.weight)}
             <td class="col--med execution-style-cell" data-label="Execution Style" data-exercise-id="${exercise.id}">
                 ${renderExecutionStyleBadge(exercise)}
             </td>
@@ -423,8 +448,8 @@ export function updateWorkoutPlanTable(exercises) {
             <td class="col--low" data-label="Stabilizers">${escapeHtml(exercise.stabilizers || 'N/A')}</td>
             <td class="col--low" data-label="Synergists">${escapeHtml(exercise.synergists || 'N/A')}</td>
             <td class="col--high" data-label="Actions">
-                <button class="btn btn-danger btn-sm text-white btn-calm-danger" onclick="removeExercise(${exercise.id})">
-                    <i class="fas fa-trash"></i> Remove
+                <button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" onclick="removeExercise(${Number(exercise.id)})">
+                    <i class="fas fa-trash" aria-hidden="true"></i> Remove
                 </button>
             </td>
         `;
@@ -436,8 +461,13 @@ export function updateWorkoutPlanTable(exercises) {
 
         // Add click handlers for editable cells
         row.querySelectorAll('.editable').forEach(cell => {
+            const fieldKey = `${exercise.id}:${cell.dataset.field}`;
+            if (savingCells.has(fieldKey)) {
+                savingCells.set(fieldKey, cell);
+                cell.setAttribute('aria-busy', 'true');
+            }
             cell.addEventListener('click', () => {
-                makeTableCellEditable(cell, exercise.id, cell.dataset.field);
+                makeTableCellEditable(cell, exercise, fieldKey);
             });
         });
 
@@ -467,8 +497,9 @@ export function updateWorkoutPlanTable(exercises) {
             });
         }
 
-        tbody.appendChild(row);
+        rows.appendChild(row);
     });
+    tbody.replaceChildren(rows);
 
     // Initialize drag and drop after populating the table
     initializeDragAndDrop();
@@ -518,23 +549,24 @@ export function updateCachedExercise(exerciseId, updatedData) {
             ...workoutPlanState.allExercisesCache[cacheIndex],
             ...updatedData
         };
+        return workoutPlanState.allExercisesCache[cacheIndex];
     }
 }
 
 
-function makeTableCellEditable(cell, exerciseId, fieldName) {
+function makeTableCellEditable(cell, exercise, fieldKey) {
     // Prevent creating multiple inputs if already editing or saving
-    if (cell.querySelector('input') || cell.getAttribute('aria-busy') === 'true') {
-        return;
-    }
+    const button = cell.querySelector('.ui-field');
+    if (!button || cell.getAttribute('aria-busy') === 'true') return;
 
+    const fieldName = cell.dataset.field;
     const countLabel = COUNT_FIELD_LABELS[fieldName];
-    const originalValue = cell.textContent.trim();
+    const originalValue = button.textContent.trim();
     const input = document.createElement('input');
     input.type = 'number';
     input.value = originalValue === 'N/A' ? '' : originalValue;
-    input.className = 'form-control form-control-sm input-calm-inset';
-    input.dataset.originalValue = originalValue;
+    input.className = 'ui-field-input';
+    input.setAttribute('aria-label', cell.dataset.label);
 
     // Add validation rules based on field type
     switch(fieldName) {
@@ -562,84 +594,63 @@ function makeTableCellEditable(cell, exerciseId, fieldName) {
             break;
     }
 
-    cell.textContent = '';
-    cell.appendChild(input);
+    button.replaceWith(input);
     input.focus();
     input.select();
 
-    const finishEditing = async (save = true) => {
-        if (input.parentNode !== cell) return;
-
-        const storedOriginal = input.dataset.originalValue;
+    let editing = true;
+    const finishEditing = async (save, restoreFocus = false) => {
+        if (!editing) return;
+        editing = false;
         const newValue = input.value.trim();
         const badCountInput = countLabel && input.validity.badInput;
-        cell.removeChild(input);
+        input.replaceWith(button);
+        if (restoreFocus) button.focus({ preventScroll: true });
 
         if (save && badCountInput) {
-            cell.textContent = storedOriginal;
             showToast('warning', `${countLabel} must be a whole number of at least 1.`);
             return;
         }
 
         // A blank draft reverts without a write, for counts as for other fields.
-        if (!save || !newValue || newValue === storedOriginal) {
-            cell.textContent = countLabel ? storedOriginal : newValue || storedOriginal;
-            return;
-        }
+        if (!save || !newValue || newValue === originalValue) return;
 
-        if (countLabel) {
-            cell.textContent = storedOriginal;
-            cell.setAttribute('aria-busy', 'true');
-        }
+        savingCells.set(fieldKey, cell);
+        cell.setAttribute('aria-busy', 'true');
         try {
-            const response = await updateExerciseField(exerciseId, fieldName, newValue);
-            if (response.ok) {
-                cell.textContent = countLabel ? storedCountText(newValue) : newValue;
-                showToast('Exercise updated successfully');
-                if (fieldName === 'sets') {
-                    notifyVolumeAffectingPlanChange('sets-edit');
-                }
-            } else {
-                throw new Error('Update failed');
+            const response = await updateExerciseField(exercise.id, fieldName, newValue);
+            if (!response.ok) throw new Error('Update failed');
+
+            const value = countLabel ? storedCountText(newValue) : newValue;
+            const savedCell = savingCells.get(fieldKey);
+            const savedButton = savedCell.querySelector('.ui-field');
+            savedButton.textContent = value;
+            savedButton.setAttribute('aria-label', `Edit ${savedCell.dataset.label}: ${value}`);
+            exercise[fieldName] = Number(value);
+            const updatedExercise = updateCachedExercise(exercise.id, { [fieldName]: exercise[fieldName] });
+            savedCell.closest('tr').querySelector('.plan-prescription').textContent = formatPrescription(updatedExercise ?? exercise);
+            showToast('Exercise updated successfully');
+            if (fieldName === 'sets') {
+                notifyVolumeAffectingPlanChange('sets-edit');
             }
         } catch (error) {
-            cell.textContent = storedOriginal;
-            if (countLabel && error.code === 'VALIDATION_ERROR') {
+            if (error.code === 'VALIDATION_ERROR') {
                 showToast('warning', error.message);
             } else {
                 console.error('Error updating exercise:', error);
                 showToast('Failed to update exercise', true);
             }
         } finally {
-            if (countLabel) cell.removeAttribute('aria-busy');
+            savingCells.get(fieldKey).removeAttribute('aria-busy');
+            savingCells.delete(fieldKey);
         }
     };
 
-    // Use mousedown to detect clicks outside the input
-    const handleClickOutside = (e) => {
-        if (!cell.contains(e.target)) {
-            document.removeEventListener('mousedown', handleClickOutside);
-            finishEditing(true);
-        }
-    };
-
-    // Delay adding the outside click handler to prevent immediate trigger
-    setTimeout(() => {
-        if (input.parentNode === cell) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-    }, 10);
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.removeEventListener('mousedown', handleClickOutside);
-            finishEditing(true);
-        } else if (e.key === 'Escape') {
-            e.preventDefault();
-            document.removeEventListener('mousedown', handleClickOutside);
-            finishEditing(false);
-        }
+    input.addEventListener('blur', () => finishEditing(true));
+    input.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== 'Escape') return;
+        event.preventDefault();
+        finishEditing(event.key === 'Enter', true);
     });
 }
 

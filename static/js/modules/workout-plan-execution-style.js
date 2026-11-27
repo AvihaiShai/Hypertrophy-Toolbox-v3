@@ -1,8 +1,6 @@
 // Workout plan execution-style picker module (Refactor Plan v3 WP3.4d).
 //
-// Mechanical feature-split extracted from workout-plan.js: the execution-style
-// options cache and the AMRAP/EMOM/standard picker overlay. Behavior is
-// preserved exactly — this is a move-only change.
+// Execution-style options cache and the AMRAP/EMOM/standard picker overlay.
 //
 // showExecutionStylePicker refreshes the plan after saving, which is the
 // orchestration fetchWorkoutPlan() that stays in workout-plan.js. Rather than
@@ -73,7 +71,7 @@ export async function showExecutionStylePicker(exerciseId, currentExercise) {
     
     // Create picker element
     const picker = document.createElement('div');
-    picker.className = 'execution-style-picker frame-calm-glass';
+    picker.className = 'execution-style-picker';
     picker.dataset.visualSurface = '';
     picker.innerHTML = `
         <div class="execution-picker-content">
@@ -139,31 +137,37 @@ export async function showExecutionStylePicker(exerciseId, currentExercise) {
         </div>
     `;
     
-    // Position picker near the clicked cell
     const cell = document.querySelector(`.execution-style-cell[data-exercise-id="${exerciseId}"]`);
     document.body.appendChild(picker);
-    
-    if (cell) {
-        const rect = cell.getBoundingClientRect();
-        const pickerHeight = picker.offsetHeight || 350; // Estimated height if not yet rendered
-        const viewportHeight = window.innerHeight;
-        const spaceBelow = viewportHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        
-        picker.style.position = 'fixed';
-        picker.style.left = `${Math.max(10, rect.left - 100)}px`;
-        picker.style.zIndex = '1050';
-        
-        // Position above if not enough space below, otherwise position below
-        if (spaceBelow < pickerHeight && spaceAbove > spaceBelow) {
-            picker.style.bottom = `${viewportHeight - rect.top + 5}px`;
-            picker.style.top = 'auto';
-            picker.classList.add('picker-dropup');
-        } else {
-            picker.style.top = `${rect.bottom + 5}px`;
-            picker.style.bottom = 'auto';
+
+    function positionPicker() {
+        const root = document.documentElement;
+        const zoom = Number(getComputedStyle(root).zoom) || 1;
+        const gutter = 10 * zoom;
+        const gap = 5 * zoom;
+        const anchor = cell?.getBoundingClientRect();
+        const { width, height } = picker.getBoundingClientRect();
+        const maxLeft = Math.max(gutter, root.clientWidth - width - gutter);
+        const maxTop = Math.max(gutter, window.innerHeight - height - gutter);
+        let left = gutter;
+        let top = gutter;
+        let dropup = false;
+
+        if (anchor) {
+            const spaceBelow = window.innerHeight - anchor.bottom - gap - gutter;
+            const spaceAbove = anchor.top - gap - gutter;
+            dropup = spaceBelow < height && spaceAbove > spaceBelow;
+            top = dropup ? anchor.top - gap - height : anchor.bottom + gap;
+            left = anchor.left - 100 * zoom;
         }
+
+        // Client rects include the app's zoom, while style offsets are CSS pixels.
+        picker.style.left = `${Math.min(maxLeft, Math.max(gutter, left)) / zoom}px`;
+        picker.style.top = `${Math.min(maxTop, Math.max(gutter, top)) / zoom}px`;
+        picker.classList.toggle('picker-dropup', dropup);
     }
+    positionPicker();
+    window.addEventListener('resize', positionPicker);
     
     // Single close path — every way of dismissing the picker (Close, Cancel,
     // Save, outside click, replacement by a newly opened picker) must go
@@ -178,6 +182,7 @@ export async function showExecutionStylePicker(exerciseId, currentExercise) {
     const closePicker = () => {
         clearTimeout(outsideClickTimer);
         document.removeEventListener('click', closeOnOutside);
+        window.removeEventListener('resize', positionPicker);
         picker.remove();
     };
     picker._closePicker = closePicker;
@@ -192,6 +197,7 @@ export async function showExecutionStylePicker(exerciseId, currentExercise) {
             const style = radio.value;
             picker.querySelector('.amrap-params').style.display = style === 'amrap' ? 'block' : 'none';
             picker.querySelector('.emom-params').style.display = style === 'emom' ? 'block' : 'none';
+            positionPicker();
         });
     });
     

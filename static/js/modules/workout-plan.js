@@ -1,15 +1,17 @@
 import { showToast } from './toast.js';
 import { api } from './fetch-wrapper.js';
+import { beginExercisePickerUpdate, filterExercises, updateExerciseMatchCount } from './filters.js';
 import { workoutPlanState } from './workout-plan-state.js';
 import {
     configureWorkoutPlanTable,
     handleViewModeChange,
+    initializePlanDetails,
     initializeRoutineTabs,
     transformMuscleDisplay,
     updateRoutineTabs,
     updateWorkoutPlanTable,
 } from './workout-plan-table.js';
-import { applyRoutineTabFilter } from './workout-plan-helpers.js';
+import { applyRoutineTabFilter, compareRoutines } from './workout-plan-helpers.js';
 import {
     applyUserProfileEstimateForSelectedExercise,
     bindEstimateTraceToggle,
@@ -50,8 +52,7 @@ import {
 
 initializeWorkoutPlanMedia();
 
-// Re-export the table renderer so existing importers (and the workout-plan E2E
-// harness that imports this module directly) keep resolving it from here.
+// Keep the existing public export for callers of the Plan renderer.
 export { updateWorkoutPlanTable };
 
 // Re-export the profile-estimate entry point so existing importers keep
@@ -62,11 +63,11 @@ export { applyUserProfileEstimateForSelectedExercise };
 // keep resolving it from this module after the WP3.4f split.
 export { handleAddExercise };
 
-// Wire the table module's injected feature callbacks — swap, superset toggle,
-// superset action init, execution-style click, and plan refresh — at load, so a
-// bare updateWorkoutPlanTable() (e.g. the E2E media harness) renders identically.
+// Wire the table's swap, superset, execution-style, and refresh callbacks at
+// module load so the public renderer works before page handlers initialize.
 configureWorkoutPlanTable({
     onSwap: handleSwapExercise,
+    onRoutineTabSelect: () => { openingRoutineSelected = true; },
     onSupersetToggle: handleSupersetCheckboxChange,
     onExecutionStyleClick: showExecutionStylePicker,
     updateSupersetActionButtons,
@@ -87,26 +88,29 @@ configureAddExercise({ refreshPlan: fetchWorkoutPlan });
 configureSupersets({ refreshPlan: fetchWorkoutPlan });
 
 // Workout plan functionality
+let openingRoutineSelected = false;
+
+function renderWorkoutPlan(exercises) {
+    if (!openingRoutineSelected) {
+        const routines = exercises.map(exercise => exercise.routine).filter(Boolean);
+        workoutPlanState.currentRoutineTabFilter = routines.sort(compareRoutines)[0] || 'all';
+    }
+
+    updateRoutineTabs(exercises);
+    const filtered = applyRoutineTabFilter(exercises, workoutPlanState.currentRoutineTabFilter);
+    updateWorkoutPlanTable(filtered);
+    updateWorkoutPlanUI(exercises);
+    const page = document.getElementById('workout');
+    if (page) page.dataset.planState = exercises.length ? 'populated' : 'empty';
+}
+
 export async function fetchWorkoutPlan() {
     try {
         const data = await api.get('/get_workout_plan');
-        
-        // api wrapper returns the response data directly (from data.data if standardized)
         const exercises = data.data !== undefined ? data.data : data;
-        
-        // Cache all exercises for tab filtering
         workoutPlanState.allExercisesCache = exercises;
-        
-        // Update routine tabs based on available routines
-        updateRoutineTabs(exercises);
-        
-        // Apply current tab filter and render
-        const filteredExercises = applyRoutineTabFilter(exercises, workoutPlanState.currentRoutineTabFilter);
-        updateWorkoutPlanTable(filteredExercises);
-        updateWorkoutPlanUI(exercises); // Always show totals for all exercises
-        
-        // Table responsiveness is already initialized by table-responsiveness.js autoInit
-        // No need to reinitialize here
+        renderWorkoutPlan(exercises);
+        openingRoutineSelected = true;
     } catch (error) {
         console.error('Error loading workout plan:', error);
         // api wrapper already shows error toast, but we can show a fallback
@@ -273,6 +277,7 @@ export function handleRoutineSelection() {
             clearSupersetSelection();
         }
 
+        const isCurrent = beginExercisePickerUpdate();
         try {
             const selectedRoutine = e.target.value;
             
@@ -283,8 +288,7 @@ export function handleRoutineSelection() {
             
             if (!selectedRoutine) {
                 // If routine is cleared, reapply filters (if any) or show all exercises
-                const { filterExercises } = await import('./filters.js');
-                await filterExercises(true); // Preserve selection when clearing routine
+                await filterExercises(true, isCurrent); // Preserve selection when clearing routine
                 return;
             }
 
@@ -303,12 +307,12 @@ export function handleRoutineSelection() {
 
             // If there are active filters, apply them to get filtered exercises
             if (Object.keys(filters).length > 0) {
-                const { filterExercises } = await import('./filters.js');
                 // Preserve the currently selected exercise when reapplying filters
-                await filterExercises(true);
+                await filterExercises(true, isCurrent);
             } else {
                 // No active filters, fetch exercises for the selected routine
                 const data = await api.get(`/get_routine_exercises/${encodeURIComponent(selectedRoutine)}`, { showLoading: false, showErrorToast: false });
+                if (!isCurrent()) return;
                 const exercises = data.data || data;
                 
                 // Update exercise dropdown and maintain selection if possible
@@ -317,6 +321,7 @@ export function handleRoutineSelection() {
             }
 
         } catch (error) {
+            if (!isCurrent()) return;
             console.error('Error fetching routine exercises:', error);
             showToast('Failed to load exercises for routine', true);
         }
@@ -345,6 +350,8 @@ function updateExerciseDropdown(exercises, currentExercise = '') {
             exerciseDropdown.appendChild(option);
         });
     }
+
+    updateExerciseMatchCount(exerciseDropdown.options.length - 1);
 
     // Trigger change event if the value changed
     if (exerciseDropdown.value !== previousValue) {
@@ -464,10 +471,32 @@ export function initializeWorkoutPlanHandlers() {
     
     // Initialize routine tabs - "All" tab click handler
     initializeRoutineTabs();
+    initializePlanDetails();
     
     // Listen for view mode changes to update muscle display
     document.addEventListener('filterViewModeChanged', handleViewModeChange);
 
     // Initial fetch of workout plan
     fetchWorkoutPlan();
+    const page = document.getElementById('workout');
+    window.addEventListener('pagehide', event => {
+        if (event.persisted) page.dataset.planState = 'loading';
+    });
+    window.addEventListener('pageshow', async event => {
+        if (!event.persisted) return;
+
+        const hadPlan = openingRoutineSelected;
+        openingRoutineSelected = false;
+        const cached = workoutPlanState.allExercisesCache;
+        if (cached.length) renderWorkoutPlan(cached);
+        else page.dataset.planState = 'loading';
+
+        // Fresh data chooses the opening routine unless the user picked a tab
+        // while the cached rows were visible. A failed refresh retains that view.
+        await fetchWorkoutPlan();
+        if (!openingRoutineSelected && hadPlan) {
+            if (!cached.length) page.dataset.planState = 'empty';
+            openingRoutineSelected = true;
+        }
+    });
 }

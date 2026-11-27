@@ -12,7 +12,7 @@
       },
       {
         "file": "e2e/error-handling.spec.ts",
-        "lines": 11
+        "lines": 10
       },
       {
         "file": "e2e/exercise-interactions.spec.ts",
@@ -56,25 +56,25 @@
       },
       {
         "file": "e2e/workout-log.spec.ts",
-        "lines": 5
+        "lines": 4
       }
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 79
+    "total_lines": 77
   },
   "playwright": {
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 598
+      "tests": 630
     },
     "specs": [
       {
         "in_required_functional_set": true,
         "spec": "accessibility.spec.ts",
-        "tests": 41
+        "tests": 42
       },
       {
         "in_required_functional_set": true,
@@ -99,7 +99,7 @@
       {
         "in_required_functional_set": true,
         "spec": "empty-states.spec.ts",
-        "tests": 16
+        "tests": 17
       },
       {
         "in_required_functional_set": false,
@@ -119,7 +119,7 @@
       {
         "in_required_functional_set": true,
         "spec": "exercise-interactions.spec.ts",
-        "tests": 21
+        "tests": 26
       },
       {
         "in_required_functional_set": false,
@@ -179,7 +179,7 @@
       {
         "in_required_functional_set": true,
         "spec": "superset-edge-cases.spec.ts",
-        "tests": 16
+        "tests": 17
       },
       {
         "in_required_functional_set": true,
@@ -224,7 +224,7 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-log.spec.ts",
-        "tests": 32
+        "tests": 34
       },
       {
         "in_required_functional_set": false,
@@ -234,14 +234,14 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-plan.spec.ts",
-        "tests": 39
+        "tests": 61
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 748
+    "total_tests": 780
   },
   "pytest": {
-    "collected_deterministic": 4707,
+    "collected_deterministic": 4762,
     "deterministic_files": 145,
     "environment_dependent_files": [
       {
@@ -344,7 +344,7 @@
       },
       {
         "file": "tests/test_css_cascade_contracts.py",
-        "tests": 31
+        "tests": 32
       },
       {
         "file": "tests/test_css_display_utilities_contracts.py",
@@ -708,7 +708,7 @@
       },
       {
         "file": "tests/test_template_landmarks.py",
-        "tests": 2
+        "tests": 3
       },
       {
         "file": "tests/test_trailing_slash_routing.py",
@@ -796,7 +796,7 @@
       },
       {
         "file": "tests/test_workout_log_frame_runner.py",
-        "tests": 5
+        "tests": 58
       },
       {
         "file": "tests/test_workout_log_routes.py",

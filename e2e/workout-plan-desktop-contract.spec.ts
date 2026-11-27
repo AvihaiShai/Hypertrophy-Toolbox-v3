@@ -65,8 +65,11 @@ const ADVANCED_COLUMNS = [
   'Stabilizers', 'Synergists', 'Actions',
 ] as const;
 
-/** Sections of the plan page, in the vertical order the captures showed them. */
-const SECTIONS = ['filters', 'controls', 'exercise selection'] as const;
+const SECTIONS = [
+  '#workout > header.ui-page-header',
+  '#workout > section[aria-labelledby="workout-plan-table-heading"]',
+  '#workout > section[aria-labelledby="plan-add-heading"]',
+] as const;
 
 /** Body background per theme, from the shipped tokens. */
 const BODY_BACKGROUND = {
@@ -137,6 +140,9 @@ async function openPlan(page: import('@playwright/test').Page, theme: string, mo
   await page.goto(ROUTES.WORKOUT_PLAN);
   await waitForPageReady(page);
   await page.waitForSelector('#workout_plan_table_body tr', { timeout: 15_000 });
+  const all = page.locator('#tab-all');
+  await all.click();
+  await expect(all).toHaveAttribute('aria-selected', 'true');
 }
 
 for (const theme of THEMES) {
@@ -145,30 +151,25 @@ for (const theme of THEMES) {
       test(`page composition and section order: ${theme} ${mode}`, async ({ page }) => {
         await openPlan(page, theme, mode);
 
-        const layout = await page.evaluate((sections) => {
-          const visible = (el: Element) => {
-            const rect = el.getBoundingClientRect();
-            const style = getComputedStyle(el);
-            return rect.width > 0 && rect.height > 0
-              && style.display !== 'none' && style.visibility !== 'hidden';
-          };
+        const region = page.getByRole('region', { name: 'Workout plan exercises table' });
+        await expect(page.locator('#navbar')).toBeVisible();
+        await expect(region).toBeVisible();
+        await expect(region).toHaveAttribute('tabindex', '0');
+        await expect(region.getByTestId('exercise-table')).toBeVisible();
+        for (const section of SECTIONS) await expect(page.locator(section)).toBeVisible();
+
+        const layout = await page.evaluate((selectors) => {
           const doc = document.documentElement;
           return {
-            sections: sections.map((name) => {
-              const el = document.querySelector(`[data-section="${name}"]`);
-              if (!el) return { name, present: false, visible: false, top: -1 };
+            sections: selectors.map((selector) => {
+              const rect = document.querySelector(selector)!.getBoundingClientRect();
               return {
-                name,
-                present: true,
-                visible: visible(el),
-                top: el.getBoundingClientRect().top + window.scrollY,
+                selector,
+                top: rect.top,
+                leftGutter: rect.left,
+                rightGutter: doc.clientWidth - rect.right,
               };
             }),
-            navbarVisible: !!document.querySelector('#navbar')
-              && visible(document.querySelector('#navbar') as Element),
-            tableVisible: visible(document.querySelector('[data-testid="exercise-table"]') as Element),
-            wrapVisible: visible(document.querySelector('.tbl-wrap') as Element),
-            surfaces: document.querySelectorAll('[data-visual-surface]').length,
             routineTabHeights: Array.from(
               document.querySelectorAll<HTMLElement>('#routine-tabs .routine-tab-btn'),
             ).map((tab) => ({
@@ -177,34 +178,17 @@ for (const theme of THEMES) {
             })),
             scrollWidth: doc.scrollWidth,
             clientWidth: doc.clientWidth,
-            // Nothing may be painted outside the document box the capture used
-            // to cover: that is how a screenshot would have caught a stray
-            // overhang, and geometry can say it directly.
-            overhang: Array.from(document.querySelectorAll('[data-visual-surface]'))
-              .filter(visible)
-              .filter((el) => {
-                const r = el.getBoundingClientRect();
-                return r.left < -1 || r.right > doc.scrollWidth + 1;
-              })
-              .map((el) => (el as HTMLElement).dataset.section ?? el.className),
           };
-        }, SECTIONS as unknown as string[]);
+        }, SECTIONS);
 
-        for (const section of layout.sections) {
-          expect(section.present, `[data-section="${section.name}"] is missing`).toBe(true);
-          expect(section.visible, `[data-section="${section.name}"] is not visible`).toBe(true);
+        for (const [index, section] of layout.sections.entries()) {
+          expect(section.leftGutter, `${section.selector} left gutter`).toBeCloseTo(32, 0);
+          expect(section.rightGutter, `${section.selector} right gutter`).toBeCloseTo(32, 0);
+          if (index > 0) {
+            expect(section.top, `${section.selector} must follow the preceding section`)
+              .toBeGreaterThan(layout.sections[index - 1].top);
+          }
         }
-        const tops = layout.sections.map((s) => s.top);
-        expect(
-          tops,
-          `sections are out of order at ${theme}/${mode}: ${JSON.stringify(layout.sections)}`,
-        ).toEqual([...tops].sort((a, b) => a - b));
-
-        expect(layout.navbarVisible, 'navbar is not visible').toBe(true);
-        expect(layout.wrapVisible, 'plan table wrapper is not visible').toBe(true);
-        expect(layout.tableVisible, 'plan table is not visible').toBe(true);
-        expect(layout.surfaces, 'visual-surface count changed').toBe(14);
-        expect(layout.overhang, 'a surface is painted outside the document box').toEqual([]);
         expect(layout.routineTabHeights.length, 'seeded routine tabs are missing').toBeGreaterThan(1);
         const tabHeights = layout.routineTabHeights.map((tab) => tab.height);
         expect(
@@ -212,14 +196,52 @@ for (const theme of THEMES) {
           `routine tabs have mismatched heights: ${JSON.stringify(layout.routineTabHeights)}`,
         ).toBeLessThanOrEqual(1);
 
-        // The advanced table is genuinely wider than the 1440px viewport. That
-        // horizontal overflow is the shipped behaviour the captures recorded,
-        // and asserting it keeps a "fix" that silently clips the table honest.
         expect(layout.clientWidth).toBe(VIEWPORT.width);
-        expect(
-          layout.scrollWidth,
-          'the plan page no longer overflows 1440px; a column may have been dropped',
-        ).toBeGreaterThan(layout.clientWidth);
+        expect(layout.scrollWidth, 'the page has horizontal overflow').toBe(layout.clientWidth);
+
+        const tableLayout = await region.evaluate((element) => {
+          const headings = Array.from(element.querySelectorAll('thead th'));
+          return {
+            maxScroll: element.scrollWidth - element.clientWidth,
+            clippedHeadings: headings.filter((heading) => heading.scrollWidth > heading.clientWidth)
+              .map((heading) => heading.textContent?.trim()),
+            exerciseWidth: element.querySelector('th[data-label="Exercise"]')!.getBoundingClientRect().width,
+          };
+        });
+        expect(tableLayout.clippedHeadings).toEqual([]);
+        expect(tableLayout.exerciseWidth).toBeGreaterThanOrEqual(220);
+        if (mode === 'advanced') {
+          expect(tableLayout.maxScroll, 'advanced table must overflow the region').toBeGreaterThan(0);
+        }
+        if (tableLayout.maxScroll > 0) {
+          await region.focus();
+          await expect(region).toBeFocused();
+          await region.press('ArrowRight');
+          await expect.poll(() => region.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+        }
+
+        const reachable = await region.evaluate((element) => {
+          element.scrollLeft = element.scrollWidth;
+          const left = element.getBoundingClientRect().left + element.clientLeft;
+          const right = left + element.clientWidth;
+          const insideInlineBounds = (rect: DOMRect) =>
+            rect.width > 0 && rect.left >= left - 1 && rect.right <= right + 1;
+          const lastColumn = element.querySelector('thead th:last-child')!;
+          const controls = Array.from(element.querySelectorAll('tbody [data-action="delete"]'));
+          return {
+            lastColumn: insideInlineBounds(lastColumn.getBoundingClientRect()),
+            reachableRemoves: controls.filter((control) => {
+              const rect = control.getBoundingClientRect();
+              if (!insideInlineBounds(rect) || rect.height === 0) return false;
+              window.scrollBy(0, rect.top + rect.height / 2 - window.innerHeight / 2);
+              const box = control.getBoundingClientRect();
+              const target = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+              return control.contains(target);
+            }).length,
+          };
+        });
+        expect(reachable.lastColumn, 'last column is inside the visible region at the scroll end').toBe(true);
+        expect(reachable.reachableRemoves, 'every Remove control is reachable at the scroll end').toBe(SEED_ROWS);
       });
 
       test(`progressive column disclosure: ${theme} ${mode}`, async ({ page }) => {
@@ -272,6 +294,12 @@ for (const theme of THEMES) {
       test(`row media and controls: ${theme} ${mode}`, async ({ page }) => {
         await openPlan(page, theme, mode);
 
+        const thumbnails = page.getByTestId('exercise-table').locator('img.exercise-thumbnail');
+        await expect.poll(() => thumbnails.evaluateAll((images) => images.filter((image) => {
+          const thumbnail = image as HTMLImageElement;
+          return thumbnail.complete && thumbnail.naturalWidth > 0;
+        }).length), { message: 'all seeded thumbnails decode after selecting All' }).toBe(SEED_ROWS);
+
         const row = await page.evaluate(() => {
           const el = document.querySelector('[data-testid="exercise-table"]') as HTMLElement;
           const thumbs = Array.from(el.querySelectorAll<HTMLImageElement>('img.exercise-thumbnail'));
@@ -290,7 +318,7 @@ for (const theme of THEMES) {
               const r = b.getBoundingClientRect();
               return r.width > 0 && r.height > 0;
             }).length,
-            removeCount: el.querySelectorAll('#workout_plan_table_body .btn-danger').length,
+            removeCount: el.querySelectorAll('#workout_plan_table_body [data-action="delete"]').length,
           };
         });
 
@@ -393,6 +421,7 @@ for (const theme of THEMES) {
           ).toBeGreaterThanOrEqual(MIN_SEPARATOR_CONTRAST);
         };
 
+        expect(parseFloat(measured.separatorWidth), 'table cells draw a bottom separator').toBeGreaterThan(0);
         checkEdge('field separator (td bottom border)', measured.separatorColour, measured.separatorWidth);
         checkEdge('row-card outline (tr border)', measured.outlineColour, measured.outlineWidth);
       });

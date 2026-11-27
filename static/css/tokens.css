@@ -479,11 +479,14 @@
 :root {
   --ui-control-radius: 8px;
   --ui-panel-radius: 12px;
+  --ui-modal-radius: 16px;
+  --ui-drawer-backdrop: rgba(10, 15, 30, 0.34);
   --ui-pill-radius: 999px;
   --ui-hairline: #dfe3ec;
   --ui-field-surface: var(--surface-2);
   --ui-primary: #4263eb;
   --ui-danger: #c0362c;
+  --ui-danger-fill: #c0362c;
   --ui-achieved: #0b7a55;
   --ui-achieved-bg: #e6f6ef;
   --ui-pending: #8a5300;
@@ -497,6 +500,7 @@
   --ui-field-surface: var(--surface-0);
   --ui-primary: #5264ad;
   --ui-danger: #f08a80;
+  --ui-danger-fill: #a84f49;
   --ui-achieved: #5fd3a6;
   --ui-achieved-bg: #203c37;
   --ui-pending: #f3c56b;

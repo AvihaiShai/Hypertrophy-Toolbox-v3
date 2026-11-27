@@ -5,6 +5,7 @@
  */
 import type { Page } from '@playwright/test';
 import { test, expect, ROUTES, SELECTORS, waitForPageReady, expectToast } from './fixtures';
+import { moreButton } from './workout-plan-redesign';
 
 test.describe('Backup Center Entry Points', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
@@ -18,20 +19,21 @@ test.describe('Backup Center Entry Points', () => {
   });
 
   test('backup center link is visible next to clear plan and targets the browse intent', async ({ page }) => {
-    const programActions = page.getByRole('group', { name: 'Program actions' });
+    await moreButton(page).click();
+    const programActions = page.getByRole('menu', { name: 'More' });
     const libraryBtn = page.locator('#load-program-btn');
-    const actionIds = await programActions.locator('.inline-control-item > :is(a, button)').evaluateAll((elements) =>
-      elements.map((element) => element.id),
-    );
 
     await expect(programActions.locator('#save-program-btn')).toHaveCount(0);
-    expect(actionIds).toEqual(['load-program-btn', 'clear-plan-btn']);
+    await expect(programActions.getByRole('menuitem')).toHaveText([
+      'Export All Tables', 'Backup Center', 'Generate Starter Plan', 'Clear Plan',
+    ]);
     await expect(libraryBtn).toBeVisible();
     await expect(libraryBtn).toContainText('Backup Center');
     await expect(libraryBtn).toHaveAttribute('href', '/backup?intent=browse');
   });
 
   test('backup center link lands on the browse pane', async ({ page }) => {
+    await moreButton(page).click();
     await page.locator('#load-program-btn').click();
     await waitForPageReady(page);
     await expect(page).toHaveURL(/\/backup\?intent=browse/);

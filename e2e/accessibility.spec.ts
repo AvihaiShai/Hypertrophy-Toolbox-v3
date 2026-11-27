@@ -12,6 +12,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './console-guard';
 import {
+  API_ENDPOINTS,
   expectToast,
   ROUTES,
   SELECTORS,
@@ -21,6 +22,8 @@ import {
   waitForWorkoutPlanReady,
 } from './fixtures';
 import type { Page } from '@playwright/test';
+import { loadPlan, planRows, ROUTINE_A, SQUAT } from './workout-plan-fixture';
+import { moreButton, planHeader } from './workout-plan-redesign';
 
 /** WCAG 2.1 SC 1.4.3 floor for normal-size body text. */
 const MIN_TEXT_CONTRAST = 4.5;
@@ -254,6 +257,7 @@ test.describe('Keyboard Navigation', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -378,27 +382,31 @@ test.describe('ARIA Attributes', () => {
   });
 
   test('tables have proper structure', async ({ page }) => {
-    await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await page.route(url => url.pathname === API_ENDPOINTS.GET_WORKOUT_PLAN, route => {
+      if (route.request().method() !== 'GET') return route.fallback();
+      return route.fulfill({
+        json: {
+          ok: true,
+          data: [{
+            id: 9001,
+            routine: ROUTINE_A,
+            exercise: SQUAT,
+            sets: 3,
+            min_rep_range: 8,
+            max_rep_range: 12,
+            weight: 50,
+            rir: 2,
+          }],
+        },
+      });
+    });
+    await loadPlan(page);
+    await expect(planRows(page).first()).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Workout plan exercises', exact: true })).toBeVisible();
 
-    const tables = page.locator('table');
-    const count = await tables.count();
-    let checked = 0;
-
-    for (let i = 0; i < count; i++) {
-      const table = tables.nth(i);
-      const isVisible = await table.isVisible();
-      
-      if (isVisible) {
-        // Table should have headers
-        const headers = table.locator('th');
-        const headerCount = await headers.count();
-        expect(headerCount).toBeGreaterThan(0);
-        checked++;
-      }
+    for (const table of await page.locator('table:visible').all()) {
+      expect(await table.locator('thead th[scope="col"]').count()).toBeGreaterThan(0);
     }
-
-    expect(checked, 'no visible tables were found to check').toBeGreaterThan(0);
   });
 
   test('modals have proper ARIA attributes', async ({ page }) => {
@@ -461,6 +469,7 @@ test.describe('Focus Management', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -492,6 +501,8 @@ test.describe('Focus Management', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
+    const trigger = moreButton(page);
+    await trigger.click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -510,7 +521,7 @@ test.describe('Focus Management', () => {
     await hiddenPromise;
     await expect(modal).not.toBeVisible({ timeout: 3000 });
 
-    await expect(generateBtn).toBeFocused();
+    await expect(trigger).toBeFocused();
   });
 });
 
@@ -880,19 +891,16 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'home:light': [{ rule: 'color-contrast', nodes: 8 }],
   'home:dark': [{ rule: 'color-contrast', nodes: 26 }],
 
-  // X9 + X10 are both `workout-dropdowns.js`: `aria-activedescendant` on a
-  // `.wpdd-button` that never takes `role="combobox"`, and the `.wpdd-native`
-  // select left `aria-hidden` while still tabbable. One component, two rules,
-  // one owner-gated fix.
+  // X9 + X10 remain on the exercise picker. `#exercise_button` uses
+  // `aria-activedescendant` without `role="combobox"`, and `#exercise` stays
+  // tabbable while `aria-hidden`. X15 is the separate `#vpDrawer` finding.
   'workout_plan:light': [
-    { rule: 'aria-allowed-attr', nodes: 5 },
-    { rule: 'aria-hidden-focus', nodes: 14 },
-    { rule: 'color-contrast', nodes: 6 },
+    { rule: 'aria-allowed-attr', nodes: 1 },
+    { rule: 'aria-hidden-focus', nodes: 2 },
   ],
   'workout_plan:dark': [
-    { rule: 'aria-allowed-attr', nodes: 5 },
-    { rule: 'aria-hidden-focus', nodes: 14 },
-    { rule: 'color-contrast', nodes: 1 },
+    { rule: 'aria-allowed-attr', nodes: 1 },
+    { rule: 'aria-hidden-focus', nodes: 2 },
   ],
 
   'workout_log:light': [],
@@ -942,21 +950,14 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'fatigue:light': [],
   'fatigue:dark': [{ rule: 'color-contrast', nodes: 4 }],
 
-  // `aria-hidden-focus` is absent here and that is not a fix. axe's
-  // `focusable-modal-open` check returns `undefined` — not `false` — once a
-  // modal is open (`focusableModalOpenEvaluate` in axe-core), so the fourteen
-  // still-tabbable `aria-hidden` selects move from `violations` to
-  // `incomplete`, which this register does not read. The defect is unchanged;
-  // axe declines to rule on it. `state:validation-error` below scans the same
-  // page with no modal open and still reports all fourteen.
-  'state:modal-open': [
-    { rule: 'aria-allowed-attr', nodes: 5 },
-    { rule: 'color-contrast', nodes: 7 },
-  ],
+  // With a modal open, axe's `focusable-modal-open` check returns `undefined`
+  // (`focusableModalOpenEvaluate` in axe-core). This register reads violations,
+  // and the validation-error scan below reports both `aria-hidden-focus`
+  // nodes with the modal closed.
+  'state:modal-open': [{ rule: 'aria-allowed-attr', nodes: 1 }],
   'state:validation-error': [
-    { rule: 'aria-allowed-attr', nodes: 5 },
-    { rule: 'aria-hidden-focus', nodes: 14 },
-    { rule: 'color-contrast', nodes: 5 },
+    { rule: 'aria-allowed-attr', nodes: 1 },
+    { rule: 'aria-hidden-focus', nodes: 2 },
   ],
 
   // Four, the same as the route scan: the injected data cells add no violation
@@ -1104,6 +1105,7 @@ test.describe('Axe — deterministic states', () => {
     await waitForPageReady(page);
     await waitForWorkoutPlanReady(page);
 
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -1190,5 +1192,51 @@ test.describe('Axe — deterministic states', () => {
     expect(injected.rows, 'fewer than three data rows were injected').toBe(3);
 
     await expectRegisteredAxeViolations(page, 'state:populated-table');
+  });
+});
+
+test.describe('Plan redesign acceptance', () => {
+  test('More supports click and keyboard, ordered items, Escape and modal focus return', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadPlan(page);
+    const more = moreButton(page);
+    await expect(more, 'the header has a More menu trigger').toHaveAttribute('aria-haspopup', 'menu');
+    await expect(planHeader(page).getByRole('button', { name: 'Export to workout log' })).toBeVisible();
+    for (const selector of ['[data-testid="export-excel-btn"]', '#load-program-btn', '#generate-plan-btn', '#clear-plan-btn']) {
+      await expect(page.locator(selector)).toBeHidden();
+    }
+    const menu = page.getByRole('menu').filter({ has: page.getByRole('menuitem', { name: /Clear Plan/ }) });
+    const items = menu.getByRole('menuitem');
+    const order = ['Export All Tables', 'Backup Center', 'Generate Starter Plan', 'Clear Plan'];
+    await more.click();
+    await expect(items).toHaveText(order);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(more).toBeFocused();
+
+    for (const key of ['Enter', 'Space', 'ArrowDown']) {
+      await more.focus();
+      await page.keyboard.press(key);
+      await expect(more).toHaveAttribute('aria-expanded', 'true');
+      await expect(items).toHaveText(order);
+      await expect(items.first()).toBeFocused();
+      await page.keyboard.press('ArrowDown');
+      await expect(items.nth(1)).toBeFocused();
+      await page.keyboard.press('ArrowUp');
+      await expect(items.first()).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(menu).toBeHidden();
+      await expect(more).toHaveAttribute('aria-expanded', 'false');
+      await expect(more).toBeFocused();
+    }
+
+    await more.press('ArrowDown');
+    await items.last().click();
+    const modal = page.locator('#clearPlanModal');
+    await expect(menu).toBeHidden();
+    await expect(modal).toBeVisible();
+    await modal.getByRole('button', { name: 'Cancel' }).click();
+    await expect(modal).toBeHidden();
+    await expect(more).toBeFocused();
   });
 });

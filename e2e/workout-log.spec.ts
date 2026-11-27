@@ -9,6 +9,7 @@
  */
 import { test, expect, ROUTES, SELECTORS, expectToast, waitForPageReady } from './fixtures';
 import { test as guardedTest } from './console-guard';
+import { ROUTINE_A, SQUAT, addPlanRow, planPost } from './workout-plan-fixture';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
 // Section 0: the filled primary is #4263eb in the light theme this suite runs in.
@@ -538,7 +539,7 @@ test.describe('Workout Log Page', () => {
     
     // Verify modal has close button and cancel button
     await expect(modal.locator('.btn-close')).toBeVisible();
-    await expect(modal.locator('.modal-footer .btn-secondary')).toBeVisible();
+    await expect(modal.getByRole('button', { name: 'Cancel' })).toBeVisible();
   });
 
   test('editable cells are present in table', async ({ page }) => {
@@ -1584,19 +1585,8 @@ test.describe('Workout Log Clear Functionality', () => {
     const modal = page.locator('#clearLogModal');
     await expect(modal).toBeVisible({ timeout: 5000 });
 
-    // Verify cancel button exists in modal footer
-    const cancelBtn = modal.locator('.modal-footer .btn-secondary');
-    await expect(cancelBtn).toBeVisible();
-    await expect(cancelBtn).toContainText('Cancel');
-    
-    // Verify clicking cancel doesn't trigger the clear action
-    // (We just verify the button exists and is clickable - Bootstrap modal close is external dependency)
-    await cancelBtn.click();
-    
-    // Wait briefly for any action
-    await page.waitForTimeout(300);
-    
-    // Test passes if no error occurred during cancel click
+    await modal.getByRole('button', { name: 'Cancel' }).click();
+    await expect(modal).toBeHidden();
   });
 });
 
@@ -1726,4 +1716,46 @@ test.describe('Exercise reference video modal (workout-log)', () => {
     const src = await page.locator('#exerciseVideoIframe').getAttribute('src');
     expect(src).toMatch(/^https:\/\/www\.youtube\.com\/embed\/dQw4w9WgXcQ/);
   });
+});
+
+guardedTest.describe('Plan redesign characterization', () => {
+  for (const width of [390, 1440]) {
+    guardedTest(`Clear Log cancels without deleting and confirms and clears at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await planPost(page.request, '/clear_workout_log');
+      await planPost(page.request, '/clear_workout_plan');
+      await addPlanRow(page.request, ROUTINE_A, SQUAT);
+      await planPost(page.request, '/export_to_workout_log');
+      await page.goto(ROUTES.WORKOUT_LOG);
+      const rows = page.locator('#workout-log-table tr[data-log-id]');
+      await expect(rows).toHaveCount(1);
+
+      const open = page.locator('#clear-log-btn');
+      const modal = page.locator('#clearLogModal');
+      const clearEndpoint = (url: string) => new URL(url).pathname === '/clear_workout_log';
+      const calls: object[] = [];
+      page.on('request', request => {
+        if (clearEndpoint(request.url())) calls.push(request.postDataJSON());
+      });
+      await open.click();
+      await expect(modal).toBeVisible();
+      await modal.getByRole('button', { name: 'Cancel' }).click();
+      await expect(modal).toBeHidden();
+      await expect(rows).toHaveCount(1);
+      expect(calls).toHaveLength(0);
+
+      await open.click();
+      await expect(modal).toBeVisible();
+      const cleared = page.waitForResponse(response => clearEndpoint(response.url()));
+      await modal.locator('#confirm-clear-log-btn').click();
+      const response = await cleared;
+      expect(response.ok()).toBe(true);
+      expect(await response.json()).toMatchObject({ ok: true, message: 'Successfully cleared 1 entries from workout log' });
+      await expectToast(page, 'Successfully cleared 1 entries from workout log');
+      await expect(modal).toBeHidden();
+      await expect(rows).toHaveCount(0);
+      expect(calls).toEqual([{}]);
+      await planPost(page.request, '/clear_workout_plan');
+    });
+  }
 });

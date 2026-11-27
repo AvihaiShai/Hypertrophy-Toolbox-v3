@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workout Plan mockup (#736 step 3)</title>
+<link rel="stylesheet" href="../../static/vendor/inter/inter.css">
+<link rel="stylesheet" href="../../static/vendor/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="../../static/css/tokens.css">
+<link rel="stylesheet" href="../../static/css/layout.css">
+<link rel="stylesheet" href="../../static/css/components.css">
+<style>
+/* Static mockup for #736 step 3 (Workout Plan). Not application code.
+   Shipped tokens.css / layout.css / components.css are linked above. The block below carries the
+   new shared components (menu, tabs, chip, neutral badge, filled danger button, ruled table and
+   card, modal, drawer) and the Plan-only layout, from existing tokens plus --ui-modal-radius and
+   --ui-danger-fill. */
+:root { --ui-modal-radius: 16px; --ui-danger-fill: #c0362c; }
+[data-theme="dark"] { --ui-danger-fill: #a84f49; color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--surface-0); color: var(--ink-1); font: 400 14px/20px Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+button, select, input { font: inherit; color: inherit; }
+h1, h2, h3, p, dl, dd, ul { margin: 0; padding: 0; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Placeholder navbar (fixed, 64px, as in the app). Not part of this step. */
+.mock-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 30; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--ui-gutter); background: var(--surface-2); border-bottom: 1px solid var(--ui-hairline); font-weight: 600; }
+.mock-nav small { font-weight: 400; font-size: 12px; line-height: 16px; color: var(--ink-2); }
+.bare .mock-nav button { display: none; }
+
+/* New shared: neutral badge, chip, tabs, menu, filled danger */
+.ui-badge { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ui-badge--neutral { color: var(--ink-2); background: var(--surface-1); }
+.ui-btn--danger-fill { color: #fff; background: var(--ui-danger-fill); border-color: var(--ui-danger-fill); }
+.ui-btn[disabled] { opacity: 0.5; }
+.ui-chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 32px; padding: 4px 12px; border: 1px solid var(--ink-3); border-radius: var(--ui-pill-radius); background: var(--surface-1); color: var(--ink-1); font: 500 12px/16px Inter, sans-serif; text-align: left; cursor: pointer; }
+.ui-chip[aria-pressed="true"] { background: var(--surface-2); }
+.ui-tab { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--ui-control-radius); background: transparent; color: var(--ink-2); font: 500 14px/20px Inter, sans-serif; text-align: left; cursor: pointer; }
+.ui-tab[aria-selected="true"], .ui-tab[aria-pressed="true"] { color: var(--ink-1); background: var(--surface-1); border-color: var(--ink-3); }
+.ui-tab__count { font-variant-numeric: tabular-nums; }
+.ui-page-actions { position: relative; }
+.ui-menu { position: static; }
+.ui-menu__popover { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; min-width: 200px; padding: 4px; background: var(--surface-2); border: 1px solid var(--ui-hairline); border-radius: var(--ui-panel-radius); box-shadow: var(--shadow-elev-2); }
+.ui-menu__popover[hidden] { display: none; }
+.ui-menu__item { display: flex; align-items: center; width: 100%; min-height: 40px; padding: 0 12px; border: 0; border-radius: var(--ui-control-radius); background: transparent; color: var(--ink-1); font: 500 14px/20px Inter, sans-serif; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.ui-menu__item:hover { background: var(--surface-1); }
+.ui-menu__item--danger { color: var(--ui-danger); }
+.ui-menu__sep { height: 0; margin: 4px 0; border-top: 1px solid var(--ui-hairline); }
+.ui-btn:focus-visible, .ui-tab:focus-visible, .ui-chip:focus-visible, .ui-menu__item:focus-visible, .plan-input:focus-visible, [role="region"]:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 1px; }
+@media (max-width: 767.98px) {
+  .ui-tab, .ui-chip, .ui-menu__item { min-height: 44px; }
+}
+
+/* Ruled variant (K7): --ink-3 row lines and card outline */
+.ui-record-card--ruled { border-color: var(--ink-3); }
+@media (min-width: 1360px) {
+  .ui-data-table--ruled { border-color: var(--ink-3); }
+  .ui-data-table--ruled td { border-top-color: var(--ink-3); }
+}
+
+/* Plan-only layout */
+.plan-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.plan-stack > .ui-panel { min-width: 0; }
+.plan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.plan-head h2, .add-title { font: 600 18px/24px Inter, sans-serif; }
+.plan-head__vol { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.vp-summary { height: auto; padding-block: 8px; text-align: left; white-space: normal; max-width: 100%; }
+@media (max-width: 767.98px) {
+  .plan-head, .plan-head__vol { flex-direction: column; align-items: stretch; }
+  .vp-summary { justify-content: flex-start; }
+}
+.ui-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.plan-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.plan-tools .lbl { margin-right: 4px; }
+.ss-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; padding: 8px; background: var(--surface-1); border: 1px solid var(--ui-hairline); border-radius: var(--ui-control-radius); }
+.ss-bar[hidden] { display: none; }
+.ss-bar__msg { flex: 1 1 160px; min-width: 0; color: var(--ink-2); }
+@media (max-width: 1359.98px) { .ss-bar { position: sticky; top: calc(var(--nav-height, 64px) + 8px); z-index: 20; } }
+.lbl { display: block; font: 500 12px/16px Inter, sans-serif; color: var(--ink-2); }
+
+.cards { list-style: none; display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
+@media (min-width: 768px) { .cards { grid-template-columns: 1fr 1fr; align-items: start; } }
+.view-table { display: none; margin-top: 16px; }
+@media (min-width: 1360px) { .view-table { display: block; } .cards.view-cards { display: none; } }
+
+.plan-card { position: relative; container-type: inline-size; }
+.is-superset.plan-card::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px; border-radius: var(--ui-pill-radius); background: var(--ink-2); }
+.plan-card.is-selected { border-color: var(--ink-1); }
+.card-top { display: flex; gap: 8px; align-items: flex-start; }
+.row-handle { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink-3); cursor: grab; }
+.thumb { flex: none; width: 40px; height: 40px; border-radius: var(--ui-control-radius); object-fit: cover; background: var(--surface-1); }
+.thumb--none { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--ui-hairline); color: var(--ink-3); font-size: 12px; }
+.card-heading { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.ex-title { font: 600 16px/22px Inter, sans-serif; overflow-wrap: break-word; }
+.card-routine { font-size: 12px; line-height: 16px; color: var(--ink-2); overflow-wrap: break-word; }
+.card-heading .ui-badge { margin-top: 2px; }
+.rx { margin-top: 8px; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
+.card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 8px; }
+.card-actions .details-toggle { margin-left: auto; }
+.video-btn { padding-inline: 0; min-width: 44px; }
+.details { display: grid; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ui-hairline); }
+.details[hidden] { display: none; }
+.num-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.num-grid .ui-field, .plan-field { justify-content: flex-end; }
+.num-grid .ui-field { margin-top: 4px; }
+.dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; }
+.dl > div { min-width: 0; }
+.dl dd { overflow-wrap: break-word; }
+.check { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.check input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--ui-primary); }
+.details-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.style-btn { height: auto; padding-inline: 4px; text-align: left; }
+.plan-table .ui-btn { white-space: nowrap; flex: none; }
+@container (max-width: 239px) {
+  .num-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card-top { flex-wrap: wrap; }
+  .card-heading { flex-basis: 100%; }
+}
+@media (max-width: 1359.98px) { .adv { display: none; } #plan[data-mode="advanced"] .dl .adv { display: block; } }
+
+/* Table, 1360px and wider */
+.plan-table { table-layout: fixed; }
+.plan-table th { text-align: left; vertical-align: bottom; font-weight: 500; color: var(--ink-2); }
+.plan-table th.num, .plan-table td.num { text-align: right; }
+.plan-table td { vertical-align: middle; overflow-wrap: break-word; }
+.plan-table td, .plan-table th { position: relative; }
+.plan-table td:first-child { text-align: center; }
+.plan-table td:first-child input { width: 20px; height: 20px; margin: 0; accent-color: var(--ui-primary); }
+.plan-table .row-handle--table { width: 32px; height: 32px; }
+.plan-table tr.is-superset td:first-child::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ink-2); }
+.plan-table tr.is-selected td { background: var(--surface-1); }
+.plan-table .routine-main { display: block; }
+.plan-table .routine-sub { display: block; font-size: 12px; line-height: 16px; color: var(--ink-2); }
+.ex { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.thumb--32 { width: 32px; height: 32px; }
+.ex-body { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.ex-body .ex-title { font-size: 14px; line-height: 20px; }
+.ex-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.ex-actions .video-btn { min-width: 32px; }
+.plan-table .ui-field { padding-inline: 6px; }
+#plan[data-mode="simple"] .plan-table .adv { display: none; }
+#plan[data-mode="simple"] .plan-table { min-width: 1336px; }
+#plan[data-mode="advanced"] .plan-table { min-width: 1968px; }
+#plan[data-mode="advanced"] .plan-table .adv { display: table-cell; }
+#plan[data-mode="advanced"] .plan-table col.adv { display: table-column; }
+@media (min-width: 1360px) { #plan[data-mode="advanced"] .dl .adv { display: block; } }
+
+/* Tabs */
+#plan[data-tab="a"] [data-routine]:not([data-routine="a"]),
+#plan[data-tab="b"] [data-routine]:not([data-routine="b"]),
+#plan[data-tab="c"] [data-routine]:not([data-routine="c"]) { display: none; }
+
+/* Empty state */
+#plan .ui-empty-state { display: none; }
+#plan[data-state="empty"] .ui-empty-state { display: block; }
+.ui-empty-state .empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+.ui-empty-state p { max-width: 480px; margin-inline: auto; }
+#plan[data-state="empty"] .ui-tab[role="tab"]:not(#tab-all),
+#plan[data-state="empty"] .view-cards, #plan[data-state="empty"] .view-table, #plan[data-state="empty"] .plan-tools, #plan[data-state="empty"] .ss-bar { display: none; }
+
+/* Add exercise panel */
+.add-grid { display: grid; gap: 16px; margin-top: 16px; }
+.add-top { display: grid; gap: 16px; }
+@media (min-width: 1024px) { .add-top { grid-template-columns: 3fr 2fr; } }
+.field-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+@media (min-width: 768px) { .field-row--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.plan-input { width: 100%; height: 44px; padding: 0 12px; background: var(--ui-field-surface); font: 400 16px/24px Inter, sans-serif; }
+@media (min-width: 768px) { .plan-input { height: 40px; font-size: 14px; line-height: 20px; } }
+.field-row .lbl, .rx-grid .lbl, .filters-grid .lbl, .add-top .lbl { margin-bottom: 4px; }
+.crumb { margin-top: 8px; color: var(--ink-2); font-size: 12px; line-height: 16px; }
+.filters-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters-chips { margin-top: 8px; }
+.filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 16px; margin-top: 12px; }
+.filters-grid[hidden], .filters-chips[hidden] { display: none; }
+.rx-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 768px) { .rx-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.est { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--ink-2); font-size: 12px; line-height: 16px; }
+@media (max-width: 767.98px) { .add-submit { width: 100%; } }
+
+/* Modal */
+.ui-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: var(--ui-gutter); background: rgba(15, 18, 32, 0.48); }
+.ui-overlay[hidden] { display: none; }
+.ui-modal { display: flex; flex-direction: column; width: 100%; max-width: 480px; max-height: 100%; background: var(--surface-2); color: var(--ink-1); border: 1px solid var(--ui-hairline); border-radius: var(--ui-modal-radius); box-shadow: var(--shadow-elev-2); }
+.ui-modal--wide { max-width: 1120px; }
+.ui-modal__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 16px; }
+.ui-modal__title { font: 600 18px/24px Inter, sans-serif; }
+.ui-modal__close { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--ui-control-radius); background: transparent; color: var(--ink-2); cursor: pointer; }
+.ui-modal__body { padding: 16px; overflow-y: auto; }
+.ui-modal__footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px; }
+.ui-modal__footer .note { flex: 1 1 240px; margin: 0; color: var(--ink-2); font-size: 12px; line-height: 16px; }
+.ui-modal__body p + p { margin-top: 8px; }
+.ui-modal__body .danger-note { color: var(--ui-danger); }
+@media (max-width: 767.98px) { .ui-modal__close { width: 44px; height: 44px; } }
+.gen-form { display: grid; gap: 16px; }
+.gen-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.gen-row .lbl, .gen-section > .lbl { margin-bottom: 4px; }
+@media (min-width: 768px) { .gen-row > :first-child { grid-column: span 2; } }
+.gen-range { width: 100%; height: 44px; margin: 0; accent-color: var(--ui-primary); }
+.gen-checks, .gen-equip { display: grid; gap: 0 12px; }
+.gen-equip { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.gen-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.gen-preview { padding: 12px; border: 1px solid var(--ui-hairline); border-radius: var(--ui-panel-radius); }
+.gen-section .chips .ui-chip { min-width: 44px; justify-content: center; }
+@media (min-width: 768px) { .gen-checks { grid-template-columns: 1fr; } .check { min-height: 32px; } }
+
+/* Drawer */
+.ui-overlay--drawer { padding: 0; justify-content: flex-end; align-items: stretch; }
+.ui-drawer { display: flex; flex-direction: column; width: min(360px, 100vw); background: var(--surface-2); color: var(--ink-1); border-left: 1px solid var(--ui-hairline); border-radius: var(--ui-modal-radius) 0 0 var(--ui-modal-radius); box-shadow: var(--shadow-elev-2); }
+.ui-drawer__body { flex: 1; padding: 16px; overflow-y: auto; display: grid; gap: 16px; align-content: start; }
+.vp-list { display: grid; gap: 8px; }
+.vp-row { padding: 12px; border: 1px solid var(--ui-hairline); border-radius: var(--ui-panel-radius); }
+.vp-row__header { display: flex; justify-content: space-between; gap: 8px; font-weight: 500; }
+.vp-row__sets { font-variant-numeric: tabular-nums; }
+.vp-bar { height: 8px; margin: 8px 0; border-radius: var(--ui-pill-radius); background: var(--surface-1); overflow: hidden; }
+.vp-bar span { display: block; height: 100%; background: var(--ink-3); }
+.is-on .vp-bar span { background: var(--ui-achieved); }
+.is-under .vp-bar span { background: var(--ui-pending); }
+.vp-row__meta { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; line-height: 16px; }
+.vp-dot { width: 8px; height: 8px; border-radius: var(--ui-pill-radius); background: var(--ink-3); }
+.is-on .vp-dot { background: var(--ui-achieved); }
+.is-under .vp-dot { background: var(--ui-pending); }
+.vp-bonus h3 { font: 600 14px/20px Inter, sans-serif; }
+.vp-bonus p { margin: 2px 0 8px; color: var(--ink-2); font-size: 12px; line-height: 16px; }
+</style>
+</head>
+<body>
+<!-- States (query string or hash, e.g. ?theme=dark&state=all or #state=empty):
+     theme=dark | state=all|empty | mode=advanced | details=first|squat|deadlift|both|all | sel | filters=open | chips
+     menu | modal=clear|generate | drawer | zoom=1.2 | bare (hides the mock controls). Default: populated, first routine tab. -->
+<div class="mock-nav"><span>Hypertrophy Toolbox <small>navigation is unchanged in this step</small></span><button type="button" class="ui-btn ui-btn--small" id="theme-btn">Theme</button></div>
+
+<main class="ui-page-frame" id="main-content">
+<div id="workout">
+  <div id="plan" data-tab="a" data-mode="simple" data-state="populated">
+    <header class="ui-page-header">
+      <h1 class="ui-page-title">Workout Plan</h1>
+      <div class="ui-page-actions">
+        <button data-id="export-to-log-btn" class="ui-btn" type="button">Export to Workout Log</button>
+        <div class="ui-menu">
+          <button id="more-btn" class="ui-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="more-menu">More<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          <div id="more-menu" class="ui-menu__popover" role="menu" aria-labelledby="more-btn" hidden>
+            <button class="ui-menu__item" role="menuitem" type="button" data-testid="export-excel-btn">Export All Tables</button>
+            <a class="ui-menu__item" role="menuitem" data-id="load-program-btn" href="#backup">Backup Center</a>
+            <button class="ui-menu__item" role="menuitem" type="button" id="generate-plan-btn" data-open="gen">Generate Starter Plan</button>
+            <div class="ui-menu__sep" role="separator"></div>
+            <button class="ui-menu__item ui-menu__item--danger" role="menuitem" type="button" data-id="clear-plan-btn" data-open="clear">Clear Plan</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="plan-stack">
+      <section class="ui-panel" aria-labelledby="workout-plan-table-heading">
+        <div class="plan-head">
+          <h2 id="workout-plan-table-heading">Workout Plan Table</h2>
+          <div class="plan-head__vol">
+            <button type="button" id="vpActiveSummary" class="ui-btn ui-btn--ghost vp-summary" aria-live="polite">Active plan: #1, 3-day Effective split (12 muscles targeted)</button>
+            <button type="button" id="vpToggle" class="ui-btn" aria-controls="vpDrawer" aria-expanded="false" data-open="drawer"><i class="fas fa-chart-bar" aria-hidden="true"></i>Volume targets</button>
+          </div>
+        </div>
+        <div class="ui-tabs" id="routine-tabs" role="tablist" aria-label="Routines"><button type="button" role="tab" class="ui-tab" id="tab-all" data-tab="all" aria-selected="false"><span>All</span><span class="ui-tab__count" id="tab-count-all">10</span></button><button type="button" role="tab" class="ui-tab" data-tab="a" aria-selected="true"><span>GYM · Full Body · Workout A</span><span class="ui-tab__count tab-count">7</span></button><button type="button" role="tab" class="ui-tab" data-tab="b" aria-selected="false"><span>GYM · Full Body · Workout B</span><span class="ui-tab__count tab-count">2</span></button><button type="button" role="tab" class="ui-tab" data-tab="c" aria-selected="false"><span>GYM · Upper Lower Hypertrophy Split · Workout B Heavy</span><span class="ui-tab__count tab-count">1</span></button></div>
+        <div id="superset-actions" class="ss-bar" hidden>
+          <button id="link-superset-btn" class="ui-btn" type="button" disabled><i class="fas fa-link" aria-hidden="true"></i>Link as Superset</button>
+          <button id="unlink-superset-btn" class="ui-btn" type="button"><i class="fas fa-unlink" aria-hidden="true"></i>Unlink Superset</button>
+          <span id="superset-selection-info" class="ss-bar__msg" aria-live="polite">1 exercise selected (in superset)</span>
+        </div>
+        <div class="plan-tools" data-table-key="workout_plan" role="group" aria-label="Table columns">
+          <span class="lbl">Columns</span>
+          <button type="button" class="ui-tab mode-btn" data-mode="simple" aria-pressed="true">Simple</button>
+          <button type="button" class="ui-tab mode-btn" data-mode="advanced" aria-pressed="false">Advanced</button>
+        </div>
+        <section class="ui-empty-state" aria-label="Empty plan">
+          <h2>No exercises in your plan yet</h2>
+          <p>Generate a starter plan, or add your first exercise below.</p>
+          <div class="empty-actions">
+            <button type="button" class="ui-btn" data-open="gen">Generate Starter Plan</button>
+            <button type="button" class="ui-btn" data-focus-add>Add first exercise</button>
+          </div>
+        </section>
+        <ul class="cards view-cards" id="cards">
+        <li class="ui-record-card ui-record-card--ruled plan-card is-superset" data-routine="a" data-key="bench">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Bench Press"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Bench Press</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+              <span class="badge ui-badge ui-badge--neutral">Superset</span>
+            </div>
+          </div>
+          <p class="rx">3 sets × 8–12 · 60 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Bench Press"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Barbell Bench Press"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Bench Press">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Bench Press">8</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Bench Press">12</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Bench Press">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Bench Press">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Bench Press">60</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Chest</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Triceps</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Mid Chest</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Front Shoulders</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Horizontal Push</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Flat Press</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Rotator Cuff</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Anterior Deltoid</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="bench"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card is-superset" data-routine="a" data-key="row">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Bent Over Row"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Bent_Over_Barbell_Row/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Bent Over Row</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+              <span class="badge ui-badge ui-badge--neutral">Superset</span>
+            </div>
+          </div>
+          <p class="rx">3 sets × 8–12 · 70 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Bent Over Row"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Barbell Bent Over Row"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Bent Over Row">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Bent Over Row">8</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Bent Over Row">12</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Bent Over Row">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Bent Over Row">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Bent Over Row">70</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Lats</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Biceps</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Mid Back</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Rear Deltoids</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Horizontal Pull</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Bent Row</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Erector Spinae</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Rhomboids</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="row"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="a" data-key="squat">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Squat"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Barbell_Full_Squat/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Squat</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">10 sets × 30–30 · 102.5 kg · RIR 10 · RPE 9.5</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Squat"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Barbell Squat"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Squat">10</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Squat">30</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Squat">30</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Squat">10</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Squat">9.5</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Squat">102.5</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Quadriceps</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Glutes</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Rectus Femoris</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Hamstrings</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Squat</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Back Squat</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Core</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Adductors</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="squat"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="a" data-key="deadlift">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Deadlift"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Barbell_Deadlift/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Deadlift</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">3 sets × 5–8 · 999.5 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Deadlift"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Barbell Deadlift"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Deadlift">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Deadlift">5</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Deadlift">8</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Deadlift">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Deadlift">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Deadlift">999.5</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Hamstrings</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Glutes</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Biceps Femoris</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Mixed</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Lower Back</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Hinge</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Conventional</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Core</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Quadriceps</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="deadlift"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="a" data-key="curl">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Curl"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Barbell_Curl/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Curl</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">3 sets × 10–15 · 30 kg · RIR 1</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Curl"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Search YouTube for a Barbell Curl reference video"><i class="fas fa-search" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Curl">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Curl">10</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Curl">15</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Curl">1</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Curl">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Curl">30</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Biceps</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Forearms</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Biceps Brachii</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Underhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>N/A</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Elbow Flexion</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Supinated Curl</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Core</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Brachialis</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-stopwatch" aria-hidden="true"></i> AMRAP <span>60s</span></span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="curl"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="a" data-key="press">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Seated Military Press"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Seated_Barbell_Military_Press/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Seated Military Press</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">3 sets × 8–12 · 40 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Seated Military Press"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Search YouTube for a Barbell Seated Military Press reference video"><i class="fas fa-search" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Seated Military Press">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Seated Military Press">8</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Seated Military Press">12</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Seated Military Press">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Seated Military Press">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Seated Military Press">40</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Shoulders</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Triceps</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Anterior Deltoid</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Upper Chest</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Vertical Push</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Overhead Press</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Core</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Upper Trapezius</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="press"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="a" data-key="fly">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Cable Standing Single Arm Internally Rotated Incline Chest Fly"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <span class="thumb thumb--none " aria-hidden="true"><i class="fas fa-dumbbell"></i></span>
+            <div class="card-heading">
+              <h3 class="ex-title">Cable Standing Single Arm Internally Rotated Incline Chest Fly</h3>
+              <div class="card-routine">Workout A · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">3 sets × 12–15 · 12.5 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Cable Standing Single Arm Internally Rotated Incline Chest Fly"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Search YouTube for a Cable Standing Single Arm Internally Rotated Incline Chest Fly reference video"><i class="fas fa-search" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Cable Standing Single Arm Internally Rotated Incline Chest Fly">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Cable Standing Single Arm Internally Rotated Incline Chest Fly">12</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Cable Standing Single Arm Internally Rotated Incline Chest Fly">15</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Cable Standing Single Arm Internally Rotated Incline Chest Fly">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Cable Standing Single Arm Internally Rotated Incline Chest Fly">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Cable Standing Single Arm Internally Rotated Incline Chest Fly">12.5</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Chest</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Triceps</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Upper Chest</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Neutral</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Front Shoulders</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Horizontal Push</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Cable Fly</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Core</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Anterior Deltoid</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="fly"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="b" data-key="incline">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Incline Bench Press"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Barbell_Incline_Bench_Press_-_Medium_Grip/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Incline Bench Press</h3>
+              <div class="card-routine">Workout B · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">4 sets × 6–10 · 50 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Incline Bench Press"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Barbell Incline Bench Press"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Incline Bench Press">4</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Incline Bench Press">6</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Incline Bench Press">10</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Incline Bench Press">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Incline Bench Press">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Incline Bench Press">50</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Upper Chest</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Triceps</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Mid Chest</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Front Shoulders</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Horizontal Push</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Incline Press</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Rotator Cuff</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Anterior Deltoid</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="incline"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="b" data-key="rdl">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Barbell Romanian Deadlift"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Romanian_Deadlift/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Barbell Romanian Deadlift</h3>
+              <div class="card-routine">Workout B · GYM · Full Body</div>
+
+            </div>
+          </div>
+          <p class="rx">3 sets × 8–12 · 90 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Barbell Romanian Deadlift"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Barbell Romanian Deadlift"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Romanian Deadlift">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Romanian Deadlift">8</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Romanian Deadlift">12</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Romanian Deadlift">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Romanian Deadlift">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Romanian Deadlift">90</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Hamstrings</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Glutes</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Biceps Femoris</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Lower Back</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Hinge</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Romanian</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Rotator Cuff</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Anterior Deltoid</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="rdl"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        <li class="ui-record-card ui-record-card--ruled plan-card" data-routine="c" data-key="lat">
+          <div class="card-top">
+            <button type="button" class="row-handle" aria-label="Reorder Wide-Grip Lat Pulldown"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button>
+            <img class="thumb " src="../../static/vendor/free-exercise-db/exercises/Wide-Grip_Lat_Pulldown/0.jpg" alt="" width="40" height="40">
+            <div class="card-heading">
+              <h3 class="ex-title">Wide-Grip Lat Pulldown</h3>
+              <div class="card-routine">Workout B Heavy · GYM · Upper Lower Hypertrophy Split</div>
+
+            </div>
+          </div>
+          <p class="rx">3 sets × 10–12 · 55 kg · RIR 2</p>
+          <div class="card-actions">
+            <button type="button" class="ui-btn ui-btn--ghost swap-btn" data-action="replace" aria-label="Swap Wide-Grip Lat Pulldown"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button>
+            <button type="button" class="ui-btn ui-btn--ghost video-btn" data-action="play-video" aria-label="Play reference video for Wide-Grip Lat Pulldown"><i class="fas fa-play" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn--ghost details-toggle" aria-expanded="false">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="details" hidden>
+            <div class="num-grid"><div><span class="lbl">Sets</span><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Wide-Grip Lat Pulldown">3</button></div><div><span class="lbl">Min Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Wide-Grip Lat Pulldown">10</button></div><div><span class="lbl">Max Rep</span><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Wide-Grip Lat Pulldown">12</button></div><div><span class="lbl">RIR</span><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Wide-Grip Lat Pulldown">2</button></div><div><span class="lbl">RPE</span><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Wide-Grip Lat Pulldown">N/A</button></div><div><span class="lbl">Weight</span><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Wide-Grip Lat Pulldown">55</button></div></div>
+            <dl class="dl"><div class=""><dt class="lbl">Primary Muscle</dt><dd>Lats</dd></div><div class=""><dt class="lbl">Secondary Muscle</dt><dd>Biceps</dd></div><div class=""><dt class="lbl">Isolated Muscles</dt><dd>Lat Width</dd></div><div class=""><dt class="lbl">Grips</dt><dd>Overhand</dd></div><div class="adv"><dt class="lbl">Tertiary Muscle</dt><dd>Rear Deltoids</dd></div><div class="adv"><dt class="lbl">Utility</dt><dd>Basic</dd></div><div class="adv"><dt class="lbl">Movement Pattern</dt><dd>Vertical Pull</dd></div><div class="adv"><dt class="lbl">Movement Subpattern</dt><dd>Pulldown</dd></div><div class="adv"><dt class="lbl">Stabilizers</dt><dd>Rotator Cuff</dd></div><div class="adv"><dt class="lbl">Synergists</dt><dd>Anterior Deltoid</dd></div></dl>
+            <div><span class="lbl">Execution style</span><button type="button" class="ui-btn ui-btn--ghost style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></div>
+            <label class="check"><input type="checkbox" class="superset-checkbox" data-key="lat"> Select for superset</label>
+            <div class="details-actions"><button type="button" class="ui-btn ui-btn--danger" data-action="delete"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></div>
+          </div>
+        </li>
+        </ul>
+        <div class="view-table"><div role="region" aria-label="Workout plan exercises table" tabindex="0"><table class="ui-data-table ui-data-table--ruled plan-table" data-testid="exercise-table" aria-label="Workout plan exercises"><colgroup><col class="" style="width:64px"><col class="" style="width:36px"><col class="" style="width:96px"><col class=""><col class="" style="width:88px"><col class="" style="width:88px"><col class="adv" style="width:88px"><col class="" style="width:88px"><col class="adv" style="width:80px"><col class="adv" style="width:112px"><col class="adv" style="width:112px"><col class="num" style="width:56px"><col class="num" style="width:56px"><col class="num" style="width:56px"><col class="num" style="width:56px"><col class="num" style="width:56px"><col class="num" style="width:68px"><col class="" style="width:120px"><col class="" style="width:88px"><col class="adv" style="width:120px"><col class="adv" style="width:120px"><col class="" style="width:96px"></colgroup><thead><tr><th scope="col">Select for Superset</th><th scope="col" aria-label="Reorder"></th><th scope="col">Routine</th><th scope="col">Exercise</th><th scope="col">Primary Muscle</th><th scope="col">Secondary Muscle</th><th scope="col" class="adv">Tertiary Muscle</th><th scope="col">Isolated Muscles</th><th scope="col" class="adv">Utility</th><th scope="col" class="adv">Movement Pattern</th><th scope="col" class="adv">Movement Subpattern</th><th scope="col" class="num">Sets</th><th scope="col" class="num">Min Rep</th><th scope="col" class="num">Max Rep</th><th scope="col" class="num">RIR</th><th scope="col" class="num">RPE</th><th scope="col" class="num">Weight</th><th scope="col">Style</th><th scope="col">Grips</th><th scope="col" class="adv">Stabilizers</th><th scope="col" class="adv">Synergists</th><th scope="col">Actions</th></tr></thead><tbody id="workout_plan_table_body"><tr class="plan-row is-superset" data-routine="a" data-key="bench"><td><input type="checkbox" class="superset-checkbox" data-key="bench" aria-label="Select Barbell Bench Press for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Bench Press"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Bench Press</span><span class="badge ui-badge ui-badge--neutral">Superset</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Bench Press"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Barbell Bench Press"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Chest</td><td>Triceps</td><td class="adv">Front Shoulders</td><td>Mid Chest</td><td class="adv">Basic</td><td class="adv">Horizontal Push</td><td class="adv">Flat Press</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Bench Press">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Bench Press">8</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Bench Press">12</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Bench Press">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Bench Press">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Bench Press">60</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Rotator Cuff</td><td class="adv">Anterior Deltoid</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Bench Press"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row is-superset" data-routine="a" data-key="row"><td><input type="checkbox" class="superset-checkbox" data-key="row" aria-label="Select Barbell Bent Over Row for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Bent Over Row"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Bent_Over_Barbell_Row/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Bent Over Row</span><span class="badge ui-badge ui-badge--neutral">Superset</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Bent Over Row"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Barbell Bent Over Row"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Lats</td><td>Biceps</td><td class="adv">Rear Deltoids</td><td>Mid Back</td><td class="adv">Basic</td><td class="adv">Horizontal Pull</td><td class="adv">Bent Row</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Bent Over Row">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Bent Over Row">8</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Bent Over Row">12</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Bent Over Row">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Bent Over Row">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Bent Over Row">70</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Erector Spinae</td><td class="adv">Rhomboids</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Bent Over Row"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="a" data-key="squat"><td><input type="checkbox" class="superset-checkbox" data-key="squat" aria-label="Select Barbell Squat for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Squat"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Barbell_Full_Squat/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Squat</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Squat"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Barbell Squat"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Quadriceps</td><td>Glutes</td><td class="adv">Hamstrings</td><td>Rectus Femoris</td><td class="adv">Basic</td><td class="adv">Squat</td><td class="adv">Back Squat</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Squat">10</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Squat">30</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Squat">30</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Squat">10</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Squat">9.5</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Squat">102.5</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Core</td><td class="adv">Adductors</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Squat"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="a" data-key="deadlift"><td><input type="checkbox" class="superset-checkbox" data-key="deadlift" aria-label="Select Barbell Deadlift for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Deadlift"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Barbell_Deadlift/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Deadlift</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Deadlift"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Barbell Deadlift"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Hamstrings</td><td>Glutes</td><td class="adv">Lower Back</td><td>Biceps Femoris</td><td class="adv">Basic</td><td class="adv">Hinge</td><td class="adv">Conventional</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Deadlift">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Deadlift">5</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Deadlift">8</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Deadlift">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Deadlift">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Deadlift">999.5</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Mixed</td><td class="adv">Core</td><td class="adv">Quadriceps</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Deadlift"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="a" data-key="curl"><td><input type="checkbox" class="superset-checkbox" data-key="curl" aria-label="Select Barbell Curl for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Curl"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Barbell_Curl/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Curl</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Curl"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Search YouTube for a Barbell Curl reference video"><i class="fas fa-search" aria-hidden="true"></i></button></div></div></div></td><td>Biceps</td><td>Forearms</td><td class="adv">N/A</td><td>Biceps Brachii</td><td class="adv">Basic</td><td class="adv">Elbow Flexion</td><td class="adv">Supinated Curl</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Curl">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Curl">10</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Curl">15</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Curl">1</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Curl">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Curl">30</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-stopwatch" aria-hidden="true"></i> AMRAP <span>60s</span></span></button></td><td>Underhand</td><td class="adv">Core</td><td class="adv">Brachialis</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Curl"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="a" data-key="press"><td><input type="checkbox" class="superset-checkbox" data-key="press" aria-label="Select Barbell Seated Military Press for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Seated Military Press"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Seated_Barbell_Military_Press/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Seated Military Press</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Seated Military Press"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Search YouTube for a Barbell Seated Military Press reference video"><i class="fas fa-search" aria-hidden="true"></i></button></div></div></div></td><td>Shoulders</td><td>Triceps</td><td class="adv">Upper Chest</td><td>Anterior Deltoid</td><td class="adv">Basic</td><td class="adv">Vertical Push</td><td class="adv">Overhead Press</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Seated Military Press">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Seated Military Press">8</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Seated Military Press">12</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Seated Military Press">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Seated Military Press">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Seated Military Press">40</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Core</td><td class="adv">Upper Trapezius</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Seated Military Press"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="a" data-key="fly"><td><input type="checkbox" class="superset-checkbox" data-key="fly" aria-label="Select Cable Standing Single Arm Internally Rotated Incline Chest Fly for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Cable Standing Single Arm Internally Rotated Incline Chest Fly"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout A</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><span class="thumb thumb--none thumb--32" aria-hidden="true"><i class="fas fa-dumbbell"></i></span><div class="ex-body"><span class="ex-title">Cable Standing Single Arm Internally Rotated Incline Chest Fly</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Cable Standing Single Arm Internally Rotated Incline Chest Fly"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Search YouTube for a Cable Standing Single Arm Internally Rotated Incline Chest Fly reference video"><i class="fas fa-search" aria-hidden="true"></i></button></div></div></div></td><td>Chest</td><td>Triceps</td><td class="adv">Front Shoulders</td><td>Upper Chest</td><td class="adv">Basic</td><td class="adv">Horizontal Push</td><td class="adv">Cable Fly</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Cable Standing Single Arm Internally Rotated Incline Chest Fly">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Cable Standing Single Arm Internally Rotated Incline Chest Fly">12</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Cable Standing Single Arm Internally Rotated Incline Chest Fly">15</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Cable Standing Single Arm Internally Rotated Incline Chest Fly">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Cable Standing Single Arm Internally Rotated Incline Chest Fly">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Cable Standing Single Arm Internally Rotated Incline Chest Fly">12.5</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Neutral</td><td class="adv">Core</td><td class="adv">Anterior Deltoid</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Cable Standing Single Arm Internally Rotated Incline Chest Fly"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="b" data-key="incline"><td><input type="checkbox" class="superset-checkbox" data-key="incline" aria-label="Select Barbell Incline Bench Press for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Incline Bench Press"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout B</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Barbell_Incline_Bench_Press_-_Medium_Grip/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Incline Bench Press</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Incline Bench Press"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Barbell Incline Bench Press"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Upper Chest</td><td>Triceps</td><td class="adv">Front Shoulders</td><td>Mid Chest</td><td class="adv">Basic</td><td class="adv">Horizontal Push</td><td class="adv">Incline Press</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Incline Bench Press">4</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Incline Bench Press">6</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Incline Bench Press">10</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Incline Bench Press">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Incline Bench Press">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Incline Bench Press">50</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Rotator Cuff</td><td class="adv">Anterior Deltoid</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Incline Bench Press"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="b" data-key="rdl"><td><input type="checkbox" class="superset-checkbox" data-key="rdl" aria-label="Select Barbell Romanian Deadlift for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Barbell Romanian Deadlift"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout B</span><span class="routine-sub">GYM · Full Body</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Romanian_Deadlift/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Barbell Romanian Deadlift</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Barbell Romanian Deadlift"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Barbell Romanian Deadlift"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Hamstrings</td><td>Glutes</td><td class="adv">Lower Back</td><td>Biceps Femoris</td><td class="adv">Basic</td><td class="adv">Hinge</td><td class="adv">Romanian</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Barbell Romanian Deadlift">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Barbell Romanian Deadlift">8</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Barbell Romanian Deadlift">12</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Barbell Romanian Deadlift">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Barbell Romanian Deadlift">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Barbell Romanian Deadlift">90</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Rotator Cuff</td><td class="adv">Anterior Deltoid</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Barbell Romanian Deadlift"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr><tr class="plan-row" data-routine="c" data-key="lat"><td><input type="checkbox" class="superset-checkbox" data-key="lat" aria-label="Select Wide-Grip Lat Pulldown for superset"></td><td><button type="button" class="row-handle row-handle--table" aria-label="Reorder Wide-Grip Lat Pulldown"><i class="fas fa-grip-vertical" aria-hidden="true"></i></button></td><td><span class="routine-main">Workout B Heavy</span><span class="routine-sub">GYM · Upper Lower Hypertrophy Split</span></td><td><div class="ex"><img class="thumb thumb--32" src="../../static/vendor/free-exercise-db/exercises/Wide-Grip_Lat_Pulldown/0.jpg" alt="" width="40" height="40"><div class="ex-body"><span class="ex-title">Wide-Grip Lat Pulldown</span><div class="ex-actions"><button type="button" class="ui-btn ui-btn--ghost ui-btn--small swap-btn" data-action="replace" aria-label="Swap Wide-Grip Lat Pulldown"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Swap</span></button><button type="button" class="ui-btn ui-btn--ghost ui-btn--small video-btn" data-action="play-video" aria-label="Play reference video for Wide-Grip Lat Pulldown"><i class="fas fa-play" aria-hidden="true"></i></button></div></div></div></td><td>Lats</td><td>Biceps</td><td class="adv">Rear Deltoids</td><td>Lat Width</td><td class="adv">Basic</td><td class="adv">Vertical Pull</td><td class="adv">Pulldown</td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Sets for Wide-Grip Lat Pulldown">3</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Min Rep for Wide-Grip Lat Pulldown">10</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Max Rep for Wide-Grip Lat Pulldown">12</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RIR for Wide-Grip Lat Pulldown">2</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit RPE for Wide-Grip Lat Pulldown">N/A</button></td><td class="num"><button type="button" class="ui-field plan-field" aria-label="Edit Weight for Wide-Grip Lat Pulldown">55</button></td><td><button type="button" class="ui-btn ui-btn--ghost ui-btn--small style-btn" aria-label="Change execution style"><span class="badge ui-badge ui-badge--neutral"><i class="fas fa-dumbbell" aria-hidden="true"></i> STD</span></button></td><td>Overhand</td><td class="adv">Rotator Cuff</td><td class="adv">Anterior Deltoid</td><td><button type="button" class="ui-btn ui-btn--danger ui-btn--small" data-action="delete" aria-label="Remove Wide-Grip Lat Pulldown"><i class="fas fa-trash" aria-hidden="true"></i>Remove</button></td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="ui-panel" aria-labelledby="add-heading">
+        <h2 class="add-title" id="add-heading">Add exercise</h2>
+        <div class="add-grid">
+          <div class="add-top">
+            <div>
+              <span class="lbl">Routine</span>
+              <div class="field-row field-row--3">
+                <div><label class="lbl" for="routine-env">Environment</label><select id="routine-env" class="ui-field-input plan-input"><option value="">Select Environment</option><option>GYM</option><option>Home Workout</option></select></div>
+                <div><label class="lbl" for="routine-program">Program</label><select id="routine-program" class="ui-field-input plan-input"><option>Select Program</option></select></div>
+                <div><label class="lbl" for="routine-day">Workout</label><select id="routine-day" class="ui-field-input plan-input"><option>Select Workout</option></select></div>
+              </div>
+              <div class="crumb" id="routine-breadcrumb">Select environment to begin</div>
+            </div>
+            <div>
+              <label class="lbl" for="exercise">Exercise <span id="exercise-match-count">· 1,247 matches</span></label>
+              <select id="exercise" class="ui-field-input plan-input" data-testid="exercise-search"><option>Barbell Bench Press</option><option>Barbell Squat</option></select>
+            </div>
+          </div>
+          <div>
+            <div class="filters-bar">
+              <button type="button" id="filters-toggle" class="ui-btn ui-btn--ghost" aria-expanded="false" aria-controls="filters-form"><span id="filters-label">Filters</span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+              <button type="button" data-id="clear-filters-btn" class="ui-btn">Clear Filters</button>
+            </div>
+            <div class="chips filters-chips" id="filter-chips" hidden><button type="button" class="ui-chip" data-remove aria-label="Remove filter: Primary Muscle Group Chest"><span>Primary Muscle Group: Chest</span><i class="fas fa-times" aria-hidden="true"></i></button><button type="button" class="ui-chip" data-remove aria-label="Remove filter: Equipment Barbell"><span>Equipment: Barbell</span><i class="fas fa-times" aria-hidden="true"></i></button></div>
+            <form id="filters-form" class="filters-grid" role="search" aria-label="Filter workout plan exercises" hidden onsubmit="return false"><div><label class="lbl" for="f0">Primary Muscle Group</label><select id="f0" class="ui-field-input plan-input" data-filter-key="Primary Muscle Group" aria-label="Primary Muscle Group filter" data-val="Chest"><option value="">All</option><option class="mock-on" selected>Chest</option></select></div><div><label class="lbl" for="f1">Secondary Muscle Group</label><select id="f1" class="ui-field-input plan-input" data-filter-key="Secondary Muscle Group" aria-label="Secondary Muscle Group filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f2">Tertiary Muscle Group</label><select id="f2" class="ui-field-input plan-input" data-filter-key="Tertiary Muscle Group" aria-label="Tertiary Muscle Group filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f3">Advanced Isolated Muscles</label><select id="f3" class="ui-field-input plan-input" data-filter-key="Advanced Isolated Muscles" aria-label="Advanced Isolated Muscles filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f4">Force</label><select id="f4" class="ui-field-input plan-input" data-filter-key="Force" aria-label="Force filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f5">Equipment</label><select id="f5" class="ui-field-input plan-input" data-filter-key="Equipment" aria-label="Equipment filter" data-val="Barbell"><option value="">All</option><option class="mock-on" selected>Barbell</option></select></div><div><label class="lbl" for="f6">Mechanic</label><select id="f6" class="ui-field-input plan-input" data-filter-key="Mechanic" aria-label="Mechanic filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f7">Utility</label><select id="f7" class="ui-field-input plan-input" data-filter-key="Utility" aria-label="Utility filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f8">Grips</label><select id="f8" class="ui-field-input plan-input" data-filter-key="Grips" aria-label="Grips filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f9">Stabilizers</label><select id="f9" class="ui-field-input plan-input" data-filter-key="Stabilizers" aria-label="Stabilizers filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f10">Synergists</label><select id="f10" class="ui-field-input plan-input" data-filter-key="Synergists" aria-label="Synergists filter" data-val=""><option value="">All</option></select></div><div><label class="lbl" for="f11">Difficulty</label><select id="f11" class="ui-field-input plan-input" data-filter-key="Difficulty" aria-label="Difficulty filter" data-val=""><option value="">All</option></select></div></form>
+          </div>
+          <div class="rx-grid"><div><label class="lbl" for="weight">Weight</label><input id="weight" type="number" class="ui-field-input plan-input" value="60" inputmode="decimal"></div><div><label class="lbl" for="sets">Sets</label><input id="sets" type="number" class="ui-field-input plan-input" value="3" inputmode="decimal"></div><div><label class="lbl" for="rir">RIR</label><input id="rir" type="number" class="ui-field-input plan-input" value="2" inputmode="decimal"></div><div><label class="lbl" for="rpe">RPE</label><input id="rpe" type="number" class="ui-field-input plan-input" value="" inputmode="decimal"></div><div><label class="lbl" for="min_rep">Min Rep</label><input id="min_rep" type="number" class="ui-field-input plan-input" value="8" inputmode="decimal"></div><div><label class="lbl" for="max_rep_range">Max Rep</label><input id="max_rep_range" type="number" class="ui-field-input plan-input" value="12" inputmode="decimal"></div></div>
+          <div class="est">
+            <p id="workout-estimate-provenance">default values</p>
+            <span class="badge ui-badge ui-badge--neutral"><i class="fas fa-magic" aria-hidden="true"></i>Learned</span>
+            <span class="badge ui-badge ui-badge--neutral"><i class="fas fa-battery-half" aria-hidden="true"></i>Fatigue context</span>
+            <button type="button" class="ui-btn ui-btn--ghost" aria-expanded="false">Show the math<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div><button type="button" data-id="add_exercise_btn" class="ui-btn ui-btn--primary add-submit">Add Exercise</button></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+
+<div class="ui-overlay" id="clear" hidden>
+  <div class="ui-modal" role="dialog" aria-modal="true" aria-labelledby="clearPlanModalLabel" id="clearPlanModal">
+    <div class="ui-modal__header"><h2 class="ui-modal__title" id="clearPlanModalLabel">Clear Workout Plan</h2><button type="button" class="ui-modal__close" data-close aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+    <div class="ui-modal__body"><p>Are you sure you want to clear the entire workout plan?</p><p class="danger-note">This will remove all exercises and cannot be undone.</p></div>
+    <div class="ui-modal__footer"><button type="button" class="ui-btn" data-close>Cancel</button><button type="button" class="ui-btn ui-btn--danger-fill" id="confirmClearPlanBtn">Clear Plan</button></div>
+  </div>
+</div>
+
+<div class="ui-overlay" id="gen" hidden>
+  <div class="ui-modal ui-modal--wide" role="dialog" aria-modal="true" aria-labelledby="generatePlanModalLabel" data-id="generatePlanModal">
+    <div class="ui-modal__header"><h2 class="ui-modal__title" id="generatePlanModalLabel">Generate Starter Plan</h2><button type="button" class="ui-modal__close" data-close aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+    <div class="ui-modal__body">
+      <form id="generatePlanForm" class="gen-form" onsubmit="return false">
+        <div class="gen-row">
+          <div><label class="lbl" for="gen-training-days">Training Days</label><select id="gen-training-days" class="ui-field-input plan-input"><option>1 day (Full Body: Workout A)</option><option>2 days (2 Days Split: Workout A/B)</option><option selected>3 days (3 Days Split: Workout A/B/C)</option><option>4 days (Upper Lower: Upper/Lower 1-2)</option><option>5 days (5 Days Split: Day 1-5)</option></select></div>
+          <div><label class="lbl" for="gen-environment">Environment</label><select id="gen-environment" class="ui-field-input plan-input"><option selected>Gym</option><option>Home</option></select></div>
+          <div><label class="lbl" for="gen-experience">Experience</label><select id="gen-experience" class="ui-field-input plan-input"><option selected>Novice (<1yr)</option><option>Intermediate</option><option>Advanced</option></select></div>
+          <div><label class="lbl" for="gen-goal">Goal</label><select id="gen-goal" class="ui-field-input plan-input"><option selected>Hypertrophy</option><option>Strength</option><option>General</option></select></div>
+          <div><label class="lbl" for="gen-volume-scale">Volume: 1.0x</label><input id="gen-volume-scale" class="gen-range" type="range" min="0.5" max="1.5" step="0.1" value="1"></div>
+          <div><span class="lbl">Options</span><div class="gen-checks"><label class="check"><input type="checkbox" id="gen-overwrite"> Overwrite</label><label class="check"><input type="checkbox" id="gen-no-overhead"> No Overhead Press</label><label class="check"><input type="checkbox" id="gen-no-deadlift"> No Deadlifts</label></div></div>
+        </div>
+        <div class="gen-section"><span class="lbl">Equipment</span><div class="gen-equip"><label class="check"><input type="checkbox" id="eq0" checked> Barbell</label><label class="check"><input type="checkbox" id="eq1" checked> Dumbbells</label><label class="check"><input type="checkbox" id="eq2" checked> Cables</label><label class="check"><input type="checkbox" id="eq3"> Machine</label><label class="check"><input type="checkbox" id="eq4"> Bodyweight</label><label class="check"><input type="checkbox" id="eq5"> Kettlebells</label><label class="check"><input type="checkbox" id="eq6"> Smith Machine</label><label class="check"><input type="checkbox" id="eq7"> Trap Bar</label><label class="check"><input type="checkbox" id="eq8"> Band</label><label class="check"><input type="checkbox" id="eq9"> TRX</label><label class="check"><input type="checkbox" id="eq10"> Plate</label><label class="check"><input type="checkbox" id="eq11"> Medicine Ball</label></div></div>
+        <div class="gen-section gen-preview"><span class="lbl">Preview</span><div class="gen-badges">
+          <span class="badge ui-badge ui-badge--neutral">3 Days Split: Workout A, Workout B, Workout C</span>
+          <span class="badge ui-badge ui-badge--neutral">~7 exercises</span><span class="badge ui-badge ui-badge--neutral">18 sets</span><span class="badge ui-badge ui-badge--neutral">6-15 reps</span></div></div>
+        <div class="gen-section"><span class="lbl">Priority Muscle Groups (Optional – select up to 2 muscles to get extra sets on top of the balanced plan)</span>
+          <div class="chips" id="muscle-selector-container"><button type="button" class="ui-chip" aria-pressed="false">Chest</button><button type="button" class="ui-chip" aria-pressed="false">Back</button><button type="button" class="ui-chip" aria-pressed="false">Shoulders</button><button type="button" class="ui-chip" aria-pressed="false">Biceps</button><button type="button" class="ui-chip" aria-pressed="false">Triceps</button><button type="button" class="ui-chip" aria-pressed="false">Quadriceps</button><button type="button" class="ui-chip" aria-pressed="false">Hamstrings</button><button type="button" class="ui-chip" aria-pressed="false">Glutes</button><button type="button" class="ui-chip" aria-pressed="false">Calves</button><button type="button" class="ui-chip" aria-pressed="false">Abs</button></div></div>
+      </form></div>
+    <div class="ui-modal__footer"><p class="note">Plan covers all muscle groups. Priority muscles (if selected) get extra sets.</p><button type="button" class="ui-btn" data-close>Cancel</button><button type="button" class="ui-btn ui-btn--primary" id="generatePlanSubmit">Generate Plan</button></div>
+  </div>
+</div>
+
+<div class="ui-overlay ui-overlay--drawer" id="drawer" hidden>
+  <aside class="ui-drawer" id="vpDrawer" aria-labelledby="vpDrawerTitle">
+    <div class="ui-modal__header"><h2 class="ui-modal__title" id="vpDrawerTitle">Volume targets</h2><button type="button" class="ui-modal__close vp-close" data-close aria-label="Close volume targets"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+    <section id="vpDrawerBody" class="ui-drawer__body"><div class="vp-list"><article class="vp-row is-on"><div class="vp-row__header"><span class="vp-row__name">Chest</span><span class="vp-row__sets">12 / 12</span></div><div class="vp-bar" role="img" aria-label="Chest planned sets 12 of 12"><span style="width:100%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>on target</span></div></article><article class="vp-row is-under"><div class="vp-row__header"><span class="vp-row__name">Back</span><span class="vp-row__sets">14 / 16</span></div><div class="vp-bar" role="img" aria-label="Back planned sets 14 of 16"><span style="width:88%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>under target</span></div></article><article class="vp-row is-under"><div class="vp-row__header"><span class="vp-row__name">Quadriceps</span><span class="vp-row__sets">9 / 12</span></div><div class="vp-bar" role="img" aria-label="Quadriceps planned sets 9 of 12"><span style="width:75%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>under target</span></div></article><article class="vp-row is-under"><div class="vp-row__header"><span class="vp-row__name">Hamstrings</span><span class="vp-row__sets">6 / 8</span></div><div class="vp-bar" role="img" aria-label="Hamstrings planned sets 6 of 8"><span style="width:75%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>under target</span></div></article><article class="vp-row is-on"><div class="vp-row__header"><span class="vp-row__name">Shoulders</span><span class="vp-row__sets">10 / 10</span></div><div class="vp-bar" role="img" aria-label="Shoulders planned sets 10 of 10"><span style="width:100%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>on target</span></div></article><article class="vp-row is-under"><div class="vp-row__header"><span class="vp-row__name">Biceps</span><span class="vp-row__sets">6 / 10</span></div><div class="vp-bar" role="img" aria-label="Biceps planned sets 6 of 10"><span style="width:60%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>under target</span></div></article><article class="vp-row is-on"><div class="vp-row__header"><span class="vp-row__name">Triceps</span><span class="vp-row__sets">8 / 8</span></div><div class="vp-bar" role="img" aria-label="Triceps planned sets 8 of 8"><span style="width:100%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>on target</span></div></article><article class="vp-row is-under"><div class="vp-row__header"><span class="vp-row__name">Glutes</span><span class="vp-row__sets">4 / 8</span></div><div class="vp-bar" role="img" aria-label="Glutes planned sets 4 of 8"><span style="width:50%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>under target</span></div></article><article class="vp-row is-none"><div class="vp-row__header"><span class="vp-row__name">Calves</span><span class="vp-row__sets">0 / 6</span></div><div class="vp-bar" role="img" aria-label="Calves planned sets 0 of 6"><span style="width:0%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>not started</span></div></article><article class="vp-row is-under"><div class="vp-row__header"><span class="vp-row__name">Abs</span><span class="vp-row__sets">3 / 6</span></div><div class="vp-bar" role="img" aria-label="Abs planned sets 3 of 6"><span style="width:50%"></span></div><div class="vp-row__meta"><span class="vp-dot" aria-hidden="true"></span><span>under target</span></div></article></div><section class="vp-bonus"><h3>Bonus from compounds</h3><p>Sets attributed to muscles you did not target in this plan.</p><div class="vp-list"><article class="vp-row"><div class="vp-row__header"><span class="vp-row__name">Forearms</span><span class="vp-row__sets">4 sets</span></div></article><article class="vp-row"><div class="vp-row__header"><span class="vp-row__name">Upper Trapezius</span><span class="vp-row__sets">3 sets</span></div></article><article class="vp-row"><div class="vp-row__header"><span class="vp-row__name">Core</span><span class="vp-row__sets">2 sets</span></div></article></div></section></section>
+  </aside>
+</div>
+
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
+  var has = function (k) { return q.has(k) || h.has(k); };
+  var get = function (k) { return q.get(k) || h.get(k) || ''; };
+  var root = document.documentElement, plan = document.getElementById('plan');
+  var $ = function (s, c) { return (c || document).querySelector(s); }, $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+
+  function theme(t) { root.dataset.theme = t; }
+  if (get('theme') === 'dark') theme('dark');
+  $('#theme-btn').addEventListener('click', function () { theme(root.dataset.theme === 'dark' ? 'light' : 'dark'); });
+  if (get('zoom')) root.style.zoom = get('zoom');
+  if (has('bare')) document.body.classList.add('bare');
+
+  function setTab(k) {
+    plan.dataset.tab = k;
+    $$('.ui-tab[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.tab === k)); });
+  }
+  $$('.ui-tab[role=tab]').forEach(function (t) { t.addEventListener('click', function () { setTab(t.dataset.tab); }); });
+  function setMode(m) {
+    plan.dataset.mode = m;
+    $$('.mode-btn').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === m)); });
+  }
+  $$('.mode-btn').forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
+
+  function toggleDetails(btn, open) {
+    var d = $('.details', btn.closest('.plan-card'));
+    var o = open === undefined ? d.hidden : open;
+    d.hidden = !o; btn.setAttribute('aria-expanded', String(o));
+    $('i', btn).className = 'fas fa-chevron-' + (o ? 'up' : 'down');
+  }
+  $$('.details-toggle').forEach(function (b) { b.addEventListener('click', function () { toggleDetails(b); }); });
+
+  var ft = $('#filters-toggle'), fg = $('#filters-form'), chips = $('#filter-chips');
+  function setFilters(o) { fg.hidden = !o; ft.setAttribute('aria-expanded', String(o)); $('i', ft).className = 'fas fa-chevron-' + (o ? 'up' : 'down'); }
+  ft.addEventListener('click', function () { setFilters(fg.hidden); });
+  function setChips(on) {
+    chips.hidden = !on;
+    $('#filters-label').textContent = on ? 'Filters · 2 active' : 'Filters';
+    $$('select[data-filter-key]').forEach(function (s) { s.value = on ? s.dataset.val : ''; });
+  }
+  $$('.ui-chip[data-remove]').forEach(function (c) { c.addEventListener('click', function () { c.hidden = true; }); });
+
+  var more = $('#more-btn'), pop = $('#more-menu');
+  function menu(o) { pop.hidden = !o; more.setAttribute('aria-expanded', String(o)); }
+  more.addEventListener('click', function (e) { e.stopPropagation(); menu(pop.hidden); });
+  document.addEventListener('click', function (e) { if (!pop.contains(e.target)) menu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { menu(false); $$('.ui-overlay').forEach(function (o) { o.hidden = true; }); } });
+  function overlay(id, o) { $('#' + id).hidden = !o; }
+  $$('[data-open]').forEach(function (b) { b.addEventListener('click', function () { menu(false); overlay(b.dataset.open, true); if (b.dataset.open === 'drawer') b.setAttribute('aria-expanded', 'true'); }); });
+  $$('[data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('.ui-overlay').hidden = true; }); });
+  $$('.ui-overlay').forEach(function (o) { o.addEventListener('click', function (e) { if (e.target === o) o.hidden = true; }); });
+  $$('[data-focus-add]').forEach(function (b) { b.addEventListener('click', function () { $('#routine-env').focus(); }); });
+
+  function select(on) {
+    $$('.superset-checkbox[data-key=bench]').forEach(function (c) { c.checked = on; });
+    $$('[data-key=bench]').forEach(function (r) { r.classList.toggle('is-selected', on); });
+    $('#superset-actions').hidden = !on;
+  }
+  $$('.superset-checkbox').forEach(function (c) { c.addEventListener('change', function () { if (c.dataset.key === 'bench') select(c.checked); }); });
+
+  var s = get('state');
+  if (s === 'all') setTab('all');
+  if (s === 'empty') { plan.dataset.state = 'empty'; setTab('all'); $('#tab-count-all').textContent = '0'; }
+  if (get('mode') === 'advanced') setMode('advanced');
+  if (has('chips')) setChips(true);
+  if (get('filters') === 'open') setFilters(true);
+  var dt = get('details');
+  $$('.plan-card').forEach(function (c) {
+    var k = c.dataset.key, b = $('.details-toggle', c);
+    if (dt === 'all' || dt === k || (dt === 'both' && (k === 'squat' || k === 'deadlift')) || (dt === 'first' && k === 'bench')) toggleDetails(b, true);
+  });
+  if (has('sel')) { select(true); toggleDetails($('.plan-card[data-key=bench] .details-toggle'), true); }
+  if (has('menu')) menu(true);
+  if (get('modal') === 'clear') overlay('clear', true);
+  if (get('modal') === 'generate') overlay('gen', true);
+  if (has('drawer')) { overlay('drawer', true); $('#vpToggle').setAttribute('aria-expanded', 'true'); }
+})();
+</script>
+</body>
+</html>

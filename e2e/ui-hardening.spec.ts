@@ -27,6 +27,7 @@ import {
   waitForWorkoutPlanReady,
   resetWorkoutPlan,
 } from './fixtures';
+import { moreButton } from './workout-plan-redesign';
 
 async function showToastViaModule(
   page: Page,
@@ -620,6 +621,10 @@ test.describe('UI Hardening — Modal Keyboard & Focus', () => {
   // Open the Clear Plan modal and wait for Bootstrap's shown.bs.modal event so the
   // backdrop is in place and the focus handoff has settled before we assert anything.
   async function openClearPlanModal(page: Page): Promise<void> {
+    await moreButton(page).click();
+    const trigger = page.locator('#clear-plan-btn');
+    await trigger.focus();
+    await expect(trigger).toBeFocused();
     const shown = page.evaluate(() => {
       return new Promise<void>((resolve) => {
         const el = document.getElementById('clearPlanModal');
@@ -634,7 +639,7 @@ test.describe('UI Hardening — Modal Keyboard & Focus', () => {
         el.addEventListener('shown.bs.modal', handler);
       });
     });
-    await page.locator('#clear-plan-btn').click();
+    await trigger.click();
     await shown;
   }
 
@@ -657,12 +662,6 @@ test.describe('UI Hardening — Modal Keyboard & Focus', () => {
   });
 
   test('focus moves inside modal once it is fully shown', async ({ page }) => {
-    const triggerWasFocused = await page.locator('#clear-plan-btn').evaluate((el) => {
-      (el as HTMLElement).focus();
-      return document.activeElement === el;
-    });
-    expect(triggerWasFocused).toBe(true);
-
     await openClearPlanModal(page);
 
     const activeIsInsideModal = await page.evaluate(() => {
@@ -998,6 +997,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
     await readControlsRecord(page);
 
     // Confirm Clear Plan through the modal (the single #clear-plan-btn path — AR-5).
+    await moreButton(page).click();
     // Wait for Bootstrap's `shown.bs.modal` before clicking Confirm: calling hide() while the
     // show transition is still in flight is swallowed by Bootstrap and the modal never closes.
     // (Test-synchronization only — the assertions below are unchanged.)

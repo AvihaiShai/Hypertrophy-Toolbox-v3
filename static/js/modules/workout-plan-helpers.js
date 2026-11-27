@@ -140,7 +140,7 @@ export function renderExecutionStyleBadge(exercise) {
             label = 'STD';
     }
 
-    return `<button class="btn ${badgeClass}" aria-label="Click to change execution style">
+    return `<button type="button" class="badge ui-badge ui-badge--neutral ${badgeClass}" aria-label="Click to change execution style">
         ${icon} <span class="execution-label">${label}</span>${details}
     </button>`;
 }

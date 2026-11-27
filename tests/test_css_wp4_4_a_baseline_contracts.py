@@ -152,9 +152,10 @@ def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
     for filename, spans in layers["spans"].items():
         assert spans == measure.layer_spans(filename), filename
 
-    # The two layered blocks inside surfaces this arc owns.
-    assert layers["spans"]["components.css"] == [
-        {"layer": "workout", "openLine": 3358, "closeLine": 3923}
+    # The Plan-only workout block was retired; its slot remains declared.
+    assert layers["spans"]["components.css"] == []
+    assert layers["spans"]["pages-workout-plan.css"] == [
+        {"layer": "workout-dropdowns", "openLine": 6, "closeLine": 97}
     ]
     assert layers["spans"]["navbar.css"] == [
         {"layer": "navbar", "openLine": 6, "closeLine": 874}
@@ -162,22 +163,22 @@ def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
 
 
 def test_is_family_enumeration_is_complete_and_classified() -> None:
-    """A10 / R3 condition 1 — the family must be closed, not sampled.
+    """Keep the historical shared family and record the retired input rules.
 
-    19 `:is(` tokens resolve to 17 rules, because two rules each spread their
-    selector list over two lines (`:3335`+`:3336`, `:3749`+`:3750`). The split
-    matters: only the twelve four-branch rules plus the three-branch
-    reduced-motion rule leak ID weight across branches that do not carry it.
+    The original branch shapes describe the pre-repair census. Five six-branch
+    tokens in four Plan-only rules have since been removed. The live shared
+    arms are checked in the WP4.4-i contracts and the Workout Plan frame check.
     """
     baseline = _baseline()
     family = baseline["isFamily"]
 
-    assert family["totalIsTokens"] == 19
-    assert family["distinctRules"] == 17
+    assert family["totalIsTokens"] == len(family["records"]) == 14
+    assert family["distinctRules"] == len({record["ruleLine"] for record in family["records"]}) == 13
     assert family["fourBranchTokens"] == 13
     assert family["fourBranchRules"] == 12
     assert family["threeBranchRules"] == 1
-    assert family["sixBranchRules"] == 4
+    assert family["sixBranchTokens"] == 0
+    assert family["sixBranchRules"] == 0
 
     leaking = [record for record in family["records"] if record["exportsIdWeight"]]
     # Twelve four-branch rules (13 tokens) + the reduced-motion rule.
@@ -195,14 +196,7 @@ def test_is_family_enumeration_is_complete_and_classified() -> None:
         "@media (prefers-reduced-motion: reduce)"
     ]
 
-    # The six-branch `input.input-calm-inset:is(#weight, #sets, …)` construct is
-    # all-ID, so it exports nothing across branches, and it sits inside
-    # `@layer workout` where it loses to every unlayered normal declaration.
-    six_branch = [
-        record for record in family["records"] if record["isArgumentBranchCount"] == 6
-    ]
-    assert all(record["exportsIdWeight"] is False for record in six_branch)
-    assert all(record["enclosingAtRules"] == ["@layer workout"] for record in six_branch)
+    assert all(record["isArgumentBranchCount"] in (3, 4) for record in family["records"])
 
 
 def test_specificity_model_agrees_with_its_hand_computed_cases() -> None:
