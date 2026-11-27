@@ -3,7 +3,26 @@ Tests for utils/config.py - Application configuration.
 """
 
 import os
-from unittest.mock import patch
+from runpy import run_path
+
+import pytest
+
+import utils.config
+
+
+@pytest.fixture
+def scratch_config_runtime(tmp_path, monkeypatch):
+    runtime_root = tmp_path.resolve() / "runtime"
+    monkeypatch.setenv("HT_RUNTIME_DIR", str(runtime_root))
+    monkeypatch.setenv("DB_FILE", str(runtime_root / "data" / "database.db"))
+    return runtime_root
+
+
+def _read_config():
+    """Execute the config source in a fresh namespace."""
+    config_file = utils.config.__file__
+    assert config_file is not None
+    return run_path(config_file)
 
 
 class TestConfigPaths:
@@ -31,23 +50,23 @@ class TestConfigPaths:
         assert LOGS_DIR.startswith(BASE_DIR)
         assert LOGS_DIR.endswith("logs")
 
-    def test_importing_config_creates_no_directories(self, tmp_path):
+    def test_importing_config_creates_no_directories(self, scratch_config_runtime):
         """Importing configuration must not touch the filesystem.
 
         It used to create data/ and logs/ under whatever directory resolved at
         import, including during test collection and in unrelated scripts.
         Consumers create what they need, where they need it.
         """
-        import importlib
-        import utils.config
+        runtime_root = scratch_config_runtime
+        data_dir = runtime_root / "data"
+        database_path = data_dir / "database.db"
 
-        runtime_root = tmp_path / "runtime"
-        with patch.dict(os.environ, {"HT_RUNTIME_DIR": str(runtime_root)}):
-            importlib.reload(utils.config)
-            try:
-                assert not runtime_root.exists()
-            finally:
-                importlib.reload(utils.config)
+        config = _read_config()
+
+        assert config["DATA_DIR"] == str(data_dir)
+        assert config["LOGS_DIR"] == str(runtime_root / "logs")
+        assert config["DB_FILE"] == str(database_path)
+        assert not runtime_root.exists()
 
 
 class TestDbFile:
@@ -64,19 +83,18 @@ class TestDbFile:
         from utils.config import DB_FILE, DATA_DIR
         assert os.path.dirname(DB_FILE) == DATA_DIR
 
-    @patch.dict(os.environ, {"DB_FILE": "/custom/path/test.db"})
-    def test_db_file_env_override(self):
+    def test_db_file_env_override(self, tmp_path, monkeypatch):
         """DB_FILE should be overridable via environment variable."""
-        # Need to reimport to pick up env var
-        import importlib
-        import utils.config
-        importlib.reload(utils.config)
-        
-        assert utils.config.DB_FILE == "/custom/path/test.db"
-        
-        # Restore original
-        del os.environ["DB_FILE"]
-        importlib.reload(utils.config)
+        runtime_root = tmp_path / "runtime"
+        database_path = tmp_path / "custom" / "test.db"
+        monkeypatch.setenv("HT_RUNTIME_DIR", str(runtime_root))
+        monkeypatch.setenv("DB_FILE", str(database_path))
+
+        config = _read_config()
+
+        assert config["DB_FILE"] == str(database_path)
+        assert not runtime_root.exists()
+        assert not database_path.parent.exists()
 
 
 class TestAppConstants:
@@ -126,31 +144,17 @@ class TestExportConfiguration:
         from utils.config import STREAMING_THRESHOLD
         assert STREAMING_THRESHOLD == 5 * 1024 * 1024
 
-    @patch.dict(os.environ, {"MAX_EXPORT_ROWS": "500000"})
-    def test_max_export_rows_env_override(self):
+    @pytest.mark.usefixtures("scratch_config_runtime")
+    def test_max_export_rows_env_override(self, monkeypatch):
         """MAX_EXPORT_ROWS should be overridable via environment."""
-        import importlib
-        import utils.config
-        importlib.reload(utils.config)
-        
-        assert utils.config.MAX_EXPORT_ROWS == 500000
-        
-        # Restore original
-        del os.environ["MAX_EXPORT_ROWS"]
-        importlib.reload(utils.config)
+        monkeypatch.setenv("MAX_EXPORT_ROWS", "500000")
+        assert _read_config()["MAX_EXPORT_ROWS"] == 500000
 
-    @patch.dict(os.environ, {"EXPORT_BATCH_SIZE": "5000"})
-    def test_export_batch_size_env_override(self):
+    @pytest.mark.usefixtures("scratch_config_runtime")
+    def test_export_batch_size_env_override(self, monkeypatch):
         """EXPORT_BATCH_SIZE should be overridable via environment."""
-        import importlib
-        import utils.config
-        importlib.reload(utils.config)
-        
-        assert utils.config.EXPORT_BATCH_SIZE == 5000
-        
-        # Restore original
-        del os.environ["EXPORT_BATCH_SIZE"]
-        importlib.reload(utils.config)
+        monkeypatch.setenv("EXPORT_BATCH_SIZE", "5000")
+        assert _read_config()["EXPORT_BATCH_SIZE"] == 5000
 
 
 class TestDirectoryCreation:
