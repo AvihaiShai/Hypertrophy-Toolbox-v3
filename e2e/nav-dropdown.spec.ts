@@ -85,15 +85,23 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
       })).toBe(true);
     }
 
-    const brandPadding = await page.locator(SELECTORS.NAV_BRAND).evaluate((brand) => {
+    const brandLink = page.locator(SELECTORS.NAV_BRAND);
+    const brandTarget = await targetGeometry(brandLink);
+    expect(brandTarget.height).toBeGreaterThanOrEqual(44);
+    expect(brandTarget.contained && brandTarget.ownsTargets).toBe(true);
+    const brandPadding = await brandLink.evaluate((brand) => {
       const style = getComputedStyle(brand);
+      const frame = brand.closest('.container-fluid')!;
       return {
         left: Number.parseFloat(style.paddingLeft),
         right: Number.parseFloat(style.paddingRight),
+        glyphOffset: brand.querySelector('.nav-icon')!.getBoundingClientRect().left - frame.getBoundingClientRect().left,
+        gutter: Number.parseFloat(getComputedStyle(frame).paddingLeft),
       };
     });
     expect(brandPadding.left).toBeGreaterThanOrEqual(12);
     expect(brandPadding.right).toBeGreaterThanOrEqual(12);
+    expect(Math.abs(brandPadding.glyphOffset - brandPadding.gutter)).toBeLessThanOrEqual(1);
   });
 
   test('Analyze dropdown opens on hover and contains Weekly and Session links', async ({ page }) => {
@@ -1067,7 +1075,8 @@ test('page operations work after using the scale-eight phone menu', async ({ pag
   await page.keyboard.press('Escape');
   await page.locator('#vpToggle').click();
   await expect(page.locator('#vpToggle')).toHaveAttribute('aria-expanded', 'true');
-  await page.locator('#vpToggle').click();
+  await page.getByRole('button', { name: 'Close volume targets' }).click();
+  await expect(page.locator('#vpToggle')).toHaveAttribute('aria-expanded', 'false');
   await page.locator('#export-to-log-btn').click();
   await expect(page).toHaveURL(/\/workout_log$/);
   await page.locator('#clear-log-btn').click();
