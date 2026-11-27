@@ -56,12 +56,12 @@
       },
       {
         "file": "e2e/workout-log.spec.ts",
-        "lines": 5
+        "lines": 4
       }
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 78
+    "total_lines": 77
   },
   "playwright": {
     "project": "chromium",

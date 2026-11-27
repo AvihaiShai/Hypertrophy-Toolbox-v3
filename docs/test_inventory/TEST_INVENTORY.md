@@ -18,7 +18,7 @@ Every test count in this repository's prose should link here rather than restate
 | pytest collected nodes (deterministic subset) | **4762** across 145 files |
 | pytest test files (all) | **146** |
 | JS unit cases (Vitest) | **271** across 15 files |
-| Hard waits (lines containing waitForTimeout) | **78** across 14 files |
+| Hard waits (lines containing waitForTimeout) | **77** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -258,4 +258,4 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 | `e2e/ui-hardening.spec.ts` | 1 |
 | `e2e/validation-boundary.spec.ts` | 2 |
 | `e2e/volume-splitter.spec.ts` | 22 |
-| `e2e/workout-log.spec.ts` | 5 |
+| `e2e/workout-log.spec.ts` | 4 |

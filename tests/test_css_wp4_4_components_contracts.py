@@ -155,37 +155,37 @@ WHOLE_RULE_DELETIONS = {
 # The assertion is per-property inside that rule's own body, so a resurrection
 # cannot hide in a different rule that happens to set the same property.
 # ---------------------------------------------------------------------------
-COLLAPSE_TOGGLE_LINE = 3732
+COLLAPSE_TOGGLE_LINE = 3733
 
 PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
-    (".frame-title", 3483): (
+    (".frame-title", 3484): (
         "background", "color", "font-size", "font-weight", "letter-spacing",
         "padding", "position", "text-transform",
     ),
-    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3492): (
+    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3493): (
         "backdrop-filter", "background", "color",
     ),
     (
         "[data-theme='dark'] & .action-frame .frame-title, "
         "[data-theme='dark'] & .filters-section .filters-title",
-        3497,
+        3498,
     ): ("background", "color"),
-    (".filters-section", 3505): (
+    (".filters-section", 3506): (
         "backdrop-filter", "background", "border", "border-radius", "box-shadow",
         "contain", "isolation", "position",
     ),
-    (".filters-title", 3512): (
+    (".filters-title", 3513): (
         "backdrop-filter", "background", "color", "font-size", "font-weight",
         "letter-spacing", "padding", "position", "text-transform",
     ),
-    (".action-frame", 3565): ("background-color", "display", "flex-direction", "margin-bottom"),
-    (".collapsible-frame", 3629): ("background", "border", "border-radius", "box-shadow"),
-    (".frame-header", 3653): (
+    (".action-frame", 3566): ("background-color", "display", "flex-direction", "margin-bottom"),
+    (".collapsible-frame", 3630): ("background", "border", "border-radius", "box-shadow"),
+    (".frame-header", 3654): (
         "align-items", "background", "display", "padding", "position", "z-index",
     ),
-    (".frame-title, .filters-title", 3678): ("font-size", "padding-bottom", "position"),
-    ("[data-theme='dark'] & .frame-header", 3712): ("background", "border-bottom"),
-    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3726): ("color",),
+    (".frame-title, .filters-title", 3679): ("font-size", "padding-bottom", "position"),
+    ("[data-theme='dark'] & .frame-header", 3713): ("background", "border-bottom"),
+    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3727): ("color",),
     # `background` and `color` are absent from this tuple on purpose: the
     # removal oracle withdrew both from the deletion set (see the module
     # docstring), so they must still be present in the rule. They are asserted
@@ -196,13 +196,13 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
         "gap", "height", "letter-spacing", "margin", "min-width", "padding",
         "transition",
     ),
-    (".collapse-toggle i", 3751): ("transition",),
-    (".frame-content", 3789): ("overflow", "transition"),
-    (".filters-section .frame-header", 3851): ("padding",),
-    ("[data-theme='dark'] & .collapsible-frame .frame-header", 3899): ("background-color",),
-    (".frame-header-2025", 3925): ("display", "align-items"),
-    (".collapse-toggle .toggle-icon", 3959): ("transition",),
-    (".frame-content", 3974): ("overflow",),
+    (".collapse-toggle i", 3752): ("transition",),
+    (".frame-content", 3790): ("overflow", "transition"),
+    (".filters-section .frame-header", 3852): ("padding",),
+    ("[data-theme='dark'] & .collapsible-frame .frame-header", 3900): ("background-color",),
+    (".frame-header-2025", 3926): ("display", "align-items"),
+    (".collapse-toggle .toggle-icon", 3960): ("transition",),
+    (".frame-content", 3975): ("overflow",),
 }
 
 # ---------------------------------------------------------------------------
@@ -428,7 +428,7 @@ def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
 def test_the_deletion_was_pure_removal() -> None:
     """Pin the original h deletion and the current post-migration totals."""
     raw = _css()
-    assert raw.count("\n") == 4595
+    assert raw.count("\n") == 4596
     assert len(re.findall(r"!important", _strip_comments(raw))) == 539
     assert BEFORE_IMPORTANT - AFTER_IMPORTANT == 20
     assert BEFORE_LINES - AFTER_LINES == 138

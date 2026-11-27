@@ -2634,8 +2634,8 @@
     "issue": 736,
     "surfaces": {
       "components.css": {
-        "lines": 4595,
-        "bytes": 132218,
+        "lines": 4596,
+        "bytes": 132243,
         "importantLines": 539,
         "importantOccurrences": 539,
         "importantDeclarations": 539

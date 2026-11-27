@@ -210,6 +210,50 @@ async function modalTextContrast(modal: Locator, id: string) {
   return { samples, problems };
 }
 
+async function routinePreviewGeometry(modal: Locator) {
+  const routine = modal.locator('#plan-preview .badge-routines .badge-value');
+  await expect(routine).toHaveText('3 Days Split: Workout A, Workout B, Workout C');
+  const measured = await routine.evaluate(value => {
+    const preview = value.closest<HTMLElement>('#plan-preview')!;
+    const body = value.closest<HTMLElement>('.modal-body')!;
+    const portTop = body.getBoundingClientRect().top + body.clientTop;
+    const before = value.getBoundingClientRect();
+    const neededVerticalScroll = before.top < portTop || before.bottom > portTop + body.clientHeight;
+    const overflowY = getComputedStyle(body).overflowY;
+    // Center the routine vertically without following any horizontal overflow.
+    body.scrollTo({
+      top: body.scrollTop + (before.top + before.bottom) / 2 - portTop - body.clientHeight / 2,
+      left: 0,
+      behavior: 'instant',
+    });
+    const clientBox = (element: HTMLElement) => {
+      const bounds = element.getBoundingClientRect();
+      const left = bounds.left + element.clientLeft;
+      const top = bounds.top + element.clientTop;
+      return { left, right: left + element.clientWidth, top, bottom: top + element.clientHeight };
+    };
+    const range = document.createRange();
+    range.selectNodeContents(value);
+    const text = Array.from(range.getClientRects(), ({ left, right, top, bottom }) => ({ left, right, top, bottom }));
+    return { text, preview: clientBox(preview), scrollport: clientBox(body), neededVerticalScroll, overflowY };
+  });
+  const { text, preview, scrollport, neededVerticalScroll, overflowY } = measured;
+  const problems: string[] = [];
+  const tolerance = 0.5;
+  if (!text.length) problems.push('routine preview has no rendered text');
+  if (text.some(({ left, right }) => left < preview.left - tolerance || right > preview.right + tolerance)) {
+    problems.push('routine preview text exceeds the preview box horizontally');
+  }
+  if (text.some(({ left, right }) => left < scrollport.left - tolerance || right > scrollport.right + tolerance)) {
+    problems.push('routine preview text exceeds the modal scrollport horizontally');
+  }
+  if ((neededVerticalScroll && !['auto', 'scroll'].includes(overflowY)) ||
+      text.some(({ top, bottom }) => top < scrollport.top - tolerance || bottom > scrollport.bottom + tolerance)) {
+    problems.push('routine preview text cannot be reached by vertical modal scrolling');
+  }
+  return { measured, problems };
+}
+
 /** The shell and each rendered descendant that the legacy light and dark drawer rules style. */
 async function drawerStyle(page: Page, width: number) {
   const drawer = page.locator('#vpDrawer');
@@ -304,9 +348,18 @@ test('measure migrated overlays and compare the four legacy modals to the contro
         if ('fill' in spec) {
           const problems = modalProblems({ ...style, expected }, spec, width);
           const contrast = frame.control ? null : await modalTextContrast(modal, spec.id);
+          const preview = !frame.control && spec.id === 'generatePlanModal' && width === 390
+            ? await routinePreviewGeometry(modal)
+            : null;
           if (contrast) problems.push(...contrast.problems);
+          if (preview) problems.push(...preview.problems);
           failures.push({ id: spec.id, width, theme, problems });
-          metrics.push(contrast ? { ...entry, contrast: contrast.samples, problems } : { ...entry, problems });
+          metrics.push({
+            ...entry,
+            ...(contrast && { contrast: contrast.samples }),
+            ...(preview && { routinePreview: preview.measured }),
+            problems,
+          });
         } else {
           reference.push(entry);
         }

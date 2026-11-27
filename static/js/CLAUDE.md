@@ -9,15 +9,17 @@ Vanilla ES6 modules, no framework. `modules/` holds feature-scoped modules; the 
 | `app.js` | Top-level entry hooked from `base.html` |
 | `darkMode.js` | Theme toggle + `localStorage` persistence |
 | `accessibility.js` | Skip-links, keyboard helpers |
-| `table-responsiveness.js` | Mobile table re-layout |
+| `table-responsiveness.js` | Shared responsive table behavior and the Plan's Simple / Advanced control |
 | `modules/fetch-wrapper.js` | **API client.** Exports `apiFetch` (low-level) and `api` (convenience) |
 | `modules/toast.js` | `showToast()` notifications |
 | `modules/navbar.js`, `modules/navbar-enhancements.js` | Nav UI |
-| `modules/workout-plan.js`, `modules/workout-plan-events.js`, `modules/workout-dropdowns.js`, `modules/exercises.js`, `modules/filters.js`, `modules/filter-view-mode.js`, `modules/routine-cascade.js` | Plan-builder pieces |
+| `modules/workout-plan-page.js`, `modules/ui-menu.js` | Plan template entry point, starter-plan form, Add first exercise focus and More menu keyboard and focus behavior |
+| `modules/workout-plan.js`, `modules/workout-plan-table.js`, `modules/workout-plan-events.js` | Plan load and refresh, routine tabs, shared card/table rows, Details, inline editing and drag order |
+| `modules/workout-dropdowns.js`, `modules/exercises.js`, `modules/filters.js`, `modules/filter-view-mode.js`, `modules/routine-cascade.js` | Exercise picker, native catalog filters and chips, muscle naming and routine selection |
 | `modules/workout-log.js` | Log page |
 | `modules/summary.js` | Weekly/session analyzers |
 | `modules/progression-plan.js` | Progression page |
-| `modules/volume-splitter.js`, `modules/plan_volume_panel.js` | Distribute |
+| `modules/volume-splitter.js`, `modules/plan_volume_panel.js` | Distribute page and the Workout Plan Volume targets drawer, respectively |
 | `modules/user-profile.js`, `modules/bodymap-svg.js`, `modules/muscle-selector.js` | Profile + body map |
 | `modules/program-backup.js`, `modules/backup-center.js` | Backups |
 | `modules/exports.js`, `modules/ui-handlers.js`, `modules/workout-controls-animation.js` | Cross-cutting |

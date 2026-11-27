@@ -5,7 +5,10 @@ measured rather than assumed.*
 
 **Derived from:** the CSS bundles at revision `d1efc93`, plus computed styles read from a running
 application across **11 pages × 2 themes × 3 viewports** (66 page loads, all HTTP 200), a
-reduced-motion pass, and a keyboard-focus pass. **On conflict, the code wins.**
+reduced-motion pass, and a keyboard-focus pass. The Workout Plan redesign section and shared
+overlay rules reflect #736. Its [frame check](../../e2e/workout-plan-frame.check.ts) and
+[overlay check](../../e2e/overlay-style.check.ts) cover the redesigned components.
+**On conflict, the code wins.**
 
 This document describes what shipped. It introduces no design decision and proposes no change.
 For how the CSS is structured and how to add to it, see
@@ -77,19 +80,15 @@ is how reduced-motion overrides and dark theming win over page-specific rules wi
 
 | Bundle | Lines | Role |
 |---|---:|---|
-| `tokens.css` | 445 | Every design token; the responsive band system |
+| `tokens.css` | 514 | Design tokens and responsive bands |
 | `base.css` | 79 | Body background and base typography |
-| `layout.css` | 1,678 | Containers, grids, page scaffolding |
-| `components.css` | 5,207 | Buttons, cards, tables, badges, inputs, modals |
-| `navbar.css` | 1,533 | Navigation bar and its dropdowns |
-| `a11y.css` | 664 | Focus, contrast, screen-reader affordances |
-| `motion.css` | 73 | Transitions and the reduced-motion override |
-| `theme-dark.css` | 574 | Dark-mode corrections beyond the token swap |
-| `pages-*.css` (10) | 13,840 total | One per route except `/fatigue`; largest is `pages-workout-plan.css` at 5,808 |
-
-`pages-workout-plan.css` (5,808) and `components.css` (5,207) are each larger than every other
-bundle; together they are 11,015 of the 24,093 non-Bootstrap lines — just under half. That is
-where the weight is, and the Plan page is where the complexity is.
+| `layout.css` | 1,800 | Containers, grids, page scaffolding |
+| `components.css` | 4,596 | Buttons, cards, tables, badges, fields and overlays |
+| `navbar.css` | 1,532 | Navigation bar and its dropdowns |
+| `a11y.css` | 636 | Focus, contrast, screen-reader affordances |
+| `motion.css` | 91 | Transitions and the reduced-motion override |
+| `theme-dark.css` | 508 | Shared dark-mode overrides |
+| `pages-*.css` (10) | 8,616 total | Route-specific styling. The Plan bundle accounts for 1,999 lines |
 
 ---
 
@@ -176,19 +175,15 @@ through behind the links.
 
 ## Typography
 
-**Three different font stacks are live simultaneously**, which the source alone does not make
-obvious.
-
 | Owner | Stack | Applies to |
 |---|---|---|
 | `base.css` — hardcoded on `body` | `'Inter', Arial, sans-serif` | Body text and anything inheriting from it |
-| `--font-sans` token | `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` | 9 specific declarations in `components.css` and `navbar.css` |
-| Four scoped `--*-font` tokens | `ui-sans-serif, system-ui, "Inter", …` | Welcome page, navbar container, workout-plan surfaces, plan dropdowns |
+| `--font-sans` token | `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` | Shared components and navbar declarations |
+| `--wl-font` and `--nav-font` | `ui-sans-serif, system-ui, "Inter", …` | Welcome page and navbar container |
+| Shared page frame and controls, `--wpdd-font` | `Inter, sans-serif` | Workout Plan, Workout Log and the exercise picker |
 
-`body` does **not** consume `--font-sans`; `base.css` sets its own stack. And the four scoped
-tokens (`--wl-font`, `--nav-font`, `--wp-font`, `--wpdd-font`) put the OS UI font *ahead* of Inter,
-so those surfaces prefer the platform font while the rest of the application prefers Inter. Measured
-on Home: `body` computes to `Inter, Arial, sans-serif` while `h1` computes to
+`base.css` sets the body stack directly. The Welcome and navbar tokens prefer the platform
+font. On Home, `body` computes to `Inter, Arial, sans-serif` and `h1` computes to
 `ui-sans-serif, system-ui, …`.
 
 Every `var(--font-sans)` reference also carries the full stack as an inline fallback, so the token
@@ -307,29 +302,27 @@ you see comes from padding and line-height, not from that token; and the **top t
 
 ---
 
-## Components, as measured
+## Components
 
-Computed values on the Plan page at 1440px, both themes.
+### Workout Plan redesign
 
-| Component | Light | Dark |
-|---|---|---|
-| Page body | bg `#eef1f6`, text `#0f1220` | bg `#101419`, text `#f3f6fa` |
-| Navbar | `rgba(255,255,255,.75)`, blur 20px + saturate 1.8, shadow `0 4px 24px rgba(0,0,0,.08)` | `rgba(12,16,21,.94)`, same blur, shadow `0 8px 28px rgba(0,0,0,.34)` |
-| Nav link | translucent tint, pill radius `999px` | translucent dark tint, same radius |
-| Primary button | bg `#4c6ef5`, text white, radius 8px, blur 4px | **identical** |
-| Secondary button | translucent `--surface-1`, neumorphic shadow | translucent dark, dark neumorphic shadow |
-| Table | `rgba(255,255,255,.55)` glass, radius 8px | `rgba(25,32,40,.94)`; progression table is inset `#101419` |
-| Table header cell | bg `--surface-1`, text `--ink-2`, padding 10px | bg `#192028`, text `#c3ccd7` |
-| Table body cell | `rgba(255,255,255,.72)`, text `--ink-1` | raised graphite mix, text `--ink-1` |
-| Text input | translucent `--surface-1` (.88 α), radius 8px | inset `#101419`, radius 8px |
-| Card | `--calm-glass-bg`, radius 8px | dark glass, radius 8px |
+The Plan uses the Workout Log frame and the same 16, 24 and 32 px gutters. The list comes
+first, with the Add exercise panel below it. The page title uses Inter 600 at 20 / 28 px
+below 768 px and 24 / 32 px from 768 px. Section headings use Inter 600 at 18 / 24 px.
+Panels use opaque `--surface-2` with 12 px corners. Controls and exercise thumbnails use
+8 px corners, and Add exercise uses white text on `--ui-primary` (`#4263eb` light,
+`#5264ad` dark). Form fields use a 1 px `--ink-3` border on `--surface-2` in light
+and on `--surface-0` in dark.
 
-The primary button is byte-identical across themes — accent on accent-ink, unaffected by the
-surface swap. Table cells are translucent in both themes, which is what makes the glass effect
-visible through the data grid.
+| Viewport | Plan list |
+|---|---|
+| Below 768 px | One column of exercise cards |
+| 768 px to below 1360 px | Two columns of exercise cards |
+| From 1360 px | One table inside a focusable, horizontally scrolling region. Cells have 6 px vertical and 8 px horizontal padding, and the numeric columns align to the end with tabular numerals |
 
-Table cell padding is genuinely per-page, not per-component: 10px on the Plan page, 12px/16px on
-Weekly Summary, 6.4px/8px on Profile — each page bundle tunes its own density.
+Cards show the routine, exercise and prescription at a glance. Details reveals the
+remaining row fields and actions. Cards and table rows share the same data and editing
+controls. Linked exercises use a neutral rail and a Superset badge in both themes.
 
 ### Navigation and data entry
 
@@ -345,12 +338,13 @@ the bundled Font Awesome Free 5 solid font.
 
 ### Shared controls and overlays
 
-The opt-in rules in `components.css` define these values. The computed Plan samples above
-come from the revision named at the top of this brief.
+The opt-in rules in `components.css` define these values. The starter-plan, execution-style,
+Clear Plan, shared reference-video and Clear Log dialogs use the shared modal styles. The
+Plan's Volume targets drawer uses the shared drawer surface and backdrop.
 
 | Token | Light | Dark | Role | `var()` refs |
 |---|---|---|---|---:|
-| `--ui-modal-radius` | `16px` | `16px` | Modal surface, header and footer corners and the drawer's left corners | 7 |
+| `--ui-modal-radius` | `16px` | `16px` | Modal and drawer corners, the exercise picker popover and the exercise image preview | 15 |
 | `--ui-danger-fill` | `#c0362c` | `#a84f49` | Filled destructive confirmation with white text | 2 |
 | `--ui-drawer-backdrop` | `rgba(10, 15, 30, 0.34)` | `rgba(10, 15, 30, 0.34)` | Backdrop behind the open drawer | 1 |
 
@@ -445,7 +439,7 @@ Plan page: `transition-duration: 0s`, `animation-duration: 0s`, and `0s` on `bod
 - **Modals trap focus.** `static/js/modules/modal-focus-trap.js` loads globally from `base.html`.
 - **Toasts announce.** The toast element itself carries `role="alert"`, `aria-live="assertive"`,
   and `aria-atomic="true"` — the live region is the toast, not its positioning container.
-- `a11y.css` is 664 lines and loads before the page bundle but after the component bundles.
+- `a11y.css` loads after the component bundles and before the page bundle.
 
 The browser matrix is Chromium-only by decision (`../DECISIONS.md` ADR-004), so these behaviors are
 verified on Chromium only.

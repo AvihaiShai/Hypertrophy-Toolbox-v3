@@ -100,8 +100,8 @@ def _is_groups(css: str) -> list[str]:
 
 
 def test_the_repair_added_no_lines() -> None:
-    """Pin the measured source after the Plan's signed CSS retirement."""
-    assert _css().count("\n") == 4595
+    """Pin the measured source after the Plan's preview badge wrapping fix."""
+    assert _css().count("\n") == 4596
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:

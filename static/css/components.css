@@ -2237,6 +2237,7 @@ body.modal-open > .container-fluid.mt-4 {
 
 #generatePlanModal .badge-routines {
     background: rgba(13, 110, 253, 0.12);
+    white-space: normal;
 }
 
 #generatePlanModal .badge-exercises {
