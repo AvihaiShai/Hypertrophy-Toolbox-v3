@@ -4,9 +4,12 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import sysconfig
 from collections.abc import Callable
+from hashlib import sha256
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,14 +71,93 @@ def run_python(tmp_path: Path, args: list[str], env: dict[str, str]) -> str:
     return result.stdout
 
 
-def run_probe(tmp_path: Path, probe: str, *args: str, env: dict[str, str]) -> dict:
-    stdout = run_python(tmp_path, ["-c", probe, str(ROOT), *args], env)
+def stage_probe_installation(tmp_path: Path) -> Path:
+    """Copy just the application Python source and shipped catalog seed."""
+    installation = tmp_path.resolve() / "installation"
+    installation.mkdir()
+    sources = [ROOT / "app.py", ROOT / "data" / "catalog.seed.db"]
+    for package in ("routes", "utils"):
+        sources.extend(sorted((ROOT / package).rglob("*.py")))
+    for source in sources:
+        assert not source.is_symlink() and source.resolve() == source
+        destination = installation / source.relative_to(ROOT)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+    return installation
+
+
+def _installation_state(installation: Path) -> dict[str, tuple[int, str | None]]:
+    state = {}
+    for path in installation.rglob("*"):
+        assert not path.is_symlink() and path.resolve() == path
+        state[path.relative_to(installation).as_posix()] = (
+            path.stat().st_mtime_ns,
+            sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
+        )
+    return state
+
+
+_PROBE_BOOTSTRAP = """
+import json
+import sys
+from importlib.util import find_spec
+from pathlib import Path
+
+installation = Path(sys.argv[1])
+sys.path.insert(0, str(installation))
+sys.path.extend(json.loads(sys.argv.pop(2)))
+application_packages = {"app", "routes", "utils"}
+
+
+def assert_local_spec(name, spec):
+    assert spec is not None, name
+    if spec.origin is not None:
+        assert Path(spec.origin).resolve().is_relative_to(installation), spec.origin
+    for location in spec.submodule_search_locations or ():
+        assert Path(location).resolve().is_relative_to(installation), location
+
+
+for package in application_packages:
+    assert package not in sys.modules, package
+    assert_local_spec(package, find_spec(package))
+"""
+
+
+_PROBE_VERIFY = """
+for name, module in sys.modules.items():
+    if name.split(".", 1)[0] in application_packages:
+        assert_local_spec(name, module.__spec__)
+assert sys.modules["utils.runtime_paths"].installation_root() == installation
+"""
+
+
+def run_probe(
+    tmp_path: Path, probe: str, *args: str, env: dict[str, str],
+    installation: Path | None = None,
+) -> dict:
+    if installation is None:
+        installation = stage_probe_installation(tmp_path)
+    assert installation == tmp_path.resolve() / "installation"
+    before = _installation_state(installation)
+    # Skip Python's site startup (.pth files and sitecustomize). Add only the
+    # interpreter's installed-dependency directories, without executing hooks.
+    dependency_paths = list(dict.fromkeys(
+        sysconfig.get_path(name) for name in ("purelib", "platlib")
+    ))
+    stdout = run_python(
+        tmp_path,
+        [
+            "-I", "-S", "-B", "-c", "\n".join((_PROBE_BOOTSTRAP, probe, _PROBE_VERIFY)),
+            str(installation), json.dumps(dependency_paths), *args,
+        ],
+        env,
+    )
+    assert _installation_state(installation) == before, "probe changed its installation"
     return json.loads(stdout.strip().splitlines()[-1])
 
 
 OUTCOME_PROBE = """
 import json, os, sys
-sys.path.insert(0, sys.argv[1])
 patched, explicit = sys.argv[2], sys.argv[3]
 import utils.config
 if patched:
