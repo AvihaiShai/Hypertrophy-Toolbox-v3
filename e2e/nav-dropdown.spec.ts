@@ -4,7 +4,9 @@
  * Uses strict fixtures so null/undefined selector errors fail this redesign gate.
  */
 import type { Page } from '@playwright/test';
-import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './strict-fixtures';
+import { test, expect, ROUTES, SELECTORS, resetWorkoutPlan, waitForPageReady } from './strict-fixtures';
+
+import { expectBodyClearance, expectCurrentMarker, expectGlyph, expectReadableLink, prepareNavigation, scrollCompact, targetGeometry } from './navigation-geometry';
 
 const ANALYZE_TOGGLE = '#navbar .dropdown-toggle:has-text("Analyze")';
 const ROUTE_LIST = [
@@ -108,48 +110,22 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
     await expect(session).toContainText('Session');
   });
 
-  test('static Font Awesome nav icons have accent color and hover motion', async ({ page }) => {
-    await page.goto(ROUTES.HOME);
-    await waitForPageReady(page);
-
-    const profile = page.locator(SELECTORS.NAV_USER_PROFILE);
-    const bodyComposition = page.locator(SELECTORS.NAV_BODY_COMPOSITION);
-    const backup = page.locator(SELECTORS.NAV_BACKUP);
-    const icons = [profile, bodyComposition, backup].map((item) =>
-      item.locator('[data-nav-icon]'),
-    );
-
-    const accents = await Promise.all(icons.map(async (icon) => {
-      await expect(icon).toBeVisible();
-      return icon.evaluate((element) => {
-        const style = getComputedStyle(element);
-        return {
-          color: style.color,
-          token: style.getPropertyValue('--nav-icon-accent').trim(),
-        };
-      });
-    }));
-    for (const accent of accents) {
-      expect(accent.token).not.toBe('');
-      expect(accent.color).toBe(
-        await page.evaluate((token) => {
-          const probe = document.createElement('span');
-          probe.style.color = token;
-          document.body.appendChild(probe);
-          const color = getComputedStyle(probe).color;
-          probe.remove();
-          return color;
-        }, accent.token),
-      );
+  test('destination links and their glyphs inherit colour without hover motion', async ({ page }) => {
+    await prepareNavigation(page, 1440, 'light', 6);
+    for (const theme of ['light', 'dark']) {
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      for (const link of [SELECTORS.NAV_USER_PROFILE, SELECTORS.NAV_BODY_COMPOSITION, SELECTORS.NAV_BACKUP]) {
+        const item = page.locator(link);
+        await item.hover();
+        const icon = item.locator('[data-visual-icon]');
+        await expect(icon).toHaveCSS('color', await item.evaluate(el => getComputedStyle(el).color));
+        for (const target of [item, icon]) {
+          await expect(target).toHaveCSS('transform', 'none');
+          await expect(target).toHaveCSS('animation-name', 'none');
+        }
+      }
+      await clickDarkModeToggle(page);
     }
-    expect(new Set(accents.map(({ color }) => color)).size).toBe(3);
-
-    const [profileIcon, , backupIcon] = icons;
-    await profile.hover();
-    await expect(profileIcon).toHaveCSS('transform', 'none');
-
-    await backup.hover();
-    await expect(backupIcon).not.toHaveCSS('transform', 'none');
   });
 
   test('Backup nav points to the dedicated backup page', async ({ page }) => {
@@ -815,4 +791,294 @@ test.describe('#733 mobile menu panel', () => {
       resize: log['window:resize(navbar-enhancements)'] ?? 0,
     }).toEqual({ shown: 1, hidden: 1, click: 1, keydown: 1, resize: 1 });
   });
+});
+
+// Ordinary rendering, without the deterministic screenshot helper that masks icons.
+const NAV_GLYPHS = {
+  'nav-brand': 'f44b', 'nav-workout-plan': 'f0ae', 'nav-workout-log': 'f518',
+  'nav-analyze-toggle': 'f201', 'nav-weekly-summary': 'f784', 'nav-session-summary': 'f783',
+  'nav-fatigue': 'f242', 'nav-progression-plan': 'f3bf', 'nav-user-profile': 'f2bd',
+  'nav-body-composition': 'f545', 'nav-volume-splitter': 'f1de', 'nav-backup': 'f07c',
+};
+
+test.describe('Navigation on the fixed header', () => {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`bundled destination glyphs and current markers render in ${theme}`, async ({ page }) => {
+      test.setTimeout(90_000);
+      for (const width of [390, 768, 1440]) {
+        await prepareNavigation(page, width, theme, 6);
+        const mobile = width < 1360;
+        if (mobile) await openAndSettle(page);
+        await openAnalyzeDropdown(page, mobile ? 'click' : 'hover');
+        await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-fatigue');
+        for (const [id, codepoint] of Object.entries(NAV_GLYPHS)) {
+          await expectGlyph(page.locator('#' + id), codepoint);
+        }
+        for (const id of ['nav-workout-plan', 'nav-fatigue']) await expectReadableLink(page.locator('#' + id));
+        for (const id of ['nav-analyze-toggle', 'nav-fatigue']) {
+          await expectCurrentMarker(page.locator('#' + id), mobile);
+        }
+        for (const selector of ['.nav-signature-link', '#muscleModeToggle', '#darkModeToggle']) {
+          const link = page.locator(selector);
+          const icon = link.locator('[data-visual-icon]');
+          await expect(icon).toBeVisible();
+          await expect(icon).toHaveCSS('color', await link.evaluate(el => getComputedStyle(el).color));
+        }
+        if (mobile) {
+          const button = page.getByRole('button', { name: 'Toggle navigation menu' });
+          const symbol = button.locator('[data-visual-icon]');
+          await expect(symbol).toBeVisible();
+          const hasStrokes = await symbol.evaluate(el => {
+            const path = el.querySelector('path') ?? (el.matches('path') ? el : null);
+            const expected = 'M4 7h22M4 15h22M4 23h22';
+            const color = getComputedStyle(el.closest('button')!).color;
+            if (path) return path.getAttribute('d') === expected && getComputedStyle(path).stroke === color;
+            const style = getComputedStyle(el);
+            return decodeURIComponent(style.maskImage).includes(expected) && style.backgroundColor === color;
+          });
+          expect(hasStrokes, 'original three strokes painted in the button colour').toBe(true);
+        }
+      }
+    });
+
+    test.describe(`touch controls in ${theme}`, () => {
+      test.use({ hasTouch: true });
+      test(`scale eight phone button owns its centre and edges in ${theme}`, async ({ page }) => {
+        test.setTimeout(120_000);
+        for (const width of [320, 360, 390]) {
+          await prepareNavigation(page, width, theme, 8, 480);
+          for (const compact of [false, true]) {
+            if (compact) await scrollCompact(page);
+            const button = page.locator(TOGGLER);
+            for (const state of ['closed', 'open', 'analyze'] as const) {
+              if (state === 'open') await waitForPanelSettled(page);
+              if (state === 'analyze') await openAnalyzeDropdown(page, 'click');
+              const g = await targetGeometry(button);
+              const label = `${width}/${theme}/compact=${compact}/${state}`;
+              expect(g.width, label).toBeGreaterThanOrEqual(44);
+              expect(g.height, label).toBeGreaterThanOrEqual(44);
+              expect(g.contained && g.ownsTargets, label).toBe(true);
+              expect(g.pageWidth, label).toBe(g.viewport);
+              if (state !== 'closed') expect(Math.abs(g.panelGap), label).toBeLessThanOrEqual(0.5);
+              if (state !== 'open') await page.mouse.click(g.cx, g.cy);
+            }
+            await waitForMenuClosed(page);
+            const g = await targetGeometry(button);
+            await page.touchscreen.tap(g.right - 2, g.cy);
+            await waitForPanelSettled(page);
+            await page.keyboard.press('Escape');
+            await waitForMenuClosed(page);
+            await expect(button).toBeFocused();
+            expect(await menuIsReleased(page)).toEqual([]);
+          }
+        }
+      });
+    });
+
+    test(`all desktop operations fit one row at regular and compact sizes in ${theme}`, async ({ page }) => {
+      test.setTimeout(150_000);
+      const selectors = ['#nav-brand', ...MENU_CONTROLS.slice(0, 8), '.nav-signature-link',
+        '#scale-decrease', '#scale-indicator', '#scale-increase', '#muscleModeToggle', '#darkModeToggle'];
+      for (const scale of [6, 8]) {
+        await prepareNavigation(page, 1360, theme, scale, 540);
+        for (const compact of [false, true]) {
+          if (compact) await scrollCompact(page);
+          for (const width of [1360, 1440, 1501, 1601]) {
+            await page.setViewportSize({ width, height: 540 });
+            const rects = [];
+            for (const selector of selectors) {
+              const control = page.locator(selector);
+              const label = `${width}/${scale}/compact=${compact}/${selector}`;
+              const g = await targetGeometry(control);
+              expect(g.width > 0 && g.height > 0 && g.contained && g.ownsTargets, label).toBe(true);
+              const contentsFit = await control.evaluate(el => {
+                const rect = el.getBoundingClientRect();
+                const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                while (walker.nextNode()) {
+                  if (!walker.currentNode.textContent?.trim()) continue;
+                  const range = document.createRange();
+                  range.selectNodeContents(walker.currentNode);
+                  const text = range.getBoundingClientRect();
+                  if (!text.width || text.left < rect.left - 1 || text.right > rect.right + 1
+                    || text.top < rect.top - 1 || text.bottom > rect.bottom + 1) return false;
+                }
+                return true;
+              });
+              expect(contentsFit, label + ' full label').toBe(true);
+              rects.push(g);
+            }
+            const sorted = rects.sort((a, b) => a.left - b.left);
+            for (let i = 1; i < sorted.length; i++) {
+              expect(sorted[i].left).toBeGreaterThanOrEqual(sorted[i - 1].right - 1);
+            }
+            expect(Math.max(...rects.map(r => r.top))).toBeLessThan(Math.min(...rects.map(r => r.bottom)));
+          }
+        }
+      }
+    });
+  }
+});
+
+test.describe('Navigation keyboard and utility controls', () => {
+  for (const width of [320, 1360]) {
+    test(`Analyze keyboard activation and route history at ${width}px`, async ({ page }) => {
+      for (const key of ['Enter', 'Space']) {
+        await prepareNavigation(page, width, key === 'Enter' ? 'light' : 'dark', 6);
+        const mobile = width === 320;
+        if (mobile) await openAndSettle(page);
+        const analyze = page.locator('#nav-analyze-toggle');
+        await analyze.focus();
+        await page.keyboard.press(key);
+        await expect(analyze).toHaveAttribute('aria-expanded', 'true');
+        const weekly = page.locator('#nav-weekly-summary');
+        if (!(await weekly.evaluate(el => el === document.activeElement))) await page.keyboard.press('Tab');
+        for (const id of ['nav-weekly-summary', 'nav-session-summary', 'nav-fatigue']) {
+          const item = page.locator('#' + id);
+          await expect(item).toBeFocused();
+          await expectReadableLink(item);
+          const feedback = await item.evaluate(el => {
+            const style = getComputedStyle(el);
+            return el.matches(':focus-visible') && (style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0
+              || style.boxShadow !== 'none');
+          });
+          expect(feedback, 'keyboard focus has a visible indicator').toBe(true);
+          if (id !== 'nav-fatigue') await page.keyboard.press('Tab');
+        }
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Enter');
+        await expect(page).toHaveURL(/\/session_summary$/);
+        const current = page.locator('#navbar [aria-current="page"]');
+        await expect(current).toHaveAttribute('id', 'nav-session-summary');
+        await page.reload();
+        await expect(current).toHaveAttribute('id', 'nav-session-summary');
+        await page.goBack();
+        await expect(current).toHaveAttribute('id', 'nav-fatigue');
+        await page.goForward();
+        await expect(current).toHaveAttribute('id', 'nav-session-summary');
+      }
+    });
+
+    test(`scale, theme and muscle-name controls remain operable at ${width}px`, async ({ page }) => {
+      await prepareNavigation(page, width, 'light', 8);
+      if (width === 320) await openAndSettle(page);
+      const signature = page.locator('.nav-signature-link');
+      await expect(signature).toHaveAccessibleName(/Avihai/i);
+      await expect(signature).toHaveAttribute('target', '_blank');
+      await expect(signature).toHaveAttribute('href', 'https://www.linkedin.com/in/avihaishai');
+      expect((await signature.getAttribute('rel'))?.split(/\s+/)).toEqual(expect.arrayContaining(['noopener', 'noreferrer']));
+      const up = page.getByRole('button', { name: 'Increase text size' });
+      const down = page.getByRole('button', { name: 'Decrease text size' });
+      await expect(up).toBeVisible();
+      await expect(up).toBeDisabled();
+      await down.click();
+      await expect(page.locator('#scale-indicator')).toHaveText('7');
+      await page.reload();
+      if (width === 320) await openAndSettle(page);
+      await expect(page.locator('#scale-indicator')).toHaveText('7');
+      await up.click();
+      await expect(up).toBeDisabled();
+      await page.reload();
+      if (width === 320) await openAndSettle(page);
+      await expect(page.locator('#scale-indicator')).toHaveText('8');
+      await expect(page.locator('html')).toHaveCSS('zoom', '1.2');
+      const muscle = page.getByRole('button', { name: 'Toggle Muscle Naming Mode' });
+      const dark = page.getByRole('button', { name: 'Toggle Dark Mode' });
+      for (const [mode, theme] of [['Simple', 'dark'], ['Scientific', 'light']]) {
+        await muscle.click();
+        await expect(muscle).toContainText(mode);
+        await dark.click();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-fatigue');
+      }
+    });
+  }
+
+  test('short compact panel wraps focus in both directions and releases the first page control', async ({ page }) => {
+    await prepareNavigation(page, 320, 'dark', 8, 400);
+    await scrollCompact(page);
+    await openAndSettle(page);
+    await expectPageHeld(page);
+    const first = page.locator('#nav-workout-plan');
+    const last = page.locator('#darkModeToggle');
+    await expect(first).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(last).toBeFocused();
+    await expect(last).toBeInViewport();
+    await page.keyboard.press('Tab');
+    await expect(first).toBeFocused();
+    const empty = await findEmptyPanelPoint(page);
+    expect(empty).not.toBeNull();
+    await page.mouse.click(empty!.x, empty!.y);
+    await waitForMenuClosed(page);
+    await expect(page.locator(TOGGLER)).toBeFocused();
+    expect(await menuIsReleased(page)).toEqual([]);
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    await expect(page.locator('#navbar')).not.toHaveClass(/nb-compact/);
+    await expectBodyClearance(page);
+    await openAndSettle(page);
+    await page.setViewportSize({ width: 1360, height: 700 });
+    await waitForMenuClosed(page);
+    expect(await menuIsReleased(page)).toEqual([]);
+    await expectBodyClearance(page);
+    await page.goto(ROUTES.WORKOUT_PLAN);
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: 'Skip to main content' });
+    await expect(skip).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#main-content')).toBeFocused();
+  });
+});
+
+test('page operations work after using the scale-eight phone menu', async ({ page }) => {
+  test.setTimeout(90_000);
+  await prepareNavigation(page, 320, 'light', 8, 640);
+  const period = page.locator('#fatigue-period');
+  const chosen = await period.evaluate((el: HTMLSelectElement) =>
+    Array.from(el.options).find(option => !option.selected)!.value);
+  const changed = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return response.request().method() === 'GET' && url.pathname === '/fatigue' && url.searchParams.get('period') === chosen;
+  });
+  await period.selectOption(chosen);
+  expect((await changed).ok()).toBe(true);
+  await expect(period).toHaveValue(chosen);
+
+  // As elsewhere in the functional suite, these writes go to the seeded E2E DB.
+  await resetWorkoutPlan(page);
+  const seed = await page.request.post('/add_exercise', { data: {
+    routine: 'GYM - Full Body - Workout A', exercise: 'Bench Press', sets: 3,
+    min_rep_range: 6, max_rep_range: 8, weight: 100,
+  } });
+  expect(seed.ok()).toBe(true);
+  await openAndSettle(page);
+  await page.locator('#nav-workout-plan').click();
+  await expect(page.locator('#workout_plan_table_body tr[data-id], #workout_plan_table_body tr td:not([colspan])').first()).toBeVisible();
+  await page.locator('#more-btn').click();
+  await expect(page.getByRole('menuitem', { name: 'Open Backup Center' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.locator('#vpToggle').click();
+  await expect(page.locator('#vpToggle')).toHaveAttribute('aria-expanded', 'true');
+  await page.locator('#vpToggle').click();
+  await page.locator('#export-to-log-btn').click();
+  await expect(page).toHaveURL(/\/workout_log$/);
+  await page.locator('#clear-log-btn').click();
+  const dialog = page.locator('#clearLogModal');
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog).toBeHidden();
+  const imported = page.waitForResponse(r => r.url().endsWith('/export_to_workout_log') && r.request().method() === 'POST');
+  const reloaded = page.waitForEvent('domcontentloaded');
+  await page.locator('#import-from-plan-btn').click();
+  expect((await imported).ok()).toBe(true);
+  await reloaded;
+  await expect(page.locator('tr[data-log-id]').first()).toBeVisible();
+
+  await openAndSettle(page);
+  await page.locator('#nav-backup').click();
+  const name = `Navigation E2E ${Date.now()}`;
+  await page.locator('#backup-center-name').fill(name);
+  await page.locator('#backup-center-save-submit').scrollIntoViewIfNeeded();
+  await page.locator('#backup-center-save-submit').click();
+  await page.locator('#backup-search').fill(name);
+  await expect(page.locator('#backup-center-list')).toContainText(name);
 });

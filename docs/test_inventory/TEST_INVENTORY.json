@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 630
+      "tests": 642
     },
     "specs": [
       {
@@ -149,7 +149,7 @@
       {
         "in_required_functional_set": true,
         "spec": "nav-dropdown.spec.ts",
-        "tests": 17
+        "tests": 29
       },
       {
         "in_required_functional_set": false,
@@ -238,10 +238,10 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 780
+    "total_tests": 792
   },
   "pytest": {
-    "collected_deterministic": 4762,
+    "collected_deterministic": 4776,
     "deterministic_files": 145,
     "environment_dependent_files": [
       {
@@ -736,11 +736,11 @@
       },
       {
         "file": "tests/test_visual_capture_contracts.py",
-        "tests": 17
+        "tests": 18
       },
       {
         "file": "tests/test_visual_selector_contracts.py",
-        "tests": 6
+        "tests": 19
       },
       {
         "file": "tests/test_vitest_inventory_contracts.py",

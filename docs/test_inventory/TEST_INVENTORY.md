@@ -12,10 +12,10 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **780** |
+| Playwright tests (chromium) | **792** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **630** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4762** across 145 files |
+| Required functional gate — `E2E Functional (Chromium)` | **642** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **4776** across 145 files |
 | pytest test files (all) | **146** |
 | JS unit cases (Vitest) | **271** across 15 files |
 | Hard waits (lines containing waitForTimeout) | **77** across 14 files |
@@ -41,7 +41,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `fatigue.spec.ts` | 18 | yes |
 | `learned-calibration.spec.ts` | 8 | yes |
 | `listener-cleanup.spec.ts` | 3 | — |
-| `nav-dropdown.spec.ts` | 17 | yes |
+| `nav-dropdown.spec.ts` | 29 | yes |
 | `program-backup.spec.ts` | 37 | — |
 | `progression.spec.ts` | 42 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
@@ -189,8 +189,8 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_user_profile_routes.py` | 30 |
 | `tests/test_utils_package.py` | 1 |
 | `tests/test_version.py` | 23 |
-| `tests/test_visual_capture_contracts.py` | 17 |
-| `tests/test_visual_selector_contracts.py` | 6 |
+| `tests/test_visual_capture_contracts.py` | 18 |
+| `tests/test_visual_selector_contracts.py` | 19 |
 | `tests/test_vitest_inventory_contracts.py` | 48 |
 | `tests/test_volume_ai.py` | 26 |
 | `tests/test_volume_classifier.py` | 43 |
