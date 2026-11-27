@@ -3,7 +3,8 @@
 **Status** — Section 0 drafted on 2026-11-27. The owner's "Decisions" reply of 2026-11-26 is
 the Gate 0 answer for the decisions it names (see
 [Section 0 sign-off](#section-0-sign-off--gate-0)). Thirteen assumptions (P1–P13) are not
-covered by that reply and carry no sign-off. No plan has been drafted.
+covered by that reply and carry no sign-off. Plan v1 was drafted on 2026-11-27 and has not been
+reviewed by the council.
 
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
@@ -1000,7 +1001,8 @@ inside the step's own PR.
   (`Sortable.create(tbody, { handle: '.drag-handle' })`) and not exercised.
 - **Rendering between 1281 and 1366 px** on today's page, which the discovery agent also left
   unchecked. WP10 covers 1359 and 1360 px on the new page.
-- **The mockup does not exist yet**, so no value in this brief has been checked against one.
+- **No value in this brief has been checked against a built page.** The mockup was built after
+  this list was written. Its measurements are under *Mockups* and come from the mockup alone.
 
 ### Section 0 sign-off — GATE 0
 
@@ -1052,3 +1054,447 @@ the comment "Decisions for the rest of #736 (steps 3, 4 and 5)":
 Gate 1 and Gate 2 for this step are delegated by the owner (2026-11-20) and are recorded in this
 file when given, as "approved by Claude under the owner's delegation of 2026-11-20". Merging
 this step's PR needs the owner's authorization in the message that starts or resumes the session.
+
+---
+
+## Plan v1
+
+Drafted 2026-11-27 on `feat/736-workout-plan` at `0573f1f5`. Section 0 is the requirements text
+and is not restated here. This pass had no shell, so nothing was run: each statement about a file
+comes from opening it at this head, and each count is a text-search line count. *Not verified*
+marks what was not opened or cannot be settled by reading; the list is at the end.
+
+**Goal** — A lifter opens Workout Plan on the routine they are about to train, reads and edits
+each exercise on a card on a phone or in a contained table on a desktop, and adds an exercise from
+one panel, on the frame and components the Workout Log already uses.
+
+**No calculation, schema or response-shape change** (checked against the code; no stop condition
+was found)
+
+- No file under `routes/` or `utils/`, and not `app.py`, is in the artifact list. No table or
+  column changes.
+- No payload builder is edited: `buildExecutionStylePayload`, `buildAddExercisePayload`,
+  `buildFieldUpdatePayload`, `buildReplacePayload`, `buildSupersetLinkPayload`,
+  `buildSupersetUnlinkPayload` and `buildExerciseOrderPayload`
+  (`static/js/modules/workout-plan-helpers.js:148-190`).
+- The opening tab is a value of `workoutPlanState.currentRoutineTabFilter`.
+  `applyRoutineTabFilter()` (`workout-plan-helpers.js:102-107`) filters rows already fetched and
+  sends nothing. The prescription line is composed from fields the row already prints
+  (`workout-plan-table.js:413-418`).
+- Two consequences, both today's behaviour. A drag on a routine's tab posts the order of that
+  tab's rows only, because the payload is built from the rows in the `tbody`
+  (`workout-plan-table.js:701-702`). If P8 stands, `static/css/bootstrap.custom.min.css` is
+  rebuilt, which is build output.
+
+**Scope**
+
+- **In** — Everything under *In scope* in Section 0: the page on the frame, the new shared
+  components (modal, drawer, menu, tabs, chip, neutral badge, filled danger button, ruled table
+  and card), the four modals and the drawer, the deletions, the generalised frame check, the
+  modal and drawer check, the moved pins, the 26 baselines and the documents.
+- **Out** — Everything under *Out of scope* in Section 0. In addition this plan does not edit
+  `templates/base.html`, `playwright.config.ts`, `.github/workflows/**`, `scripts/**`,
+  `e2e/visual.spec.ts`, `e2e/visual-baseline-thumbnails.spec.ts` or `e2e/visual-helpers.ts`
+  (question Q4), and adds no spec file to the required set, which stays at 25
+  (`tests/test_playwright_shard_launcher_contracts.py:67`).
+
+**Artifacts — production** (writer: `senior-developer`)
+
+| Path | Change | What changes |
+|---|---|---|
+| `templates/workout_plan.html` | rewrite | Sets `main_class` to `ui-page-frame` (the block is at `templates/base.html:228`). Keeps `#workout[data-page="workout-plan"]` and every id under *Hooks that stay*. Order: `header.ui-page-header`, the list `section.ui-panel`, the Add exercise `section.ui-panel`. Drops the three `.collapsible-frame` blocks, every `[data-section]`, `[data-visual-header]`, `[data-visual-accent]` and page-content `[data-visual-surface]`, the classes `frame-calm-glass`, `btn`, `btn-*`, `form-control`, `input-calm-inset`, `table`, `table-striped`, `table-calm`, `tbl` and `tbl--responsive`, the inline `width: 1600px` (`:372`), the emoji in options (`:165-166`, `:397-398`, `:412-414`) and `fa-trash-alt` (`:278`, `:569`, `:580`). The table keeps `data-table-responsive="workout_plan"`, `data-testid="exercise-table"`, `.workout-plan-table` and its 22 `th[data-label]`, and gains `ui-data-table ui-data-table--ruled` |
+| `templates/workout_log.html` | modify | `#clearLogModal` only (`:142-168`): `ui-modal`, plain header, `ui-btn` buttons. Ids unchanged |
+| `templates/partials/exercise_video_modal.html` | modify | `ui-modal`. "Watch on YouTube" becomes a secondary `ui-btn`. Ids unchanged |
+| `static/css/tokens.css` | add | `--ui-modal-radius` and `--ui-danger-fill` in the existing `--ui-*` blocks (`:479-504`). No existing token changes |
+| `static/css/components.css` | add, edit one rule, delete | **Added** after `:5091`, outside every `@layer`: `.ui-btn--danger-fill`, `.ui-btn[aria-pressed="true"]`, `.ui-badge--neutral`, `.ui-chip`, `.ui-tabs` and `.ui-tab`, `.ui-menu` with `__popover`, `__item` and `__sep`, `.ui-data-table--ruled`, `.ui-record-card--ruled`, `.ui-modal` (surface, header, title, close, body, footer, `--confirm` and `--wide` widths), `.ui-drawer` (shell, header, close, body, open state, backdrop). **Edited:** the unscoped `.modal-content { box-shadow … !important }` at `:2238-2240` is narrowed so it stops applying to `.ui-modal` (Q1). **Deleted:** rules that name only the Plan and no longer match, including the five `#generatePlanModal` rules at `:2335-2353` and the four input rules Section 0 places at `:3454-3569`. The shared `:is()` groups are not edited. `!important` falls from 883; none is added |
+| `static/css/layout.css` | delete | The `.tbl-view-mode-toggle` chrome at `:1609-1665` (Q2). `.tbl-controls` (`:1581-1601`), the print rule and the view-mode column rule (`:1673-1686`) stay. Section 0 expected no change to this file |
+| `static/css/theme-dark.css` | delete | The Plan-only per-field input rules at `:437-531` (24 selector lines) and the `.tbl-view-mode-toggle` dark rules at `:199-220` (Q2) |
+| `static/css/pages-workout-plan.css` | delete, rewrite | The families Section 0 lists under *What is deleted*. New Plan-only layout: the card grid on `tr`, column widths, the heading row, the Add exercise grid, the superset rail, the drawer's rows. `!important` falls from 490 lines to at most 65, Section 0's ceiling. The families that stay hold 26 such lines today by Section 0's table (4 + 3 + 2 + 2 + 15), so the expected end is 26 or fewer. The measured figure is pinned as an upper bound. None is added |
+| `static/css/pages-workout-log.css` | delete | The 12 `#clearLogModal` rules (`:4-59`), which hold all 10 of the file's `!important` lines (Q8) |
+| `scss/pages/_workout_plan_volume_panel.scss`, `static/css/bootstrap.custom.min.css` and its `.map` | modify, rebuild | Only if P8 stands. The `.vp-*` and `#vpToggle` rules go. `.volume-active-summary`, `.volume-history-section` and `.activate-plan` stay, including where they share a selector list with a `.vp-` selector (`:1-2`, `:11-12`, `:22-23`, `:218-219`, `:225-226`, `:294-296`) |
+| `static/js/modules/workout-plan.js`, `workout-plan-table.js`, `workout-plan-helpers.js`, `workout-plan-supersets.js`, `workout-plan-page.js`, `workout-plan-media.js`, `workout-plan-execution-style.js`, `filters.js` | modify | See *JavaScript changes* |
+| `static/js/modules/ui-menu.js` | new | The shared menu behaviour |
+| `static/js/table-responsiveness.js` | modify | One line: the toggle it creates (`:239`) also carries `ui-btn ui-btn--small` (Q2) |
+
+**Artifacts — tests** (writer: `automation-qa`, `tests/**` and `e2e/**` only)
+
+| Path | Change | What changes |
+|---|---|---|
+| `e2e/frame-check.ts` | new | Shared helper, not a spec: theme and scale setup, the C1–C5 population read, the C8 source scan, a one-pass box reader, a mutation recorder |
+| `e2e/workout-plan-frame.check.ts` | new | The Plan's fixture, matrix and WP6–WP12 |
+| `e2e/overlay-style.check.ts`, `e2e/overlay-style.reference.json` | new | The modal and drawer check, and the values the four unmigrated modals compute on `8b023d1a` |
+| `e2e/workout-log-frame.check.ts` | modify | Uses the helper. Its checks and its control keep their coverage |
+| `e2e/scripts/run_frame_check.py`, `e2e/playwright.frame.config.ts` | new | The launcher and config for any registered route |
+| `e2e/scripts/run_workout_log_frame.py`, `e2e/playwright.workout-log-frame.config.ts` | modify | Reduced to shims, so the Log's documented command still works (Q6) |
+| `tests/test_workout_log_frame_runner.py` | modify | Imports the new launcher. Keeps its three path guards and gains the route cases |
+| `e2e/workout-plan.spec.ts`, `exercise-interactions.spec.ts`, `superset-edge-cases.spec.ts`, `empty-states.spec.ts`, `error-handling.spec.ts`, `accessibility.spec.ts`, `ui-hardening.spec.ts`, `program-backup.spec.ts`, `dark-mode.spec.ts` | modify | The pins Section 0 lists, and the new functional cases below. No spec file is added |
+| `e2e/workout-plan-desktop-contract.spec.ts`, `e2e/visual-field-separator.spec.ts` | modify | Criteria 17 and 18 (Q3) |
+| `tests/test_css_cascade_contracts.py` | modify | `:239-242`; the ten `test_workout_plan_*` tests, each retargeted in its own slot to assert that its retired family is absent and that what survives is present; `:114-121` only if P8 stands |
+| `tests/test_css_wp4_4_i_is_repair_contracts.py` (`:112`, `:215`, `:226`), `tests/test_css_wp4_4_components_contracts.py` (`:385`, `:448-449`), `tests/test_css_wp4_4_a_baseline_contracts.py` (`:157`, `:175-205`), `tests/test_template_landmarks.py` (`:15`) | modify | Measured replacements. `!important` counts may only fall |
+
+**Artifacts — documents and baselines**
+
+| Path | Change | Writer |
+|---|---|---|
+| `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` | Hand-edit of the affected entries only, with values read from `scripts/css_audit/measure.py`, never typed from memory and never with `emit_baseline.py` (Q7) | `automation-qa` |
+| `docs/test_inventory/` | Regenerated with `scripts/generate_test_inventory.py` | orchestrator |
+| `docs/product/DESIGN_BRIEF.md`, `docs/product/APP_FLOW.md` (the Plan section starts at `:281`), `docs/CSS_OWNERSHIP_MAP.md`, `docs/testing_phase2/A11Y_EXCEPTIONS.md` | The rules that shipped | `senior-developer` |
+| `docs/workout_plan_redesign/PLANNING.md` | Council sections, delegated approvals, evidence rounds | `product-manager` |
+| 26 PNG files under `e2e/__screenshots__/` | See *Visual baselines* | orchestrator |
+
+**Effort** — L · **Owner** — Claude (orchestrator), under `RUN_PROMPT.md` approval 1 ·
+**Depends on** — #748, merged as `8b023d1a`, the base of this branch. The orchestrator settles
+P1–P13 under the run prompt's "Decisions and missing information" order before Gate 1.
+
+### Sequence
+
+One writer at a time. The orchestrator commits and pushes; no agent commits. A pin that a commit
+breaks moves in that commit, so `automation-qa` follows `senior-developer` before commits 3 to 5.
+
+| # | Commit | Writer | State after the commit |
+|---|---|---|---|
+| 1 | Generalise the frame check | `automation-qa` | The Log run passes twice with byte-identical `metrics.json`. Its control at `5dc83cef` still fails C1–C4 and C10. pytest is green |
+| 2 | Acceptance tests, red: the Plan frame check, the modal and drawer check, and the new functional cases | `automation-qa` | Red by design, on a page that is still `8b023d1a`'s. Both checks fail on this head, and `--control-ref 8b023d1a` passes in control mode: the Plan fails C1, C2, C3, C4, C5 and WP10, the migrated overlays fail their pinned values, and the four unmigrated modals equal the reference file. Each new functional case fails for the reason it tests, and the list of red cases is recorded in this file's evidence round. No existing test is edited in this commit |
+| 3 | Shared components and tokens | `senior-developer`, then `automation-qa` for the line-count and ledger pins | Additive apart from Q1. No page changes. The full visual matrix compares clean with no regeneration. The red list is unchanged |
+| 4 | Template and scripts | `senior-developer`, then `automation-qa` for the pins Section 0 lists as following the markup | The functional specs and Vitest are green, including every case that was red since commit 2. The Plan frame check may still fail where a legacy rule reaches the new markup (Q9) |
+| 5 | Deletions | `senior-developer`, then `automation-qa` for the cascade tests and the ledger | Both checks pass. Two Plan runs give byte-identical `metrics.json`. WP9 is measured |
+| 6 | Pins and documents | `automation-qa` for `AXE_REGISTER`; `senior-developer` for the documents; orchestrator for the inventory | Full pytest, full Chromium, Stylelint, tsc, pyright and Vitest are green. The three visual specs are red only on the 26 listed captures |
+| 7 | Baselines | orchestrator, after the `manual-qa-reviewer` comparison | The three visual specs are green on both platforms. Only the 26 files and four digests moved |
+
+Commits 2 and 3 carry red cases in required specs. The pull request is opened after commit 6, so
+its CI first runs on a head where those cases are green. The other order, in which the
+new cases are written first but committed with commit 4, keeps every commit green and loses the
+committed red-before record; the council may prefer it. The test inventory is regenerated in each
+commit that adds, removes or renames a test. The `DESIGN_BRIEF.md` entries for the tokens and
+components ship in commit 3, and its description of the Plan in commit 6.
+
+### Layout by construction
+
+The pilot was held for a five-field card that left a 320 px phone at scale 8, and its fix was a
+script that measured cards after first paint. The Plan uses no script to decide layout.
+
+| Need | Rule |
+|---|---|
+| One record, two layouts | One `tr` per record. Below 1360 px `tbody` is a grid (one column, two from 768 px) and each `tr` is a grid whose cells are placed by `grid-area`. No node is moved in the DOM, so the pilot's reorder after first paint has no counterpart |
+| Closed card | The cells outside the closed set are `display: none` until the row has `details-open` |
+| Field labels on cards | `td::before { content: attr(data-label) }`. The cell's text stays the bare value, which the editor reads from `textContent` (`workout-plan-table.js:532`) |
+| Six numbers behind Details | The row grid has six equal `minmax(0, 1fr)` tracks. A number cell spans two (three to a row). Inside `@container (max-width: 239px)` on the row it spans three (two to a row), as `mockup.html:115-119` does |
+| 44 px targets at scale 8 | `min-height: 44px`, and for widths the pilot's rule at `static/css/pages-workout-log.css:138` |
+| Nothing wider than its box | `min-width: 0` on every grid and flex child. `overflow-wrap: anywhere` on names, captions, tab labels, chips and the prescription line. `flex-wrap: wrap` on the header actions, heading row, tabs, chips, selection bar and card actions. No `white-space: nowrap` below 1360 px |
+| Menu inside the viewport | The popover is positioned against `.ui-page-actions` with `right: 0` and `max-width: 100%` (`mockup.html:42-44`) |
+| Table region | `.tbl-wrap` stays as a wrapper that does not scroll and holds `.tbl-controls`. A child `div[role="region"][aria-label][tabindex="0"]` holds the table and takes the shared rule at `components.css:5077`. `table-responsiveness.js` finds its wrapper with `closest('.tbl-wrap')` (`:190`) and is not edited for this |
+| Columns from 1360 px | Fixed widths per `data-label`. Without `tbl` and `tbl--responsive` no container query hides a column; only `tbl--view-simple` does (`layout.css:1673-1686`), and it also hides the six Advanced-only fields on cards |
+| Separators | The ruled variant draws a 1 px `--ink-3` `border-bottom` on `tbody td` from 1360 px and a 1 px `--ink-3` outline on `tbody tr` below it. Both are keyed on the table, not on a row class (Q3) |
+
+**Where script is unavoidable, and how the first paint stays correct**
+
+- **Rows arrive by request**, as today (`fetchWorkoutPlan()`, `workout-plan.js:90-117`). The
+  list starts as `data-plan-state="loading"`, which shows neither the empty panel nor a record.
+  In one synchronous block the script chooses the opening tab, builds the tabs, renders the rows
+  with their card markup already in place and sets the state to `populated` or `empty`. The All
+  tab is therefore never painted as selected on a populated plan, and the empty panel is never
+  painted over a plan that has rows.
+- **The Simple/Advanced toggle is created at `DOMContentLoaded`** (`table-responsiveness.js:423-452`).
+  The template ships an empty `.tbl-controls` inside `.tbl-wrap` with the toggle's height
+  reserved; the script reuses it (`:99`).
+- **Chips** are drawn on a `change` event, and once at start for a value the browser restored.
+- **Check.** The frame check installs a `MutationObserver` before navigation. From the first row
+  insertion to the settled page it must see one child-list batch on `#workout_plan_table_body`,
+  no attribute change on any row, and no change of `aria-selected` in `#routine-tabs`. It runs at
+  320 px at scale 8 and at 1440 px.
+- **No flaky reads.** Every comparison of two positions reads both in one `evaluate`, after the
+  page reports its state and `scrollTo(0, 0)`. Nothing is read straight after `reload()`. The
+  pilot's race came from two reads in two calls.
+
+### JavaScript changes
+
+Each row keeps the request, payload, toast and result of the *Behaviour that must not change*
+entry it names.
+
+| Module | Change | Stays | Listeners |
+|---|---|---|---|
+| `workout-plan.js` | `fetchWorkoutPlan()` chooses the opening tab on the first successful response, before `updateRoutineTabs()`: the first routine by `compareRoutines()`, or `all` for an empty plan. It sets `data-plan-state` and shows or hides the empty panel. The once-per-load flag is module-private | `GET /get_workout_plan`. The four keys of `workoutPlanState` and its default `'all'`, pinned by `__tests__/workout-plan-state.test.js:7-13`. Plan load and refresh | None added |
+| `workout-plan-table.js` | The row template (`:379-430`) emits the card markup: `ui-record-card`; a `button.ui-field` around each of the six values; a prescription line, the "Superset" badge and a Details button in the Exercise cell; a `label` around the superset checkbox; Remove as `ui-btn ui-btn--danger ui-btn--small` with `data-action="delete"` and its `onclick="removeExercise(id)"`. Tabs keep `li.routine-tab > button.routine-tab-btn[data-routine]` and gain `ui-tab`. `makeTableCellEditable()` reads and writes the value button, gives its input `ui-field-input` in place of the classes at `:536`, refreshes the prescription line after a save and returns focus to the value button unless the user moved it | Every row hook under *Hooks that stay*. `supersetRowClasses()` output and `workoutPlanState.supersetColorMap`. The `superset-group-N` classes stay on rows and no rule colours them. `POST /update_exercise`, `POST /update_exercise_order`, `Sortable.create(tbody, { handle: '.drag-handle' })`. Inline edit, drag, Remove | One delegated `click` listener on `#workout_plan_table_body` for Details, bound once at start. The per-cell, swap, checkbox and style listeners are bound per row as today |
+| `workout-plan-helpers.js` | `formatRoutineForTab()` (`:82-87`) emits workout, environment, program if P3 stands. `renderExecutionStyleBadge()` (`:143`) drops `btn` and adds `badge ui-badge ui-badge--neutral` | `formatRoutineForDisplay()`, pinned exactly at `__tests__/workout-plan-seams.test.js:45`; the card caption reorders its three spans in CSS. The cases at `:51-54` and `:73-77` use `toContain` and hold unedited. No Vitest case is added, removed or renamed | None |
+| `workout-plan-supersets.js` | The selection message's state moves from the inline `var(--wp-bad)`, `var(--wp-warn)` and `var(--wp-good)` colours (`:113`, `:119`, `:125`, `:132`) to a `data-state` attribute styled with `--ui-danger`, `--ui-pending` and `--ui-achieved` | The message texts. `style.display` on `#superset-actions` (`:74`, `:78`). `POST /api/superset/link` and `/unlink`. Superset select, link and unlink | None added |
+| `filters.js` | A chip renderer, called from the existing delegated `change` handler on `#workout` (`:102-119`), at the end of `clearFilters()` and once in `initializeFilters()`. Removing a chip sets that select to `''` and dispatches `change`. The filters toggle sets `hidden` on the grid, `aria-expanded` and its count | `clearFilters()` (`:161-256`) is otherwise unedited. `#filters-form` and `select.filter-dropdown[data-filter-key]`. A removed chip reaches the server through the existing debounce, so it sends one request. The renderer sends none, so one `/get_all_exercises` request per load holds | One delegated `click` on the chip list and one on the toggle. None on `#routine` |
+| `ui-menu.js`, called from `workout-plan-page.js` | Opens on click, Enter, Space and ArrowDown; arrows move between items; Escape closes and focuses the button; a click outside closes. An item that opens a modal closes the menu first, and a one-shot `hidden.bs.modal` listener returns focus to the More button | The four controls keep their ids, `onclick`, `href` and `data-bs-*` attributes, so each does what it does today. Export, Backup Center, Generate Starter Plan, Clear Plan | Per menu: two on the button and two on the popover. One `click` on `document` |
+| `workout-plan-page.js` | The collapsible-frame block (`:199-256`) goes with its markup. "Add first exercise" focuses the first control of the Add exercise panel and scrolls it into view (P11) | The generator form wiring (`:110-197`) and the muscle-filter rebuild (`:30-107`). Generate Starter Plan | One `click` |
+| `workout-plan-media.js` | `appendExerciseVideoButton()` (`:23-32`) gives the Plan's button `ui-btn ui-btn--ghost`. The shared builder (`exercise-video-modal.js:134-140`) is not edited | `.btn-video`, `[data-action="play-video"]`, `img.exercise-thumbnail` with `width="32"` and `height="32"`. Reference video and thumbnail preview | None |
+| `workout-plan-execution-style.js` | The picker drops `frame-calm-glass` (`:76`) | `.execution-style-picker` and its requests. Execution style | None |
+| `table-responsiveness.js` | The class at `:239` (Q2) | Everything else. Simple/Advanced | None |
+| `plan_volume_panel.js`, `routine-cascade.js`, `exports.js`, `exercises.js`, the estimate and persistence modules | None | `vpDrawer.open` in `localStorage` (`plan_volume_panel.js:3`) and the move of the drawer to `body` (`:36-45`) | None |
+
+`e2e/exercise-catalog-fetch.spec.ts` (two tests, at `:42` and `:69`) is run unedited as the
+control for the one-request and one-listener contracts. It is outside the required set.
+
+### The generalised frame check (R21)
+
+**Files and commands.** `e2e/scripts/run_frame_check.py` holds a registry and everything the
+Log's launcher does today: the scratch-path guard (`run_workout_log_frame.py:22-26`), the server
+entry that refuses a wrong database, runtime or source (`:80-103`), the free loopback port
+(`:127-129`) and the `git archive` export for a control (`:119-125`). Each run gets a new
+directory under `artifacts/frame-check/<route>/`.
+
+```powershell
+.venv/Scripts/python.exe e2e/scripts/run_frame_check.py --route workout_plan
+.venv/Scripts/python.exe e2e/scripts/run_frame_check.py --route workout_plan --control-ref 8b023d1a
+.venv/Scripts/python.exe e2e/scripts/run_frame_check.py --route overlays
+.venv/Scripts/python.exe e2e/scripts/run_workout_log_frame.py
+```
+
+| Route key | Check file | Control | Fixture |
+|---|---|---|---|
+| `workout_log` | `e2e/workout-log-frame.check.ts` | `5dc83cef` | Today's seven-record edits, unchanged |
+| `workout_plan` | `e2e/workout-plan-frame.check.ts` | `8b023d1a` | Section 0's seven edits |
+| `overlays` | `e2e/overlay-style.check.ts` | `8b023d1a` | The Plan fixture. `#clearLogModal` is in the Log's template whether or not the log has rows (`templates/workout_log.html:142`). The unmigrated four are on `/`, `/progression` and `/volume_splitter` |
+
+- **Route selection.** `--route` picks the row. `--control-ref` accepts only that row's control,
+  as `choices=[CONTROL]` does today (`:108`). The launcher passes the check file to
+  `e2e/playwright.frame.config.ts`, which sets `testMatch` from it and otherwise equals the
+  current config: one worker, no retries, its own server, `reuseExistingServer: false`. An
+  unknown route, or a route without a control, is refused before any seeding.
+- **Shared part.** `e2e/frame-check.ts` reads the C1–C4 population in one `evaluate`, as
+  `measure()` does (`workout-log-frame.check.ts:825-885`), with the frame selectors passed in by
+  the route. It evaluates C1–C5 on the entries and runs the C8 scan with PostCSS (`:1026-1031`).
+  The Log's file keeps its own extras: C6, C7, C9, C10 and the pilot's editing journey.
+- **The Plan's fixture.** The launcher copies the committed visual seed with
+  `prepare_visual_db.py` and writes nothing else. The check applies Section 0's seven edits
+  through the page's own endpoints (`/add_exercise`, `/update_exercise`, `/api/superset/link`,
+  `/api/execution_style`), asserts each response, and compares `/get_workout_plan` with an
+  expected list before measuring. A failed setup is an error, not a failed check. The same steps
+  run against the control export, because the endpoints are identical there. The empty passes
+  follow `POST /clear_workout_plan`.
+- **Exemptions.** The Plan's check starts with an empty named list. Any entry needs a reason in
+  the file and a row in the PR.
+- **pytest.** `tests/test_workout_log_frame_runner.py` keeps its three refusals (live database,
+  external database, runtime outside the run) and its positive control, parametrised over the
+  routes, and adds a refusal of an unknown route and of another route's control ref. The
+  inventory moves and is regenerated.
+
+### How each criterion is verified
+
+**Frame** is `workout-plan-frame.check.ts`. **Overlay** is `overlay-style.check.ts`. **Plan spec**
+means `e2e/workout-plan.spec.ts`, with `exercise-interactions.spec.ts` and
+`superset-edge-cases.spec.ts` where the behaviour already lives. The functional lane runs at
+1440 × 900 (`playwright.config.ts:90`), so every card case sets its own viewport.
+
+| Criteria and rows | Check | Control that shows it can fail |
+|---|---|---|
+| 1, 2, 3 — C1, C2, C3, C4, C5 | Frame, over Section 0's matrix: three widths, both themes, empty and populated, the scale 8 passes, 320 and 360 px, 1359 and 1360 px, Simple and Advanced, the opening tab and All | `8b023d1a` fails all five |
+| 4 | Frame counts visible `.ui-btn--primary` in `#main-content`, and separately every button whose computed fill is `--ui-primary` or a red fill. Plan spec pins it empty and populated | `8b023d1a` has four filled primaries and a filled red Remove |
+| 5 | Frame reads the tops of the header and the two panels in one pass, and the first card's top at 390 px. A pytest contract reads the same order from the template source | Red before commit 4; `8b023d1a` |
+| 6, 7 | Plan spec. A plan with two routines is created, then the page is opened: the first routine's tab is selected and only its rows are listed. All is activated by pointer and by keyboard. After a reload the first tab is selected again. `localStorage`, `sessionStorage` and `document.cookie` are compared key by key before and after | Red before commit 4: today the page opens on All |
+| 8 | Plan spec and `empty-states.spec.ts`: the panel, no `tr`, All selected, summary and Volume targets visible, the modal from the panel's button, focus after "Add first exercise" | Red before commit 4 |
+| 9 | Plan spec: toggle closed and 12 selects hidden on load; two chips by filter name and value; one removed, with the request counted by `page.on('request')`; Clear Filters and its toast | Red before commit 4 |
+| 10 — WP12 | `accessibility.spec.ts` for the keyboard path and focus return. Frame for WP12 with the menu open at 390 and 1440 px in both themes | Red before commit 4. Mutation: anchor the popover to the button and WP12 fails at 320 px at scale 8 |
+| 11, 12, 14 — WP6 | Frame at 390 and 768 px. Plan spec for Details by touch and keyboard, in Simple and Advanced, closed after a reload | `8b023d1a` has no card and no Details |
+| 13 — WP11 | Frame at 320, 360 and 390 px at scale 8 and 320 px at scale 6, with Details closed, open on Squat and Deadlift, and with a row selected. Plan spec carries a required regression case at the three widths at scale 8 | Mutation: remove the container rule and the Squat card fails at 320 px at scale 8 |
+| 15 — WP10 | Frame at 1359 and 1360 px | `8b023d1a` fails WP10 |
+| 16 — WP7 | Frame at 1360 and 1440 px, Simple and Advanced: one pass reads the region and every row's Remove after `scrollLeft` is set to its end, and `elementFromPoint` at each Remove's centre. Arrow keys on the focused region change `scrollLeft` | Mutation: `overflow: hidden` on the region fails the Remove read |
+| 17 | `workout-plan-desktop-contract.spec.ts`, in `visual-linux` and locally with `PW_VISUAL_SEED=1`. The four titles and `width: 1440` stay (`tests/test_visual_capture_contracts.py:250-256`). The column lists (`:47-66`) and row counts (`:265-269`, `:297-317`) are not edited | Red before commit 4: the rewritten composition test fails on three `[data-section]` blocks and on page overflow |
+| 18 | `visual-field-separator.spec.ts` and the contract's fourth test. Both gain an assertion that the border they measure has a width above 0 (Q3) | Mutation: set the ruled border to the hairline and it fails at about 1.29:1; set it to 0 and the width assertion fails |
+| 19 — C8 | Frame for C8. `accessibility.spec.ts`: the four `AXE_REGISTER` entries (`:887-896`, `:952-960`) are re-measured, may only fall, and move with `A11Y_EXCEPTIONS.md` | A count that rises is a red |
+| 20 | Frame: both rows of the pair carry the rail and the badge, and no element computes a `--superset-color-*` value. `superset-edge-cases.spec.ts`: a second pair looks the same | `8b023d1a` colours by group |
+| 21 | `exercise-interactions.spec.ts` at 1440 px and at 390 px behind Details: keyboard reach, one `POST /update_exercise` on Enter and on leaving, none on Escape or a blank count, the warning on rejection, the stored value after a reload | The 390 px case and the keyboard case are red before commit 4 |
+| 22 | The existing Plan specs, unedited except for the pins Section 0 lists. Each row of the behaviour table gains a 390 px case where it has none. Drag by the handle on a card and in the table. The route pytest files pass unedited | A changed payload fails the existing request assertions |
+| 23 | Plan spec reads the heading row and the tabs in one pass. `volume-progress.spec.ts` unedited | Red before commit 4: the summary sits above the filters |
+| 24 | Overlay, at 390 and 1440 px in both themes | `8b023d1a` fails the migrated overlays and equals the reference for the unmigrated four |
+| 25 — WP9 | Frame source scan and the retargeted cascade tests: no deleted family in `pages-workout-plan.css`, its `!important` at or under the measured bound, no `#clearLogModal` rule and no `!important` in `pages-workout-log.css`, every shared `:is()` group equal to its text on `8b023d1a` | Restoring a deleted rule fails |
+| 26 | The four commands above, two Plan runs compared byte for byte, the Log run and its control | The Log control still fails C1–C4 and C10 |
+| 27 | The three visual specs on both platforms, `tests/test_css_cascade_contracts.py:65-82` for the 18 bundles, seven-surface Stylelint | An unlisted capture that fails is a regression |
+| 28, 29 | PR evidence under `artifacts/design-736/step3/` and the `manual-qa-reviewer` comparison | Review |
+
+**The modal and drawer check.** It opens each modal with `bootstrap.Modal.getOrCreateInstance(el).show()`
+and waits for `shown.bs.modal`, so it does not depend on where a trigger sits and runs unchanged
+on the control. It opens the drawer with `#vpToggle`. It reads rendered sizes, because
+`components.css:2224-2228` counter-zooms `.modal`. `overlay-style.reference.json` is written from
+the `8b023d1a` control run, and the control run asserts that the file equals what it measures, so
+the reference is not hand-typed.
+
+**Stated limit.** The two checks are opt-in. After merge CI protects only what the required
+specs, the contract spec and pytest hold. The pilot recorded the same limit as V-TS-1.
+
+### Visual baselines
+
+**The 26 files**, 13 per platform, for `<platform>` in `win32` and `linux`:
+
+- `e2e/__screenshots__/<platform>/visual.spec.ts-snapshots/workout-plan-{mobile,tablet}-{light,dark}.png` (4)
+- `e2e/__screenshots__/<platform>/visual-baseline-thumbnails.spec.ts-snapshots/plan-desktop-light-simple.png` (1)
+- `e2e/__screenshots__/<platform>/visual-baseline-thumbnails.spec.ts-snapshots/plan-{mobile,tablet}-{light,dark}-{simple,advanced}.png` (8)
+
+**Order**
+
+1. Before any regeneration, ordinary screenshots (not capture-helper ones) of `8b023d1a` and of
+   the branch in the states criterion 28 lists, under `artifacts/design-736/step3/`.
+   `manual-qa-reviewer` compares them with the mockup captures and the criteria. This is the
+   by-eye sign-off the owner delegated (`RUN_PROMPT.md`, approval 4). A finding is fixed first.
+2. win32, locally, with `PW_VISUAL_SEED=1` and a name filter, never a blanket update. The titles
+   are `${page} ${viewport} ${theme}` (`e2e/visual.spec.ts:42`) and the capture label
+   (`e2e/visual-baseline-thumbnails.spec.ts:55`):
+   - `-g "workout-plan (mobile|tablet) (light|dark)$"`; `--list` must return 4.
+   - `-g "plan-(mobile|tablet)-(light|dark)-(simple|advanced)$|plan-desktop-light-simple$"`;
+     `--list` must return 9.
+3. linux: `gh workflow run deep-gate-visual.yml --ref feat/736-workout-plan -f visual_mode=generate`
+   on the pushed head. Only the 13 listed files are copied out of the `visual-baselines-linux`
+   artifact. The generate step rewrites every capture on the runner
+   (`.github/workflows/deep-gate-visual.yml:158`); nothing else is taken from it.
+4. The four `snapshotManifest` digests are recomputed with the algorithm at
+   `tests/test_css_wp4_4_a_baseline_contracts.py:641-645` (sorted names and byte sizes) and
+   hand-edited. `EXPECTED_SNAPSHOT_COUNTS` (`:46-51`) stays at 66 and 15.
+5. Every other capture compares clean with no regeneration: the three specs locally on win32,
+   then the deep gate in compare mode on the final head with a clean first attempt. `git status`
+   must show exactly the 26 PNG files changed. The five exempt captures still have no PNG.
+
+Until the win32 files are pushed, `visual-windows` on the PR is red on the four Plan captures in
+`visual.spec.ts`. That is expected and is not a required check.
+
+### Expected gates
+
+From the changed paths, per `QUALITY_GATE.md`. The union is run, never the weaker set.
+
+| Changed paths | Gate |
+|---|---|
+| `tokens.css`, `components.css`, `layout.css`, `theme-dark.css` (shared surfaces) | Full pytest. Chromium `smoke-navigation`, `nav-dropdown`, `accessibility`, `dark-mode`, `summary-pages`, `volume-progress`, `fatigue`, `fatigue-stage4-smokes`, `ui-hardening`. The full `visual.spec.ts` matrix with `PW_VISUAL_SEED=1`. `node scripts/css_audit/stylelint_surfaces.mjs`, with no category rising. The Linux visual deep gate, green on its first attempt |
+| `pages-workout-plan.css`, `pages-workout-log.css` | Their page specs, their `visual.spec.ts` variants, Stylelint on each edited file |
+| `scss/**`, if P8 stands | `/build-css`, then the rebuild check: the old and new compiled files are parsed rule by rule, and every difference must be a removed rule, or a removed branch of a selector list, that names `.vp-` or `#vpToggle`. Anything else stops the run. The compiled-CSS drift contract runs inside full pytest |
+| `templates/**`, `static/js/**` | `workout-plan`, `exercise-interactions`, `superset-edge-cases`, `ui-hardening`, `workout-log`, `volume-progress`, `program-backup`, `validation-boundary`, `error-handling`, `empty-states`, `accessibility`, `browser-navigation-state`, `replace-exercise-errors`, `exercise-catalog-fetch`, and a manual smoke on a seeded scratch database |
+| `e2e/**` | Each edited spec and check is run. `npx tsc --noEmit`. `--list` on both Playwright configs, to show the checks stay out of the default run |
+| Any `.py` | The pyright measurement and `scripts/pyright_baseline_diff.py` |
+| Any test added, removed or renamed | `scripts/generate_test_inventory.py`, then `--check` |
+| `static/js/**` | `npm run test:js`. No case is added, removed or renamed, so the Vitest inventory pins stay |
+
+Because `table-responsiveness.js` and four shared stylesheets change, the closing gate is
+`/verify-and-polish`: `/verify-suite` (full pytest and full Chromium), then `code-reviewer` and
+`unslop-reviewer` in fresh contexts with the diff and Section 0's criteria. The three visual specs
+are run separately with `PW_VISUAL_SEED=1`. Both frame-check routes and the overlay check are run
+twice each. `tests/test_css_theme_dark_p3_audit_contracts.py::test_this_packet_wrote_no_production_css`
+is red while a stylesheet edit is uncommitted, as the pilot's Evidence rounds record, and is read
+only on a committed tree.
+
+### Risks and open points for the council
+
+**Assumptions P1–P13.** None has a ruling. The plan is drafted as if each stands. Each row gives
+the evidence a ruling needs and the smaller option, which the plan can take without other change.
+
+| # | Rule on | Evidence | Smaller, reversible option |
+|---|---|---|---|
+| P1 | The opening tab is chosen once per load | The default is `'all'` (`workout-plan-state.js:22`). Only a tab click changes it (`workout-plan-table.js:246-263`). The add toast names a routine the tab hides (`workout-plan-add-exercise.js:307-313`). `e2e/workout-plan.spec.ts:329` expects All after adding to a plan that was empty at load | As drafted: one flag, set on the first response |
+| P2 | A selected routine that disappears falls back to All | Existing code, `workout-plan-table.js:231-239` | As drafted: no change |
+| P3 | Tabs wrap; the label reads workout first | Today's order is environment, program, workout (`workout-plan-helpers.js:82-87`). The Log's caption reads workout first (`templates/workout_log.html:72`). The height of six wrapped tabs on a phone was not measured | Wrap in CSS and keep today's label order: no script change |
+| P4 | "Filters · 2 active", chips, Clear Filters always shown | `clearFilters()` also clears the routine and the exercise (`filters.js:174-218`); a chip does not | As drafted: `clearFilters()` is not edited |
+| P5 | Details closed on load, three fields to a row | Mockup departure 1. Also: every re-render rebuilds the rows (`workout-plan-table.js:314`), so a reorder or a superset link closes every open card | No memory of open cards. The alternative is a module-private set of open ids for the life of the page |
+| P6 | The selection bar is sticky below 1360 px | One declaration (`mockup.html:79`). `.ui-panel` sets no `overflow`, so it sticks inside the panel. WP11 measures it with a row selected | In flow, not sticky |
+| P7 | One filled button per modal; `--ui-danger-fill` | `#a84f49` is today's dark `--action-danger` (`tokens.css:460`). The ratios are hand-computed; the overlay check and the `state:modal-open` axe scan measure them | Without the token the confirm button is the outline danger button, which does not meet D17's "filled red on the confirm button" |
+| P8 | The drawer's rules leave the Bootstrap build | The `.vp-` selectors exist only in the compiled file, the template and `plan_volume_panel.js`. Six selector lists are shared with Volume Splitter (paths in the artifact table). `[data-theme='dark'] .vp-drawer` (`_workout_plan_volume_panel.scss:231`) outranks a plain `.ui-drawer` rule | Leave the SCSS alone and write the drawer as `.vp-drawer.ui-drawer` in `components.css`: no rebuild and no pin move, but the old rules stay underneath |
+| P9 | `--ink-3` reaches the card outline | `visual-field-separator.spec.ts:128-136` reads the first data row's `td` bottom border and `tr` top border. On an empty plan it injects bare rows (`:87-100`), so the rule must be keyed on the table | Only the card outline is ruled: one declaration |
+| P10 | The Simple/Advanced toggle shows on cards | `layout.css:1673-1686` hides the six cells at any width, so cards follow the mode with no new code | Hide `.tbl-controls` below 1360 px: one declaration |
+| P11 | Empty-plan copy; "Add first exercise" moves focus | `e2e/volume-progress.spec.ts:189-190` opens the drawer on an empty plan. Whether `#routine-env` is replaced by a `.wpdd` button was not verified, so the test asserts the first tabbable control of the panel | As drafted |
+| P12 | New copy, `fa-trash`, the neutral badge, the 12 px menu radius, message colours | `fa-trash-alt` is at `templates/workout_plan.html:278`, `:569`, `:580`; `fa-trash` is at `workout-plan-table.js:427`. Each new icon must be in the bundled set (`tests/test_visual_selector_contracts.py:12-20`) | As drafted |
+| P13 | The thresholds 200 px, 600 px and 220 px | The mockup measures 150, 581 and 222 to 228. The first card has 19 px to spare against the real navbar, the default summary text and the toggle row, none of which the mockup carries exactly. No built page exists before Gate 1 | Keep the limits. A miss on the built page is a defect to fix, recorded in the evidence round, not a limit to move |
+
+**The four mockup departures** (Section 0, *Mockups*)
+
+| # | Departure | Evidence | Rule on |
+|---|---|---|---|
+| M1 | Two number fields to a row on the narrowest cards | `mockup.html:115-119`. At scale 8 a card's content box is the layout width less 100 px (two gutters, the panel's and the card's padding and borders): about 167 px at 320 px, 200 px at 360 px and 225 px at 390 px. Three to a row leaves a 50 px field at 320 px, with about 36 px for `102.5` at 16 px text. Two to a row leaves 79 px. By arithmetic, not measured | Accept as the construction above, or hold P5's three to a row and accept a clipped `102.5` at 320 px, which WP11 forbids |
+| M2 | A long routine name wraps inside its tab | `mockup.html:39`. The contract's equal-height assertion (`workout-plan-desktop-contract.spec.ts:208-213`) holds at 1440 px with the seed's two tabs; it is not run against the long name | Accept, or truncate with the full name in `title`, which Section 0 does not allow for exercise names |
+| M3 | The popover is anchored to the actions row | `mockup.html:42-44`. Section 0's table says "aligned to the button's right edge" | Accept and correct that table cell in Plan v2, or anchor to the button and add a script that flips it |
+| M4 | The mockup draws two lists and native selects | The built page keeps one `tr` and `.wpdd`. The card is built by grid placement, not by the mockup's markup, so a mockup measurement is not evidence for the built card | Accept that the `manual-qa-reviewer` comparison and the frame check on the built page are the evidence |
+
+**Questions from this plan**
+
+- **Q1. The modal shadow.** `components.css:2238-2240` sets `box-shadow … !important` on every
+  `.modal-content`. A `.ui-modal` rule cannot give `--shadow-elev-2` without `!important`. The
+  plan narrows that selector with `:not(.ui-modal)`: the count stays 883 there and the unmigrated
+  modals compute the same value, which the overlay check proves. Is editing that shared rule
+  acceptable, or should the migrated modals keep the legacy shadow until step 4?
+- **Q2. The toggle's chrome is in shared bundles.** `.tbl-view-mode-toggle` is styled at
+  `layout.css:1609-1665` and `theme-dark.css:199-220` with a gradient, a shadow, a blur, an 18 px
+  radius and 0.8rem text. It fails C2, C3 and C4. Only the Plan's table carries
+  `data-table-responsive`, so only the Plan renders it. Section 0 expected no `layout.css` change.
+  The plan deletes those rules and adds two classes at `table-responsiveness.js:239`. Accept, or
+  keep the rules and restate them with tokens?
+- **Q3. Which border the separator checks measure.** Both read the `td` bottom border and the
+  `tr` top border and skip a width of `0px` (`workout-plan-desktop-contract.spec.ts:379-380`,
+  `visual-field-separator.spec.ts:163`). The shared table draws `border-top`
+  (`components.css:5081`), and so does `mockup.html:59`, so a ruled variant that follows either
+  would pass on nothing. The plan draws `border-bottom` and adds a width assertion to both specs.
+  Section 0 says the contract's fourth test "stays as written" and criterion 18 says the check
+  asserts the width. Which governs?
+- **Q4. The Plan's capture-helper rules.** `e2e/visual-helpers.ts:197-206` and `:213-215` will
+  match nothing. Section 0 lists them as moving. Removing them moves the blind-spot register in
+  `scripts/css_audit/measure.py`, its counts at `tests/test_css_wp4_4_a_baseline_contracts.py:282-284`
+  and the `oracleBlindSpots` array. The plan leaves the three rules in place and lists them as
+  dead. Accept, or remove them and add a `scripts/**` edit to this step?
+- **Q5. The stand-in for the five exempt captures** asserts that `[data-visual-surface]` exists
+  in the document (`e2e/visual-helpers.ts:84-91`). After the migration the only carriers on the
+  Plan are the contents of closed modals, as on the Log. The plan keeps the attribute there. Is
+  that enough?
+- **Q6. File names for the frame check.** The plan adds a generic launcher and config and leaves
+  the two Log-named files as shims, because no file can be deleted. The alternative is to
+  generalise the two existing files in place and add `--route`, with no leftover file and a
+  misleading name.
+- **Q7. The size of the ledger move.** Deleting Plan-only rules shifts every later line of
+  `components.css`: the newline count, the `@layer workout` span (3358 to 3923), the `:is(`
+  totals (19 falls to 14 if the four input rules hold five) and the `isFamily` records. How many
+  `contractAnchors` and `pinnedDeclarations` entries carry a line number was not measured. The
+  plan makes all `components.css` deletions in commit 5, so the lines shift once.
+- **Q8. The Clear Log rules are not all styling.** `pages-workout-log.css:4-36` sets `z-index`,
+  `display` and `pointer-events` with `!important`. Section 0 deletes all 12 rules. Clear Plan
+  has no such rules and works on the same Bootstrap modal. The control is the Log's clear flow at
+  390 and 1440 px before and after. If it fails, the functional rules stay and the count is
+  reported.
+- **Q9. Legacy rules outrank the new components.** The Plan's rules in `components.css` carry id
+  weight, sit in `@layer workout` (from `:3358`) and use `!important`. A `ui-` rule loses to any
+  of them that still matches. The new markup therefore carries none of the legacy classes, and
+  the frame check is expected green from commit 5, not commit 4. Is one commit that is not
+  frame-green acceptable?
+- **Q10. Dropdowns built while hidden.** The filters are `hidden` at load.
+  `static/js/modules/workout-dropdowns.js` was not opened. If the `.wpdd` layer measures a select
+  when it enhances it, the grid needs a first-open refresh. Whether `selectOption` works on a
+  select in the closed panel is also unknown; affected tests open the panel first.
+- **Q11. Drag on a card grid.** The checks drag with a mouse on a one-column and a two-column
+  grid. Touch dragging is not automated; `manual-qa-reviewer` is asked to try it in device
+  emulation.
+- **Q12. The overlay fixture has no active volume plan**, so the drawer is measured in its empty
+  state and the row chrome is not read. `e2e/volume-progress.spec.ts` covers rows on the
+  functional seed. Should the fixture activate a volume plan?
+
+**Not verified in this pass**
+
+- Nothing was run. No measurement of the built page exists.
+- Opened only in part: `static/css/pages-workout-plan.css` (headings and `@layer` lines; its
+  family ranges are Section 0's), `components.css` (`:2209-2358`, `:3352-3477`, `:5018-5091`),
+  `e2e/workout-log-frame.check.ts` (`:1-36`, `:820-1043`), `e2e/workout-plan.spec.ts`,
+  `e2e/accessibility.spec.ts`, `e2e/volume-progress.spec.ts` and
+  `tests/test_css_cascade_contracts.py` (`:57-121`, `:177-250`, `:1396-1445`).
+- Not opened: `workout-dropdowns.js`, `routine-cascade.js`, `exports.js`, `exercises.js`,
+  `filter-view-mode.js`, `scripts/css_audit/emit_baseline.py`,
+  `tests/test_css_theme_dark_p3_audit_contracts.py`, `tests/test_vitest_inventory_contracts.py`,
+  `tests/test_console_guard_contracts.py` beyond `:50`, `docs/product/DESIGN_BRIEF.md` and
+  `docs/product/APP_FLOW.md` beyond their headings, and `docs/CSS_OWNERSHIP_MAP.md`.
+- Whether a `.check.ts` that imports `./strict-fixtures` is counted by the console-guard pin.
+- Which rules in `components.css` name only the Plan and still match the new markup. Commit 5
+  starts with that census, made with `scripts/css_audit/measure.py`.
+- The server's bound for RPE. The other fixture values are inside the bounds
+  `.claude/rules/routes.md` states (weight 0 to 1000 kg, RIR 0 to 10, sets and reps at least 1).
+- Whether `layout.css` and `theme-dark.css` carry a line-count or `!important` pin that the Q2
+  deletions move.
+
+---
+
+## Agent provenance
+
+| Role | Agent ID | Notes |
+|---|---|---|
+| `product-manager` — Plan v1 | pending — supplied by the manager | Author of Plan v1. Whether the same agent wrote Section 0 is for the manager to state |
+| `product-manager` — response matrix + Plan v2 | pending — supplied by the manager | |
+| `architecture-reviewer` | pending — supplied by the manager | Step 2 reviewer |
+| `test-strategist` | pending — supplied by the manager | Step 2 reviewer |
+| `product-risk-reviewer` | pending — supplied by the manager | Step 2 reviewer |
+
+**Same product-manager resumed for the matrix + Plan v2?** pending — supplied by the manager.
+
+**Evidence gap** — pending. To be written as `none`, or as what could not be established, when
+the matrix and Plan v2 are written.
