@@ -20,16 +20,17 @@ export async function targetGeometry(control: Locator) {
   });
 }
 
-export async function expectGlyph(link: Locator, hex: string) {
+export async function expectGlyph(link: Locator, hex: string, family = 'Font Awesome 5 Free') {
+  const weight = family === 'Font Awesome 5 Brands' ? '400' : '900';
   const icon = link.locator('[data-visual-icon]');
   await expect(icon).toBeVisible();
   await icon.scrollIntoViewIfNeeded();
-  const sample = await icon.evaluate(async (el, codepoint) => {
+  const sample = await icon.evaluate(async (el, { codepoint, family, weight }) => {
     const link = el.closest('a,button')!;
     const ink = getComputedStyle(el, '::before');
     const linkStyle = getComputedStyle(link);
     const text = String.fromCodePoint(parseInt(codepoint, 16));
-    const face = await document.fonts.load('900 16px "Font Awesome 5 Free"', text);
+    const face = await document.fonts.load(`${weight} 16px "${family}"`, text);
     const rect = el.getBoundingClientRect();
     const cx = (rect.left + rect.right) / 2;
     const cy = (rect.top + rect.bottom) / 2;
@@ -43,13 +44,13 @@ export async function expectGlyph(link: Locator, hex: string) {
       glyph: ink.content.replace(/^["']|["']$/g, ''), face: ink.fontFamily.replace(/["']/g, ''),
       weight: ink.fontWeight, visible: ink.display !== 'none' && ink.visibility === 'visible' && Number(ink.opacity) === 1,
       inherited: ink.color === linkStyle.color && ink.fontSize === linkStyle.fontSize,
-      solidLoaded: face.some(f => f.status === 'loaded' && f.weight === '900'),
+      fontLoaded: face.some(f => f.status === 'loaded' && f.weight === weight),
       painted, opaque, positive: rect.width > 0 && rect.height > 0,
     };
-  }, hex);
+  }, { codepoint: hex, family, weight });
   expect(sample, await link.getAttribute('id') ?? 'nav glyph').toEqual({
-    glyph: String.fromCodePoint(parseInt(hex, 16)), face: 'Font Awesome 5 Free', weight: '900',
-    visible: true, inherited: true, solidLoaded: true, painted: true, opaque: true, positive: true,
+    glyph: String.fromCodePoint(parseInt(hex, 16)), face: family, weight,
+    visible: true, inherited: true, fontLoaded: true, painted: true, opaque: true, positive: true,
   });
 }
 
@@ -72,7 +73,7 @@ export async function expectCurrentMarker(link: Locator, mobile: boolean) {
   expect(marked, 'visible 2px current-location marker at the leading or bottom edge').toBe(true);
 }
 
-export async function prepareNavigation(page: Page, width: number, theme: 'light' | 'dark', scale: number, height = 900) {
+export async function prepareNavigation(page: Page, width: number, theme: 'light' | 'dark', scale: number, height = 900, route = '/fatigue') {
   await page.setViewportSize({ width, height });
   await page.goto('/fatigue');
   await page.evaluate(({ theme, scale }) => {
@@ -81,7 +82,7 @@ export async function prepareNavigation(page: Page, width: number, theme: 'light
     document.cookie = `ui-scale-level=${scale}; path=/; SameSite=Lax`;
     localStorage.setItem('hypertrophy_filter_view_mode', 'advanced');
   }, { theme, scale });
-  await page.reload();
+  await page.goto(route);
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   await expect(page.locator('html')).toHaveAttribute('data-scale', String(scale));
   await expect(page.locator('#muscleModeToggle')).toContainText('Scientific');
@@ -95,6 +96,7 @@ export async function prepareNavigation(page: Page, width: number, theme: 'light
 export async function scrollCompact(page: Page) {
   await page.mouse.move(80, 240);
   await page.mouse.wheel(0, 400);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(80);
   await expect(page.locator('#navbar')).toHaveClass(/nb-compact/);
 }
 

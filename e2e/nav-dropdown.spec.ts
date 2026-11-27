@@ -818,12 +818,9 @@ test.describe('Navigation on the fixed header', () => {
         for (const id of ['nav-analyze-toggle', 'nav-fatigue']) {
           await expectCurrentMarker(page.locator('#' + id), mobile);
         }
-        for (const selector of ['.nav-signature-link', '#muscleModeToggle', '#darkModeToggle']) {
-          const link = page.locator(selector);
-          const icon = link.locator('[data-visual-icon]');
-          await expect(icon).toBeVisible();
-          await expect(icon).toHaveCSS('color', await link.evaluate(el => getComputedStyle(el).color));
-        }
+        await expectGlyph(page.locator('.nav-signature-link'), 'f08c', 'Font Awesome 5 Brands');
+        await expectGlyph(page.locator('#muscleModeToggle'), 'f610');
+        await expectGlyph(page.locator('#darkModeToggle'), theme === 'dark' ? 'f185' : 'f186');
         if (mobile) {
           const button = page.getByRole('button', { name: 'Toggle navigation menu' });
           const symbol = button.locator('[data-visual-icon]');
@@ -880,7 +877,7 @@ test.describe('Navigation on the fixed header', () => {
       const selectors = ['#nav-brand', ...MENU_CONTROLS.slice(0, 8), '.nav-signature-link',
         '#scale-decrease', '#scale-indicator', '#scale-increase', '#muscleModeToggle', '#darkModeToggle'];
       for (const scale of [6, 8]) {
-        await prepareNavigation(page, 1360, theme, scale, 540);
+        await prepareNavigation(page, 1360, theme, scale, 540, ROUTES.USER_PROFILE);
         for (const compact of [false, true]) {
           if (compact) await scrollCompact(page);
           for (const width of [1360, 1440, 1501, 1601]) {
@@ -919,6 +916,16 @@ test.describe('Navigation on the fixed header', () => {
   }
 });
 
+// Session populates this initially empty table from its contribution-mode GET.
+// Both successful outcomes exclude its Loading spinner and fetch-error message.
+async function expectSessionReady(page: Page) {
+  await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-session-summary');
+  const table = page.locator('#session-summary-table');
+  const routines = table.locator('td[data-label="Routine"]');
+  const empty = table.getByText('No data available.', { exact: true });
+  await expect(routines.or(empty).first()).toBeAttached();
+}
+
 test.describe('Navigation keyboard and utility controls', () => {
   for (const width of [320, 1360]) {
     test(`Analyze keyboard activation and route history at ${width}px`, async ({ page }) => {
@@ -948,13 +955,13 @@ test.describe('Navigation keyboard and utility controls', () => {
         await page.keyboard.press('Enter');
         await expect(page).toHaveURL(/\/session_summary$/);
         const current = page.locator('#navbar [aria-current="page"]');
-        await expect(current).toHaveAttribute('id', 'nav-session-summary');
+        await expectSessionReady(page);
         await page.reload();
-        await expect(current).toHaveAttribute('id', 'nav-session-summary');
+        await expectSessionReady(page);
         await page.goBack();
         await expect(current).toHaveAttribute('id', 'nav-fatigue');
         await page.goForward();
-        await expect(current).toHaveAttribute('id', 'nav-session-summary');
+        await expectSessionReady(page);
       }
     });
 
@@ -962,7 +969,7 @@ test.describe('Navigation keyboard and utility controls', () => {
       await prepareNavigation(page, width, 'light', 8);
       if (width === 320) await openAndSettle(page);
       const signature = page.locator('.nav-signature-link');
-      await expect(signature).toHaveAccessibleName(/Avihai/i);
+      await expect(signature).toHaveAccessibleName('by Avihai');
       await expect(signature).toHaveAttribute('target', '_blank');
       await expect(signature).toHaveAttribute('href', 'https://www.linkedin.com/in/avihaishai');
       expect((await signature.getAttribute('rel'))?.split(/\s+/)).toEqual(expect.arrayContaining(['noopener', 'noreferrer']));
@@ -986,6 +993,7 @@ test.describe('Navigation keyboard and utility controls', () => {
       for (const [mode, theme] of [['Simple', 'dark'], ['Scientific', 'light']]) {
         await muscle.click();
         await expect(muscle).toContainText(mode);
+        await expectGlyph(muscle, mode === 'Simple' ? 'f007' : 'f610');
         await dark.click();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-fatigue');
@@ -1052,7 +1060,8 @@ test('page operations work after using the scale-eight phone menu', async ({ pag
   expect(seed.ok()).toBe(true);
   await openAndSettle(page);
   await page.locator('#nav-workout-plan').click();
-  await expect(page.locator('#workout_plan_table_body tr[data-id], #workout_plan_table_body tr td:not([colspan])').first()).toBeVisible();
+  const planned = page.locator('#workout_plan_table_body').getByRole('row', { name: /Bench Press/ });
+  await expect(planned).toBeVisible();
   await page.locator('#more-btn').click();
   await expect(page.getByRole('menuitem', { name: 'Open Backup Center' })).toBeVisible();
   await page.keyboard.press('Escape');
