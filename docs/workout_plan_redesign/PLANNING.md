@@ -104,15 +104,48 @@ the shared pieces the Log did not need, and delete the page rules those pieces r
 
 ### Mockups
 
-The mockup page will be `docs/workout_plan_redesign/mockup.html`, with captures under
-`artifacts/design-736/step3/mockups/`. The orchestrator fills in the file list.
+The mockup page is [`mockup.html`](mockup.html), committed beside this file. It is a static
+page that links the shipped `tokens.css`, `layout.css` and `components.css` and carries the new
+components in its own `<style>`. It shows the same content at every width: the fixture under
+*Fixture for the Plan*. States are reached by query string, for example
+`mockup.html?theme=dark&state=all&details=squat&zoom=1.2`. Its captures and measurements are
+under `artifacts/design-736/step3/mockups/` (not committed), built on 2026-11-27.
 
-| File | Shows |
+| Capture | Shows |
 |---|---|
-| *(to be filled in by the orchestrator)* | |
+| `populated-{390,768,1440}-{light,dark}.png` | The populated plan on the first routine's tab: one-column cards, two-column cards, the table |
+| `populated-1359-light.png`, `populated-1360-light.png` | The switch from cards to the table |
+| `all-tab-{390,1440}-light.png` | The All tab |
+| `empty-{390,1440}-light.png` | The empty plan |
+| `details-open-390-light.png` | A card with Details open |
+| `row-selected-{390,1440}-light.png` | The superset selection bar |
+| `filters-open-chips-{390,1440}-light.png`, `filters-collapsed-chips-390-light.png` | Filters open and collapsed, with two active chips |
+| `more-menu-open-{390,1440}-{light,dark}.png` | The More menu |
+| `clear-plan-modal-*.png`, `generate-modal-{390,1440}-light.png` | The shared modal style |
+| `volume-drawer-*.png` | The shared drawer style |
+| `advanced-1440-light.png` | The table in Advanced |
+| `zoom1.2-*-{320,360,390}-light.png` | Narrow phones at app scale 8, with Details open on the Squat and Deadlift cards and with a row selected |
+| `measurements.json` | The numbers below, and edges, tap targets and overflow at every captured width |
 
-The thresholds marked ⚠️ in this brief (P13) were derived by arithmetic from the pilot's shipped
-values. They are confirmed or corrected against the mockup before Gate 1.
+**The mockup against this brief** (measured from the mockup, not from a built page):
+
+- The three P13 thresholds hold: a closed card with a one-line name is 150 px (limit 200), the
+  first card starts 581 px from the top at 390 px (limit 600), and the Exercise column is 222 to
+  228 px (minimum 220).
+- No page-level sideways scroll at 320, 360, 390, 768, 1359, 1360 or 1440 px, at scale 6 or 8.
+  The smallest tap target at 320, 360 and 390 px is 44 × 44 px.
+- At 1360 px the Simple table scrolls 74 px inside its region. It fits at 1440 px.
+
+**Where the mockup departs from the text of this brief.** The plan council rules on each:
+
+- P5 says three fields to a row behind Details. On the narrowest cards (320 to 390 px at scale 8)
+  `102.5` does not fit a third of the row, so the mockup shows two to a row there and three
+  everywhere wider.
+- "One line per tab": a routine name longer than the row wraps inside its tab.
+- The More popover is anchored to the actions row, not to the More button. Anchored to the button
+  it ran off-screen at 320 px at scale 8, where More wraps to the left.
+- The mockup draws the cards and the table as two lists and uses native selects. The built page
+  keeps one `tr` per record and the `.wpdd` dropdowns.
 
 ### Requirements from the owner's answers and the council
 
