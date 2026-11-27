@@ -186,8 +186,8 @@
       "navbar.css": [
         {
           "layer": "navbar",
-          "openLine": 6,
-          "closeLine": 874
+          "openLine": 2,
+          "closeLine": 16
         }
       ],
       "pages-welcome.css": [
@@ -1396,21 +1396,21 @@
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_only_exact_local_values_use_shared_aliases",
       "line": "152",
-      "pinnedString": "--nav-gap: var(--s-3);",
+      "pinnedString": "padding: 0 var(--ui-gutter);",
       "candidateSurfaces": "navbar.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_only_exact_local_values_use_shared_aliases",
       "line": "153",
-      "pinnedString": "--nav-padding-y: var(--s-3);",
+      "pinnedString": "background: var(--surface-2);",
       "candidateSurfaces": "navbar.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_only_exact_local_values_use_shared_aliases",
       "line": "154",
-      "pinnedString": "--nav-padding-x: 1rem;",
+      "pinnedString": "border-bottom: 1px solid var(--ui-hairline);",
       "candidateSurfaces": "navbar.css"
     },
     {

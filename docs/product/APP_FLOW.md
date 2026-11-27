@@ -195,30 +195,34 @@ Not every control calls the server. Each control below is classified as one of:
 
 ## Global navigation — `templates/base.html`
 
-Present on every page.
+The fixed header appears on every page. The server marks the current destination in the initial
+HTML, including on URLs with a trailing slash or query. Analyze also shows the current-location
+marker when Weekly, Session or Fatigue is current. Only the destination link carries
+`aria-current="page"`. From 1360 px the destinations and utilities share one row. Below 1360 px
+the hamburger opens the panel.
 
 | Control | Action type | Behavior |
 |---|---|---|
 | Brand / logo | Navigation | → `/` |
 | **Plan**, **Log** | Navigation | → `/workout_plan`, `/workout_log` |
-| **Analyze** ▾ | Presentation | Bootstrap dropdown containing **Weekly**, **Session**, **Fatigue** |
+| **Analyze** ▾ | Presentation | Button opens **Weekly**, **Session** and **Fatigue**. It responds to Enter and Space, and opens on hover with a desktop pointer. It expands inline within the hamburger panel |
 | **Progress** | Navigation | → `/progression` |
 | **Profile**, **Body Composition** | Navigation | → `/user_profile`, `/body_composition` |
 | **Distribute** | Navigation | → `/volume_splitter` |
 | **Backup** | Navigation | → `/backup` |
-| Menu toggle (hamburger, up to 1359.98px) | Presentation | Opens a full-height panel below the header holding **Plan**, **Log**, **Analyze**, **Progress**, **Profile**, **Body Composition**, **Distribute**, **Backup** and the right-hand controls. Closes on the toggle, Escape or a click on empty panel space, and focus returns to the toggle. Widening to 1360px or wider closes it and releases scroll lock and focus trap |
+| Menu toggle (hamburger, below 1360 px) | Presentation | Opens an independently scrolling panel from the header to the bottom of the viewport. The destinations and utilities remain reachable on short screens. The toggle, Escape and clicks in empty panel space close it and restore focus to the toggle. Widening to 1360 px closes the panel and releases the scroll lock and focus trap |
 | Author link | Navigation | External, `target="_blank" rel="noopener noreferrer"` |
-| Scale − / + | Local state | Changes application scale and writes `ui-scale-level` to **localStorage and a cookie** (1–8). On the server, `inject_scale_level()` in `app.py` maps the value to a zoom factor. Out-of-range and non-numeric values fall back to level `6` (zoom `1`). Ctrl/Cmd `+`, `-` and `0` still control browser zoom. The application-scale control is available in browsers that support CSS `zoom`, subject to the existing responsive visibility. Browsers without CSS `zoom` support hide the control and its trailing divider. Firefox validation covers version 160.0.1, tested on 2026-11-18 |
+| Scale − / + | Local state | Changes application scale and writes `ui-scale-level` to **localStorage and a cookie** (1–8). The indicator shows the level, and the control at the reached limit stays visible and disabled. `inject_scale_level()` maps the level to a zoom factor, defaulting to level 6 (zoom `1`). CSS counter-zoom keeps the header at its own scale. Browsers without CSS `zoom` hide the control and its trailing divider. Ctrl/Cmd `+`, `-` and `0` still control browser zoom |
 | Muscle naming toggle (`#muscleModeToggle`) | Local state | Writes `hypertrophy_filter_view_mode` to `localStorage` and dispatches a `filterViewModeChanged` event. The toggle itself sends **no request**. Button label reads **Simple** or **Scientific**; the stored values are `'simple'` and `'advanced'`. What it changes: [Muscle naming mode](#muscle-naming-mode) |
-| Dark mode toggle (`#darkModeToggle`) | Local state | Writes `darkMode` (`'true'`/`'false'`) to `localStorage` and sets `data-theme` on `<html>`. With nothing stored it follows `prefers-color-scheme` and keeps following it until the user chooses |
+| Dark mode toggle (`#darkModeToggle`) | Local state | Offers **Dark Mode** with a moon in light mode and **Light Mode** with a sun in dark mode. Writes `darkMode` (`'true'`/`'false'`) to `localStorage` and sets `data-theme` on `<html>`. Follows `prefers-color-scheme` until the user chooses |
 | Skip to main content | Presentation | Focuses `#main-content` |
 
 ### Muscle naming mode
 
 The navbar muscle-naming button is the control for one browser-wide setting. It is stored only as
 `hypertrophy_filter_view_mode` in `localStorage` (`'simple'` when unset), so it survives reloads and
-applies on every page; the server stores nothing. Below the `lg` breakpoint the button shows only
-its icon. **Simple** uses everyday groupings (Biceps, Glutes, Quads); **Scientific** uses anatomical
+applies on every page. The label stays visible beside the icon both in the desktop row and in
+the hamburger panel. **Simple** uses everyday groupings (Biceps, Glutes, Quads). **Scientific** uses anatomical
 names (Long Head Bicep, Gluteus Maximus, Rectus Femoris). Changing it updates every surface
 below in place. The toggle itself sends no request, but two surfaces react with one — the Plan
 filter when a selected value is translated, and the two summary pages — as their rows say:

@@ -139,7 +139,7 @@ def test_only_exact_local_values_use_shared_aliases() -> None:
     welcome = (ROOT / "static" / "css" / "pages-welcome.css").read_text(
         encoding="utf-8"
     )
-    navbar = (ROOT / "static" / "css" / "navbar.css").read_text(encoding="utf-8")
+    navbar = COMMENT_RE.sub("", (ROOT / "static/css/navbar.css").read_text(encoding="utf-8"))
 
     for local, shared in (
         ("--wl-success", "--success"),
@@ -149,9 +149,9 @@ def test_only_exact_local_values_use_shared_aliases() -> None:
     ):
         assert f"{local}: var({shared});" in welcome
 
-    assert "--nav-gap: var(--s-3);" in navbar
-    assert "--nav-padding-y: var(--s-3);" in navbar
-    assert "--nav-padding-x: 1rem;" in navbar
+    assert "padding: 0 var(--ui-gutter);" in navbar
+    assert "background: var(--surface-2);" in navbar
+    assert "border-bottom: 1px solid var(--ui-hairline);" in navbar
 
 
 def test_stylelint_is_pinned_measure_only_with_committed_baseline() -> None:

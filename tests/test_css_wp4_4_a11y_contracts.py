@@ -28,6 +28,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 A11Y = ROOT / "static" / "css" / "a11y.css"
+NAVBAR = ROOT / "static" / "css" / "navbar.css"
 TEMPLATES = ROOT / "templates"
 JS = ROOT / "static" / "js"
 
@@ -75,14 +76,11 @@ LEGACY_CLASSES = (
     "scale-btn",
 )
 
-# The generation that IS live -- present in templates/base.html:190-202 and
-# census > 0 in 160/160 measured contexts. d1 must not have touched these, and
-# they are what makes the deletion safe rather than merely quiet.
-# #607 removed the four occurrences in the owner-approved Firefox exclusion.
+# The generation that d1 preserved and the Navigation redesign moved to navbar.css.
 LIVE_GENERATION = {
     "scale-control-compact": 1,
-    "scale-btn-compact": 6,
-    "scale-indicator": 2,
+    "scale-btn-compact": 5,
+    "scale-indicator": 1,
 }
 
 
@@ -133,21 +131,17 @@ def test_legacy_classes_are_still_unreachable() -> None:
     assert offenders == [], "a deleted a11y.css class is applied again: " + "; ".join(offenders)
 
 
-def test_live_compact_generation_is_untouched() -> None:
-    """The generation the app actually renders survives d1 intact.
-
-    This is the known-live control that validated the whole oracle: if these
-    were not visible, no deletion claim from the run would have counted.
-
-    Red path: deleting any `.scale-btn-compact` rule fails on the count.
-    """
-    css = _strip_comments(_css())
-    wrong = {}
+def test_live_compact_generation_has_one_stylesheet_owner() -> None:
+    """Navbar chrome lives in navbar.css, while a11y.css owns the focus ring."""
+    a11y = _strip_comments(_css())
+    navbar = _strip_comments(NAVBAR.read_text(encoding="utf-8"))
     for cls, expected in LIVE_GENERATION.items():
-        found = len(re.findall(rf"\.{re.escape(cls)}(?![\w-])", css))
-        if found != expected:
-            wrong[cls] = f"{found} (expected {expected})"
-    assert wrong == {}, f"the live compact scale generation changed: {wrong}"
+        selector = rf"\.{re.escape(cls)}(?![\w-])"
+        assert not re.search(selector, a11y), cls
+        assert len(re.findall(selector, navbar)) == expected, cls
+    assert re.search(r"\.scale-btn-compact:disabled\s*\{[^}]*cursor:\s*not-allowed;", navbar)
+    assert "--focus-ring-color: var(--nav-current);" in navbar
+    assert "outline: 2px solid var(--focus-ring-color, rgba(13, 110, 253, 0.5)) !important;" in a11y
 
 
 def test_live_compact_generation_is_still_rendered() -> None:
@@ -164,8 +158,7 @@ def test_live_compact_generation_is_still_rendered() -> None:
         # caught exactly that, and it is the same defect class as d1's
         # `"*:focus-visible," in css`.
         assert re.search(rf"{re.escape(cls)}(?![\w-])", base), (
-            f"templates/base.html no longer renders .{cls}; the a11y.css rules "
-            "d1 preserved for it would now be unreachable and must be re-audited"
+            f"templates/base.html no longer renders .{cls}; check the reach of the navbar.css rules"
         )
     assert "data-visual-scale-control" in base, (
         "base.html lost data-visual-scale-control, the registered visual "
