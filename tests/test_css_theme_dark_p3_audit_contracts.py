@@ -69,6 +69,16 @@ EXPECTED_CONTENT_ROWS = {
     ),
 }
 
+FRAME_HEADER_ASSERTION = """assert ':where([data-theme="dark"] .frame-header) {' in theme_dark"""
+FRAME_BACKDROP_ASSERTION = 'assert "backdrop-filter: blur(8px) !important;" in theme_dark'
+
+
+def _cascade_assertion_line(assertion: str) -> int:
+    source = (ROOT / "tests" / "test_css_cascade_contracts.py").read_text(encoding="utf-8")
+    matches = [number for number, line in enumerate(source.splitlines(), 1) if line.strip() == assertion]
+    assert len(matches) == 1, f"expected exactly one cascade assertion for {assertion!r}"
+    return matches[0]
+
 
 # ---------------------------------------------------------------------------
 # Line endings — normalize the INPUT, never the expectation
@@ -223,7 +233,10 @@ def test_the_walk_does_not_mistake_a_bundle_name_list_for_a_file_read() -> None:
         for record in records
         if str(record["file"]).endswith("test_css_cascade_contracts.py")
     ]
-    assert {int(str(record["line"])) for record in cascade} == {1007, 1008}
+    assert {int(str(record["line"])) for record in cascade} == {
+        _cascade_assertion_line(FRAME_HEADER_ASSERTION),
+        _cascade_assertion_line(FRAME_BACKDROP_ASSERTION),
+    }
 
 
 def _check_self_exclusion_is_counted(bucket: dict[str, object]) -> None:
@@ -441,7 +454,7 @@ def test_the_value_changed_floor_is_emitted_with_zero_headroom_red_path(
 def _check_backdrop_pin_is_satisfiable_by_absence(
     readers: list[dict[str, object]],
 ) -> None:
-    row = _row(readers, "test_css_cascade_contracts.py:1008")
+    row = _row(readers, f"test_css_cascade_contracts.py:{_cascade_assertion_line(FRAME_BACKDROP_ASSERTION)}")
     assert row["satisfiableByAbsence"] is True, (
         "the cascade contract's backdrop-filter pin is no longer detected as "
         "satisfiable by absence; if it was repaired, this contract is obsolete "
@@ -453,7 +466,7 @@ def _check_backdrop_pin_is_satisfiable_by_absence(
 def test_the_backdrop_filter_pin_is_detected_as_satisfiable_by_absence() -> None:
     """O14, on the sharpest live instance in this arc's scope.
 
-    ``tests/test_css_cascade_contracts.py:1008`` is a bare substring check for
+    The backdrop assertion in ``tests/test_css_cascade_contracts.py`` is a bare substring check for
     ``backdrop-filter: blur(8px) !important;``. The detector reports how many
     lines in the file satisfy it, which is the number that decides whether the
     pin can notice the loss of the line it exists to protect.
@@ -478,7 +491,7 @@ def test_the_backdrop_filter_pin_is_detected_as_satisfiable_by_absence_red_path(
         ],
     )
     readers = p3_ceiling.theme_dark_readers(tests_dir=ROOT / "tests", css_path=css)
-    row = _row(readers, "test_css_cascade_contracts.py:1008")
+    row = _row(readers, f"test_css_cascade_contracts.py:{_cascade_assertion_line(FRAME_BACKDROP_ASSERTION)}")
     assert row["pinnedLiteralOccurrencesInCss"] == 1
     with pytest.raises(AssertionError):
         _check_backdrop_pin_is_satisfiable_by_absence(readers)
@@ -1132,7 +1145,7 @@ def test_the_two_backdrop_filter_neutralizers_are_registered_independently() -> 
     ``backdrop-filter: none !important;`` while the helper's own
     ``-webkit-backdrop-filter: none !important;`` line *contains* that string —
     so deleting the neutralizer the entry described left its evidence satisfied,
-    the identical defect as ``tests/test_css_cascade_contracts.py:1008``.
+    the same defect as the backdrop assertion in ``tests/test_css_cascade_contracts.py``.
 
     Identity is now ``(stage, selector, property)``, and one property cannot
     stand in for another. This asserts the repair on the case that named it.
@@ -1162,8 +1175,8 @@ def test_the_two_backdrop_filter_neutralizers_are_registered_independently() -> 
 def _check_register_reach(reach: dict[str, object]) -> None:
     assert reach["contractFilesCoverTheThemeDarkPacketContract"] is False
     assert set(reach["ceilingRowsReachable"]) == {  # type: ignore[arg-type]
-        "cascade_contracts.py:1007",
-        "cascade_contracts.py:1008",
+        f"cascade_contracts.py:{_cascade_assertion_line(FRAME_HEADER_ASSERTION)}",
+        f"cascade_contracts.py:{_cascade_assertion_line(FRAME_BACKDROP_ASSERTION)}",
     }
     assert int(reach["ceilingRowsUnreachableCount"]) > 0  # type: ignore[arg-type]
 

@@ -236,7 +236,7 @@ tableDebugLog('[TableResponsiveness] Version 2024-11-11-03 loaded');
     // Create toggle button
     const toggle = document.createElement('button');
     toggle.type = 'button';
-    toggle.className = 'tbl-view-mode-toggle';
+    toggle.className = 'tbl-view-mode-toggle ui-btn ui-btn--small';
     toggle.setAttribute('data-view-mode-toggle', '');
     toggle.setAttribute('aria-pressed', 'false');
     toggle.innerHTML = '<i class="fas fa-columns" aria-hidden="true"></i> <span class="mode-text">Simple</span>';

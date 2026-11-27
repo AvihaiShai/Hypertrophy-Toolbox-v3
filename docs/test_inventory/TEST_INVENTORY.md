@@ -15,10 +15,10 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **775** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **625** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4761** across 145 files |
+| pytest collected nodes (deterministic subset) | **4762** across 145 files |
 | pytest test files (all) | **146** |
 | JS unit cases (Vitest) | **271** across 15 files |
-| Hard waits (lines containing waitForTimeout) | **79** across 14 files |
+| Hard waits (lines containing waitForTimeout) | **78** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -91,7 +91,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_constants.py` | 45 |
 | `tests/test_consult_adapter.py` | 59 |
 | `tests/test_css_audit_digest_normalization_contracts.py` | 5 |
-| `tests/test_css_cascade_contracts.py` | 31 |
+| `tests/test_css_cascade_contracts.py` | 32 |
 | `tests/test_css_display_utilities_contracts.py` | 7 |
 | `tests/test_css_field_separator_contracts.py` | 10 |
 | `tests/test_css_theme_animating_contracts.py` | 4 |
@@ -247,7 +247,7 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 |---|---:|
 | `e2e/dark-mode.spec.ts` | 1 |
 | `e2e/empty-states.spec.ts` | 9 |
-| `e2e/error-handling.spec.ts` | 11 |
+| `e2e/error-handling.spec.ts` | 10 |
 | `e2e/exercise-interactions.spec.ts` | 7 |
 | `e2e/fatigue-stage4-smokes.spec.ts` | 1 |
 | `e2e/learned-calibration.spec.ts` | 2 |

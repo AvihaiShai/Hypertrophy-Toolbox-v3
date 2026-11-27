@@ -23,7 +23,7 @@ import {
   BENCH, DEADLIFT, ROUTINE_A, ROUTINE_B, ROW, SQUAT, addPlanRow, loadPlan, planData,
   planPost, planRow, planRows, routineTab,
 } from './workout-plan-fixture';
-import { setDetails } from './workout-plan-redesign';
+import { filterToggle, setDetails } from './workout-plan-redesign';
 
 const TEST_ROUTINE = 'GYM - Full Body - Workout A';
 
@@ -191,6 +191,7 @@ async function ensureRoutineHasExercises(
   }
 
   await selectRoutine(page);
+  await routineTab(page, TEST_ROUTINE).click();
 
   await expect.poll(() => page.locator(TEST_ROUTINE_ROWS).count(), {
     message: `expected the plan table to render at least ${minimumCount} "${TEST_ROUTINE}" row(s)`,
@@ -542,6 +543,7 @@ test.describe('Exercise Filter Application', () => {
 
   test('applying filter updates exercise dropdown', async ({ page }) => {
     await selectRoutine(page);
+    await filterToggle(page).click();
 
     // Get initial option count
     const exerciseSelect = page.locator(SELECTORS.EXERCISE_SEARCH);
@@ -575,6 +577,7 @@ test.describe('Exercise Filter Application', () => {
   });
 
   test('multiple filters can be combined', async ({ page }) => {
+    await filterToggle(page).click();
     const filterForm = page.locator('#filters-form');
     const filterSelects = filterForm.locator('select.filter-dropdown');
     const count = await filterSelects.count();
@@ -615,7 +618,7 @@ test.describe('Routine Tab Navigation', () => {
     await selectRoutine(page);
     await page.waitForSelector('#workout_plan_table_body tr');
 
-    const tabs = page.locator('#routine-tabs .nav-link');
+    const tabs = page.locator('#routine-tabs .routine-tab-btn');
     const tabCount = await tabs.count();
 
     if (tabCount > 1) {
@@ -642,11 +645,21 @@ test.describe('Routine Tab Navigation', () => {
   });
 });
 
-async function dragByPlanHandle(page: Page, sourceId: number, targetId: number) {
+async function dragByPlanHandle(page: Page, sourceId: number, targetId: number, fitCards = false) {
   const source = planRow(page, sourceId).locator('.drag-handle');
   const target = planRow(page, targetId);
   await source.scrollIntoViewIfNeeded();
   await target.scrollIntoViewIfNeeded();
+  if (fitCards) {
+    await target.evaluate((element, sourceId) => {
+      const source = document.querySelector(`#workout_plan_table_body tr[data-exercise-id="${sourceId}"]`)!;
+      const navbarBottom = document.querySelector('#navbar')!.getBoundingClientRect().bottom;
+      const boxes = [source, element].map(row => row.getBoundingClientRect());
+      const top = Math.min(...boxes.map(box => box.top));
+      const bottom = Math.max(...boxes.map(box => box.bottom));
+      window.scrollBy({ top: (top + bottom - navbarBottom - window.innerHeight) / 2, behavior: 'instant' });
+    }, sourceId);
+  }
   const from = await source.boundingBox();
   const to = await target.boundingBox();
   expect(from, 'the row supplied a real drag handle').not.toBeNull();
@@ -654,10 +667,26 @@ async function dragByPlanHandle(page: Page, sourceId: number, targetId: number) 
   const x = from!.x + from!.width / 2;
   const y = from!.y + from!.height / 2;
   const destination = { x, y: to!.y + to!.height / 4 };
+  if (fitCards) {
+    const hits = (element: Element, point: { x: number; y: number }) =>
+      element.contains(document.elementFromPoint(point.x, point.y));
+    expect(await source.evaluate(hits, { x, y }), 'drag starts on the source handle').toBe(true);
+    expect(await target.evaluate(hits, destination), 'drop point is on the target row').toBe(true);
+  }
   const response = page.waitForResponse(result => new URL(result.url()).pathname === '/update_exercise_order');
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(destination.x, destination.y, { steps: 14 });
+  if (fitCards) {
+    await page.locator('#workout_plan_table_body').evaluate(async (body) => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const transforms = [...body.querySelectorAll(':scope > tr')]
+        .flatMap(row => row.getAnimations())
+        .filter(animation => animation instanceof CSSTransition && animation.transitionProperty === 'transform' &&
+          Number.isFinite(animation.effect?.getComputedTiming().endTime));
+      await Promise.allSettled(transforms.map(animation => animation.finished));
+    });
+  }
   await page.mouse.move(destination.x + 2, destination.y);
   await page.mouse.up();
   const ordered = await response;
@@ -711,7 +740,7 @@ guardedTest.describe('Plan redesign acceptance', () => {
     await routineTab(page, ROUTINE_A).click();
     await expect(planRow(page, first.id), 'the drag handle belongs to a phone card').toHaveClass(/\bui-record-card\b/);
     await expect(planRows(page).locator('.exercise-name')).toHaveText([first.exercise, partner.exercise, last.exercise]);
-    expect(await dragByPlanHandle(page, last.id, first.id)).toEqual([
+    expect(await dragByPlanHandle(page, last.id, first.id, true)).toEqual([
       { id: last.id, order: 1 }, { id: partner.id, order: 2 }, { id: first.id, order: 3 },
     ]);
     await loadPlan(page, true);
@@ -722,7 +751,7 @@ guardedTest.describe('Plan redesign acceptance', () => {
     guardedTest.use({
       consoleAllowlist: { expected: [
         {
-          match: 'Failed to load resource: the server responded with a status of 400 (Bad Request)',
+          match: 'Failed to load resource: the server responded with a status of 400 (BAD REQUEST)',
           reason: 'Chromium reports the deliberate invalid Sets update',
         },
         {

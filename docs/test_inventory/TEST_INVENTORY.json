@@ -12,7 +12,7 @@
       },
       {
         "file": "e2e/error-handling.spec.ts",
-        "lines": 11
+        "lines": 10
       },
       {
         "file": "e2e/exercise-interactions.spec.ts",
@@ -61,7 +61,7 @@
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 79
+    "total_lines": 78
   },
   "playwright": {
     "project": "chromium",
@@ -241,7 +241,7 @@
     "total_tests": 775
   },
   "pytest": {
-    "collected_deterministic": 4761,
+    "collected_deterministic": 4762,
     "deterministic_files": 145,
     "environment_dependent_files": [
       {
@@ -344,7 +344,7 @@
       },
       {
         "file": "tests/test_css_cascade_contracts.py",
-        "tests": 31
+        "tests": 32
       },
       {
         "file": "tests/test_css_display_utilities_contracts.py",

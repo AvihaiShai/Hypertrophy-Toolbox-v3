@@ -59,12 +59,11 @@ const arg = (name, fallback = null) => {
 };
 
 /**
- * The post-removal `theme-dark.css` this control is defined against, as the
- * sha256 of its **LF-normalized** text — see "What the digests are digests of".
- * Re-pinned from the CRLF digest `e54818bf…` (LEFTOVERS P2.6). The pinned text has
- * no `.workout-log-frame` branch in its grouped dark glass rule.
+ * The Workout Plan migration's `theme-dark.css` narrows the dark glass rule to
+ * `.modal-content.frame-calm-glass`. This digest is the SHA-256 of its
+ * **LF-normalized** text. See "What the digests are digests of".
  */
-const EXPECTED_INPUT = '589455639efbf164b76198f7cc2a06b9125962af1f27b554bca1eeb446bb9d26';
+const EXPECTED_INPUT = '97c27d99cebfab9ade9e30fcda53df67fb5782cb4a8966e8c47145b6c9c00b78';
 const TOKEN = '--bg-primary';
 /**
  * `--bg-primary` proves the instrument is live, but it only surfaces where no

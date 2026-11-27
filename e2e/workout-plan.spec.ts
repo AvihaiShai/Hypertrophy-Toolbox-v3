@@ -10,6 +10,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './console-guard';
 import {
+  API_ENDPOINTS,
   ROUTES,
   SELECTORS,
   expectToast,
@@ -62,7 +63,8 @@ test.describe('Workout Plan Page', () => {
     await expect(workoutPage).toBeVisible();
     await expect(page.locator('h1')).toContainText('Workout Plan');
 
-    // Filter section should be visible
+    await expect(page.locator('#filters-form')).toBeHidden();
+    await filterToggle(page).click();
     await expect(page.locator('#filters-form')).toBeVisible();
 
     // Routine cascade selectors should be visible
@@ -75,11 +77,13 @@ test.describe('Workout Plan Page', () => {
 
     // Action buttons should be visible
     await expect(page.locator(SELECTORS.ADD_EXERCISE_BTN)).toBeVisible();
+    await expect(page.locator(SELECTORS.EXPORT_EXCEL_BTN)).toBeHidden();
+    await moreButton(page).click();
     await expect(page.locator(SELECTORS.EXPORT_EXCEL_BTN)).toBeVisible();
     await expect(page.locator(SELECTORS.EXPORT_TO_LOG_BTN)).toBeVisible();
 
-    // Workout plan table should be visible
-    await expect(page.locator(SELECTORS.EXERCISE_TABLE)).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Empty plan' })).toBeVisible();
+    await expect(page.locator(SELECTORS.EXERCISE_TABLE)).toBeHidden();
   });
 
   test('routine breadcrumb renders option labels as literal text', async ({ page }) => {
@@ -361,6 +365,7 @@ test.describe('Workout Plan Page', () => {
   });
 
   test('clear filters button resets all filter dropdowns', async ({ page }) => {
+    await filterToggle(page).click();
     // Find filter dropdowns and set some values
     const filterForm = page.locator('#filters-form');
     const filterSelects = filterForm.locator('select.filter-dropdown');
@@ -388,7 +393,7 @@ test.describe('Workout Plan Page', () => {
   });
 
   test('filter dropdowns exist and have options', async ({ page }) => {
-    // Verify filter form exists
+    await filterToggle(page).click();
     const filterForm = page.locator('#filters-form');
     await expect(filterForm).toBeVisible();
 
@@ -399,6 +404,8 @@ test.describe('Workout Plan Page', () => {
   });
 
   test('exercise table has correct structure', async ({ page }) => {
+    await addPlanRow(page.request, ROUTINE_A, BENCH);
+    await loadPlan(page, true);
     const table = page.locator(SELECTORS.EXERCISE_TABLE);
     await expect(table).toBeVisible();
 
@@ -416,6 +423,9 @@ test.describe('Workout Plan Page', () => {
   });
 
   test('muscle naming toggle syncs workout table column visibility', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await addPlanRow(page.request, ROUTINE_A, BENCH);
+    await loadPlan(page, true);
     const tableModeToggle = page.locator('.tbl-view-mode-toggle[data-table-key="workout_plan"]');
     const advancedOnlyHeader = page.locator('th[data-label="Tertiary Muscle"]');
 
@@ -508,6 +518,7 @@ test.describe('Workout Plan Page', () => {
     // Wait for row to be added
     await page.waitForSelector('#workout_plan_table_body tr');
 
+    await moreButton(page).click();
     // Setup download handling
     const downloadPromise = page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
 
@@ -643,6 +654,7 @@ test.describe('Workout Plan Page', () => {
 
   test('generate starter plan modal opens', async ({ page }) => {
     // Click generate starter plan button
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await generateBtn.click();
@@ -667,6 +679,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
 
   test('generate plan modal has priority muscles option', async ({ page }) => {
     // Open the generate plan modal
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await generateBtn.click();
 
@@ -687,6 +700,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
 
   test('generate plan modal has time budget option', async ({ page }) => {
     // Open the generate plan modal
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await generateBtn.click();
 
@@ -710,6 +724,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
 
   test('generate plan modal has merge mode toggle', async ({ page }) => {
     // Open the generate plan modal
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await generateBtn.click();
 
@@ -795,6 +810,7 @@ test.describe('Starter plan toast severity contract', () => {
 
 
   test('no-equipment-selected guard renders a warning toast, not success', async ({ page }) => {
+    await moreButton(page).click();
     await page.locator('#generate-plan-btn').click();
     const modal = page.locator('#generatePlanModal');
     await expect(modal).toBeVisible({ timeout: 5000 });
@@ -860,6 +876,7 @@ test.describe('Starter plan toast severity contract', () => {
         });
       });
 
+      await moreButton(page).click();
       await page.locator('#generate-plan-btn').click();
       const modal = page.locator('#generatePlanModal');
       await expect(modal).toBeVisible({ timeout: 5000 });
@@ -888,6 +905,7 @@ test.describe('Muscle selector body map', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForWorkoutPlanReady(page);
 
+    await moreButton(page).click();
     await page.locator('#generate-plan-btn').click();
     await expect(page.locator('#generatePlanModal')).toBeVisible({ timeout: 5000 });
     // Wait for the inline SVG fetch + render in the modal.
@@ -1138,29 +1156,19 @@ test.describe('Exercise reference video modal (workout-plan)', () => {
 });
 
 test.describe('§4 free-exercise-db thumbnails', () => {
-  test.beforeEach(async ({ page }) => {
-    await resetWorkoutPlan(page);
-    await page.goto(ROUTES.WORKOUT_PLAN);
-    // Deliberately still `waitForPageReady`. These tests inject rows by calling
-    // `updateWorkoutPlanTable()` directly, so the page's own `fetchWorkoutPlan()`
-    // has to have landed first — otherwise it repaints over the mock. That is a
-    // network guarantee the readiness marker does not provide.
-    await waitForPageReady(page);
-  });
-
-
-  // Render a mocked row directly via the module's `updateWorkoutPlanTable`
-  // entry point so the assertions don't depend on the live DB carrying a
-  // curated `media_path`. Mirrors the JSON shape `/get_workout_plan` returns.
-  async function renderMockExercises(page: Page, exercises: Record<string, unknown>[]) {
-    await page.evaluate(async (rows) => {
-      const mod = await import('/static/js/modules/workout-plan.js');
-      mod.updateWorkoutPlanTable(rows as never);
-    }, exercises);
+  // The first successful plan response chooses the opening routine and reveals the table.
+  async function loadMockExercises(page: Page, exercises: Record<string, unknown>[]) {
+    await page.route(url => url.pathname === API_ENDPOINTS.GET_WORKOUT_PLAN, route => {
+      if (route.request().method() !== 'GET') return route.fallback();
+      return route.fulfill({ json: { ok: true, data: exercises } });
+    });
+    await loadPlan(page);
+    await expect(page.locator('#workout')).toHaveAttribute('data-plan-state', 'populated');
+    await expect(planRows(page)).toHaveCount(exercises.length);
   }
 
   test('mocked row with media_path renders a thumbnail img with safe src', async ({ page }) => {
-    await renderMockExercises(page, [
+    await loadMockExercises(page, [
       {
         id: 9001,
         routine: 'GYM - Full Body - Workout A',
@@ -1175,7 +1183,7 @@ test.describe('§4 free-exercise-db thumbnails', () => {
       },
     ]);
 
-    const row = page.locator('#workout_plan_table_body tr').first();
+    const row = planRow(page, 9001);
     await expect(row).toBeVisible();
 
     const thumb = row.locator('img.exercise-thumbnail');
@@ -1194,7 +1202,7 @@ test.describe('§4 free-exercise-db thumbnails', () => {
   });
 
   test('mocked row with NULL media_path renders no img and no console errors', async ({ page }) => {
-    await renderMockExercises(page, [
+    await loadMockExercises(page, [
       {
         id: 9002,
         routine: 'GYM - Full Body - Workout A',
@@ -1209,13 +1217,13 @@ test.describe('§4 free-exercise-db thumbnails', () => {
       },
     ]);
 
-    const row = page.locator('#workout_plan_table_body tr').first();
+    const row = planRow(page, 9002);
     await expect(row).toBeVisible();
     await expect(row.locator('img.exercise-thumbnail')).toHaveCount(0);
   });
 
   test('mocked row with HTML-special exercise name renders escaped (no raw markup leaks)', async ({ page }) => {
-    await renderMockExercises(page, [
+    await loadMockExercises(page, [
       {
         id: 9003,
         routine: 'GYM - Full Body - Workout A',
@@ -1230,7 +1238,7 @@ test.describe('§4 free-exercise-db thumbnails', () => {
       },
     ]);
 
-    const row = page.locator('#workout_plan_table_body tr').first();
+    const row = planRow(page, 9003);
     // textContent strips markup; if escapeHtml is working, the literal angle brackets are present.
     await expect(row.locator('.exercise-name')).toHaveText(`Coach's <Test> Press`);
     // And no nested <Test> element was injected from the angle brackets.
@@ -1242,6 +1250,7 @@ test.describe('§4 free-exercise-db thumbnails', () => {
   });
 
   test('escapeHtml + resolveExerciseMediaSrc behave per the §4.3/§4.4 contract', async ({ page }) => {
+    await loadPlan(page);
     const result = await page.evaluate(async () => {
       const mod = await import('/static/js/modules/exercise-helpers.js');
       return {
@@ -1417,8 +1426,11 @@ test.describe('Plan redesign acceptance', () => {
     await expect(muscleChip).toBeVisible();
     await expect(equipmentChip).toBeVisible();
     const calls: object[] = [];
+    const catalogCalls: string[] = [];
     page.on('request', request => {
+      const path = new URL(request.url()).pathname;
       if (isFilter(request.url()) && request.method() === 'POST') calls.push(request.postDataJSON());
+      if (path.startsWith('/get_routine_exercises/') && request.method() === 'GET') catalogCalls.push(path);
     });
     const filtered = page.waitForResponse(response => isFilter(response.url()) && response.request().method() === 'POST');
     await muscleChip.click();
@@ -1427,17 +1439,26 @@ test.describe('Plan redesign acceptance', () => {
     await expect(equipment).not.toHaveValue('');
     await expect(muscleChip).toBeHidden();
     await expect(equipmentChip).toBeVisible();
-    await page.locator('#routine-env').selectOption('GYM');
-    await page.locator('#routine-program').selectOption('Full Body');
-    const cascadePath = '/get_routine_exercises/';
-    const cascaded = page.waitForResponse(response => new URL(response.url()).pathname.startsWith(cascadePath));
-    await page.locator('#routine-day').selectOption('Workout A');
-    expect((await cascaded).ok()).toBe(true);
+    expect(calls, 'removing one chip posts exactly the remaining filter').toEqual([{ Equipment: 'Barbell' }]);
+
+    const cascadeChoices = [
+      ['#routine-env', 'GYM'],
+      ['#routine-program', 'Full Body'],
+      ['#routine-day', 'Workout A'],
+    ] as const;
+    for (const [selector, value] of cascadeChoices) {
+      const before = calls.length;
+      const filtered = page.waitForResponse(response => isFilter(response.url()) && response.request().method() === 'POST');
+      await page.locator(selector).selectOption(value);
+      expect((await filtered).ok()).toBe(true);
+      expect(calls.slice(before), `${selector} reapplies the Equipment filter once`).toEqual([{ Equipment: 'Barbell' }]);
+    }
     await expect(page.locator('#routine')).toHaveValue(ROUTINE_A);
     const exercise = page.locator('#exercise');
     await exercise.selectOption({ index: 1 }, { force: true });
     await expect(exercise).not.toHaveValue('');
-    expect(calls, 'removing one chip sends exactly one filtering request').toHaveLength(1);
+    expect(calls, 'chip removal and the three cascade changes each post once').toHaveLength(1 + cascadeChoices.length);
+    expect(catalogCalls, 'active filters bypass the unfiltered routine catalog').toEqual([]);
 
     await page.locator('#clear-filters-btn').click();
     await expectToast(page, 'Filters cleared successfully');
@@ -1598,9 +1619,24 @@ test.describe('Plan redesign acceptance', () => {
     await expect(addPanel(page), 'phone Add exercise is in the dedicated panel').toBeVisible();
     const routine = page.locator('#routine');
     const add = page.locator('#add_exercise_btn');
+    const exercise = page.locator('#exercise');
+    const addRequests: string[] = [];
+    page.on('request', request => {
+      if (request.method() === 'POST' && new URL(request.url()).pathname === '/add_exercise') {
+        addRequests.push(request.url());
+      }
+    });
     await expect(routine).toHaveValue('');
+    await expect(exercise).toHaveValue(/\S/);
     await add.click();
-    await expectToast(page, 'Please select: Routine and Exercise');
+    await expectToast(page, /^Please select: Routine$/);
+
+    await page.locator('#clear-filters-btn').click();
+    await expect(exercise).toHaveValue('');
+    await expectToast(page, 'Filters cleared successfully');
+    await add.click();
+    await expectToast(page, /^Please select: Routine and Exercise$/);
+    expect(addRequests, 'neither invalid submission posts an exercise').toHaveLength(0);
 
     await page.locator('#routine-env').selectOption('GYM');
     await page.locator('#routine-program').selectOption('Full Body');
@@ -1748,7 +1784,8 @@ test.describe('Plan redesign acceptance', () => {
     await card.locator('[data-action="play-video"]').click();
     await expect(modal).toHaveAttribute('data-test-opened', '');
     await expect(page.locator('#exerciseVideoIframe')).toHaveAttribute('src', /^https:\/\/www\.youtube\.com\/embed\/dQw4w9WgXcQ/);
-    await modal.getByRole('button', { name: 'Close' }).click();
+    await expect(modal.getByRole('button', { name: 'Close reference video', exact: true })).toBeVisible();
+    await modal.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(modal).toBeHidden();
     await expect(page.locator('#exerciseVideoIframe')).toHaveAttribute('src', /^(|about:blank)$/);
   });

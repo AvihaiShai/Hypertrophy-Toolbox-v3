@@ -13,7 +13,11 @@ def test_base_owns_skip_target_and_single_main_landmark(client, clean_db):
     assert 'class="nb-skip-link" href="#main-content"' in base
     assert base.count("<main") == 1
     assert base.count("</main>") == 1
-    for route, frame in (("/", "container-fluid mt-4"), ("/workout_log", "ui-page-frame")):
+    for route, frame in (
+        ("/", "container-fluid mt-4"),
+        ("/workout_log", "ui-page-frame"),
+        ("/workout_plan", "ui-page-frame"),
+    ):
         response = client.get(route)
         assert response.status_code == 200
         html = response.get_data(as_text=True)

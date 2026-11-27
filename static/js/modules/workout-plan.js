@@ -4,12 +4,13 @@ import { workoutPlanState } from './workout-plan-state.js';
 import {
     configureWorkoutPlanTable,
     handleViewModeChange,
+    initializePlanDetails,
     initializeRoutineTabs,
     transformMuscleDisplay,
     updateRoutineTabs,
     updateWorkoutPlanTable,
 } from './workout-plan-table.js';
-import { applyRoutineTabFilter } from './workout-plan-helpers.js';
+import { applyRoutineTabFilter, compareRoutines } from './workout-plan-helpers.js';
 import {
     applyUserProfileEstimateForSelectedExercise,
     bindEstimateTraceToggle,
@@ -50,8 +51,7 @@ import {
 
 initializeWorkoutPlanMedia();
 
-// Re-export the table renderer so existing importers (and the workout-plan E2E
-// harness that imports this module directly) keep resolving it from here.
+// Keep the existing public export for callers of the Plan renderer.
 export { updateWorkoutPlanTable };
 
 // Re-export the profile-estimate entry point so existing importers keep
@@ -62,9 +62,8 @@ export { applyUserProfileEstimateForSelectedExercise };
 // keep resolving it from this module after the WP3.4f split.
 export { handleAddExercise };
 
-// Wire the table module's injected feature callbacks — swap, superset toggle,
-// superset action init, execution-style click, and plan refresh — at load, so a
-// bare updateWorkoutPlanTable() (e.g. the E2E media harness) renders identically.
+// Wire the table's swap, superset, execution-style, and refresh callbacks at
+// module load so the public renderer works before page handlers initialize.
 configureWorkoutPlanTable({
     onSwap: handleSwapExercise,
     onSupersetToggle: handleSupersetCheckboxChange,
@@ -87,6 +86,8 @@ configureAddExercise({ refreshPlan: fetchWorkoutPlan });
 configureSupersets({ refreshPlan: fetchWorkoutPlan });
 
 // Workout plan functionality
+let openingRoutineSelected = false;
+
 export async function fetchWorkoutPlan() {
     try {
         const data = await api.get('/get_workout_plan');
@@ -94,6 +95,12 @@ export async function fetchWorkoutPlan() {
         // api wrapper returns the response data directly (from data.data if standardized)
         const exercises = data.data !== undefined ? data.data : data;
         
+        if (!openingRoutineSelected) {
+            const routines = exercises.map(exercise => exercise.routine).filter(Boolean);
+            workoutPlanState.currentRoutineTabFilter = routines.sort(compareRoutines)[0] || 'all';
+            openingRoutineSelected = true;
+        }
+
         // Cache all exercises for tab filtering
         workoutPlanState.allExercisesCache = exercises;
         
@@ -104,6 +111,8 @@ export async function fetchWorkoutPlan() {
         const filteredExercises = applyRoutineTabFilter(exercises, workoutPlanState.currentRoutineTabFilter);
         updateWorkoutPlanTable(filteredExercises);
         updateWorkoutPlanUI(exercises); // Always show totals for all exercises
+        const page = document.getElementById('workout');
+        if (page) page.dataset.planState = exercises.length ? 'populated' : 'empty';
         
         // Table responsiveness is already initialized by table-responsiveness.js autoInit
         // No need to reinitialize here
@@ -464,6 +473,7 @@ export function initializeWorkoutPlanHandlers() {
     
     // Initialize routine tabs - "All" tab click handler
     initializeRoutineTabs();
+    initializePlanDetails();
     
     // Listen for view mode changes to update muscle display
     document.addEventListener('filterViewModeChanged', handleViewModeChange);

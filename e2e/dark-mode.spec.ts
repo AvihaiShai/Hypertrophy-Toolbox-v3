@@ -7,6 +7,7 @@
 import { test, expect } from './console-guard';
 import { ROUTES, SELECTORS, waitForPageReady, getDarkModeState, getStoredDarkMode } from './fixtures';
 import { Page } from '@playwright/test';
+import { moreButton } from './workout-plan-redesign';
 
 /**
  * Click the dark mode toggle using JavaScript evaluation.
@@ -134,7 +135,10 @@ test.describe('Dark Mode Persistence', () => {
     await waitForPageReady(page);
     expect(await getDarkModeState(page)).toBe('dark');
     await expect(page.locator('#add_exercise_btn')).toHaveCSS('background-color', 'rgb(82, 100, 173)');
-    await expect(page.locator('#clear-plan-btn')).toHaveCSS('background-color', 'rgb(168, 79, 73)');
+    await moreButton(page).click();
+    const clearPlan = page.locator('#clear-plan-btn');
+    await expect(clearPlan).toHaveCSS('color', 'rgb(240, 138, 128)');
+    await expect(clearPlan).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect.poll(() => page.evaluate(() =>
       (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame
     )).toBe('dark');

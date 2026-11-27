@@ -1134,62 +1134,78 @@
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
+      "test": "test_workout_plan_drawer_shadows_legacy_declarations",
+      "startLine": 260,
+      "endLine": 306,
+      "surfaces": [
+        "components.css"
+      ],
+      "indirectBundleMaps": [],
+      "assertionCount": 2,
+      "assertionLines": [
+        269,
+        306
+      ],
+      "firstLine": "def test_workout_plan_drawer_shadows_legacy_declarations() -> None:"
+    },
+    {
+      "file": "tests/test_css_cascade_contracts.py",
       "test": "test_backup_tokens_remain_page_owned_under_the_late_global_theme",
-      "startLine": 253,
-      "endLine": 284,
+      "startLine": 309,
+      "endLine": 340,
       "surfaces": [
         "theme-dark.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 10,
       "assertionLines": [
-        265,
-        266,
-        267,
-        268,
-        269,
-        282,
-        283,
-        284,
-        279,
-        280
+        321,
+        322,
+        323,
+        324,
+        325,
+        338,
+        339,
+        340,
+        335,
+        336
       ],
       "firstLine": "def test_backup_tokens_remain_page_owned_under_the_late_global_theme() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_body_composition_tokens_keep_page_ownership_and_shared_heading_winner",
-      "startLine": 287,
-      "endLine": 327,
+      "startLine": 343,
+      "endLine": 383,
       "surfaces": [
         "theme-dark.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 15,
       "assertionLines": [
-        302,
-        303,
-        304,
-        305,
-        315,
-        316,
-        320,
-        321,
-        322,
-        324,
-        325,
-        326,
-        327,
-        312,
-        313
+        358,
+        359,
+        360,
+        361,
+        371,
+        372,
+        376,
+        377,
+        378,
+        380,
+        381,
+        382,
+        383,
+        368,
+        369
       ],
       "firstLine": "def test_body_composition_tokens_keep_page_ownership_and_shared_heading_winner() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "startLine": 330,
-      "endLine": 410,
+      "startLine": 386,
+      "endLine": 466,
       "surfaces": [
         "components.css",
         "motion.css",
@@ -1198,38 +1214,38 @@
       "indirectBundleMaps": [],
       "assertionCount": 24,
       "assertionLines": [
-        348,
-        351,
-        352,
-        353,
-        354,
-        375,
-        376,
-        380,
-        381,
-        382,
-        388,
-        389,
-        390,
-        391,
-        403,
         404,
-        406,
         407,
         408,
         409,
         410,
-        369,
-        370,
-        402
+        431,
+        432,
+        436,
+        437,
+        438,
+        444,
+        445,
+        446,
+        447,
+        459,
+        460,
+        462,
+        463,
+        464,
+        465,
+        466,
+        425,
+        426,
+        458
       ],
       "firstLine": "def test_progression_tokens_preserve_route_ownership_and_live_dark_cascade() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "startLine": 413,
-      "endLine": 504,
+      "startLine": 469,
+      "endLine": 560,
       "surfaces": [
         "a11y.css",
         "components.css",
@@ -1239,42 +1255,42 @@
       "indirectBundleMaps": [],
       "assertionCount": 28,
       "assertionLines": [
-        430,
-        431,
-        432,
-        433,
-        434,
-        435,
-        458,
-        459,
-        460,
-        461,
-        462,
-        479,
-        480,
-        481,
-        482,
-        483,
-        484,
-        485,
         486,
         487,
-        501,
-        502,
-        503,
-        504,
-        453,
-        454,
+        488,
+        489,
+        490,
         491,
-        500
+        514,
+        515,
+        516,
+        517,
+        518,
+        535,
+        536,
+        537,
+        538,
+        539,
+        540,
+        541,
+        542,
+        543,
+        557,
+        558,
+        559,
+        560,
+        509,
+        510,
+        547,
+        556
       ],
       "firstLine": "def test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_welcome_tokens_extract_exact_values_without_dead_custom_properties",
-      "startLine": 507,
-      "endLine": 568,
+      "startLine": 563,
+      "endLine": 624,
       "surfaces": [
         "a11y.css",
         "motion.css",
@@ -1283,30 +1299,30 @@
       "indirectBundleMaps": [],
       "assertionCount": 16,
       "assertionLines": [
-        514,
-        515,
-        516,
-        517,
-        553,
-        554,
-        555,
-        557,
-        561,
-        565,
-        568,
-        527,
-        528,
-        541,
-        552,
-        567
+        570,
+        571,
+        572,
+        573,
+        609,
+        610,
+        611,
+        613,
+        617,
+        621,
+        624,
+        583,
+        584,
+        597,
+        608,
+        623
       ],
       "firstLine": "def test_welcome_tokens_extract_exact_values_without_dead_custom_properties() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_session_summary_tokens_extract_exact_values_value_preserving",
-      "startLine": 571,
-      "endLine": 631,
+      "startLine": 627,
+      "endLine": 687,
       "surfaces": [
         "a11y.css",
         "motion.css",
@@ -1315,29 +1331,29 @@
       "indirectBundleMaps": [],
       "assertionCount": 15,
       "assertionLines": [
-        582,
-        583,
-        584,
-        585,
-        620,
-        621,
-        622,
-        623,
-        629,
-        630,
-        631,
-        604,
-        605,
-        619,
-        628
+        638,
+        639,
+        640,
+        641,
+        676,
+        677,
+        678,
+        679,
+        685,
+        686,
+        687,
+        660,
+        661,
+        675,
+        684
       ],
       "firstLine": "def test_session_summary_tokens_extract_exact_values_value_preserving() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms",
-      "startLine": 634,
-      "endLine": 715,
+      "startLine": 690,
+      "endLine": 771,
       "surfaces": [
         "a11y.css",
         "motion.css",
@@ -1346,35 +1362,35 @@
       "indirectBundleMaps": [],
       "assertionCount": 21,
       "assertionLines": [
-        645,
-        646,
-        647,
-        648,
-        686,
-        687,
-        688,
-        689,
-        690,
-        695,
-        696,
-        697,
         701,
         702,
-        714,
-        715,
-        669,
-        670,
-        685,
-        708,
-        713
+        703,
+        704,
+        742,
+        743,
+        744,
+        745,
+        746,
+        751,
+        752,
+        753,
+        757,
+        758,
+        770,
+        771,
+        725,
+        726,
+        741,
+        764,
+        769
       ],
       "firstLine": "def test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_user_profile_tokens_extract_repeated_operands_value_preserving",
-      "startLine": 718,
-      "endLine": 804,
+      "startLine": 774,
+      "endLine": 860,
       "surfaces": [
         "a11y.css",
         "motion.css",
@@ -1383,32 +1399,32 @@
       "indirectBundleMaps": [],
       "assertionCount": 18,
       "assertionLines": [
-        729,
-        730,
-        731,
-        732,
-        781,
-        782,
-        789,
-        795,
-        796,
-        799,
-        800,
-        803,
-        804,
-        753,
-        754,
-        761,
-        765,
-        780
+        785,
+        786,
+        787,
+        788,
+        837,
+        838,
+        845,
+        851,
+        852,
+        855,
+        856,
+        859,
+        860,
+        809,
+        810,
+        817,
+        821,
+        836
       ],
       "firstLine": "def test_user_profile_tokens_extract_repeated_operands_value_preserving() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "startLine": 865,
-      "endLine": 948,
+      "startLine": 921,
+      "endLine": 1004,
       "surfaces": [
         "a11y.css",
         "components.css"
@@ -1416,175 +1432,171 @@
       "indirectBundleMaps": [],
       "assertionCount": 22,
       "assertionLines": [
-        886,
-        887,
-        888,
-        889,
-        890,
-        891,
-        896,
-        897,
-        898,
-        899,
-        900,
-        901,
-        902,
-        903,
-        904,
-        905,
-        906,
-        907,
-        932,
-        933,
-        928,
-        948
+        942,
+        943,
+        944,
+        945,
+        946,
+        947,
+        952,
+        953,
+        954,
+        955,
+        956,
+        957,
+        958,
+        959,
+        960,
+        961,
+        962,
+        963,
+        988,
+        989,
+        984,
+        1004
       ],
       "firstLine": "def test_workout_plan_wpdd_route_ownership_cleanup() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "startLine": 951,
-      "endLine": 1053,
+      "startLine": 1007,
+      "endLine": 1100,
       "surfaces": [
         "components.css",
         "theme-dark.css"
       ],
       "indirectBundleMaps": [],
-      "assertionCount": 18,
+      "assertionCount": 14,
       "assertionLines": [
-        1007,
-        1008,
-        1032,
-        1035,
-        1041,
-        1042,
-        1045,
-        1046,
-        1047,
-        1048,
-        1049,
-        1050,
-        1051,
-        1052,
-        1053,
-        992,
-        1006,
-        1031
+        1059,
+        1060,
+        1084,
+        1087,
+        1093,
+        1094,
+        1096,
+        1097,
+        1098,
+        1099,
+        1100,
+        1044,
+        1058,
+        1083
       ],
       "firstLine": "def test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks",
-      "startLine": 1056,
-      "endLine": 1103,
+      "startLine": 1103,
+      "endLine": 1150,
       "surfaces": [
         "tokens.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 6,
       "assertionLines": [
-        1085,
-        1099,
-        1100,
-        1103,
-        1078,
-        1095
+        1132,
+        1146,
+        1147,
+        1150,
+        1125,
+        1142
       ],
       "firstLine": "def test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_table_drops_dead_global_token_fallbacks",
-      "startLine": 1144,
-      "endLine": 1183,
+      "startLine": 1191,
+      "endLine": 1230,
       "surfaces": [
         "tokens.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 3,
       "assertionLines": [
-        1173,
-        1163,
-        1183
+        1220,
+        1210,
+        1230
       ],
       "firstLine": "def test_workout_plan_table_drops_dead_global_token_fallbacks() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_drops_remaining_dead_defined_token_fallbacks",
-      "startLine": 1186,
-      "endLine": 1227,
+      "startLine": 1233,
+      "endLine": 1274,
       "surfaces": [
         "tokens.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 4,
       "assertionLines": [
-        1227,
-        1196,
-        1200,
-        1211
+        1274,
+        1243,
+        1247,
+        1258
       ],
       "firstLine": "def test_workout_plan_drops_remaining_dead_defined_token_fallbacks() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_drops_overridden_rest_state_declarations",
-      "startLine": 1285,
-      "endLine": 1358,
+      "startLine": 1332,
+      "endLine": 1405,
       "surfaces": [
         "components.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 10,
       "assertionLines": [
-        1337,
-        1338,
-        1353,
-        1356,
-        1357,
-        1358,
-        1336,
-        1352,
-        1318,
-        1332
+        1384,
+        1385,
+        1400,
+        1403,
+        1404,
+        1405,
+        1383,
+        1399,
+        1365,
+        1379
       ],
       "firstLine": "def test_workout_plan_drops_overridden_rest_state_declarations() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "startLine": 1421,
-      "endLine": 1428,
+      "startLine": 1472,
+      "endLine": 1479,
       "surfaces": [
         "components.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 4,
       "assertionLines": [
-        1425,
-        1426,
-        1428,
-        1424
+        1476,
+        1477,
+        1479,
+        1475
       ],
       "firstLine": "def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "startLine": 1431,
-      "endLine": 1437,
+      "startLine": 1482,
+      "endLine": 1488,
       "surfaces": [
         "components.css"
       ],
       "indirectBundleMaps": [],
       "assertionCount": 3,
       "assertionLines": [
-        1436,
-        1437,
-        1434
+        1487,
+        1488,
+        1485
       ],
       "firstLine": "def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:"
     }
@@ -1620,428 +1632,414 @@
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
+      "test": "test_workout_plan_drawer_shadows_legacy_declarations",
+      "line": "301",
+      "pinnedString": "border",
+      "candidateSurfaces": "components.css"
+    },
+    {
+      "file": "tests/test_css_cascade_contracts.py",
       "test": "test_backup_tokens_remain_page_owned_under_the_late_global_theme",
-      "line": "283",
+      "line": "339",
       "pinnedString": "class=\"backup-center-page\" data-page=\"backup-center\"",
       "candidateSurfaces": "theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_backup_tokens_remain_page_owned_under_the_late_global_theme",
-      "line": "284",
+      "line": "340",
       "pinnedString": "document.querySelector('[data-page=\"backup-center\"]')",
       "candidateSurfaces": "theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_body_composition_tokens_keep_page_ownership_and_shared_heading_winner",
-      "line": "322",
+      "line": "378",
       "pinnedString": "margin-bottom: 0.4rem;",
       "candidateSurfaces": "theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_body_composition_tokens_keep_page_ownership_and_shared_heading_winner",
-      "line": "325",
+      "line": "381",
       "pinnedString": "data-page=\"body-composition\"",
       "candidateSurfaces": "theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_body_composition_tokens_keep_page_ownership_and_shared_heading_winner",
-      "line": "326",
+      "line": "382",
       "pinnedString": "data-bc-app=\"true\"",
       "candidateSurfaces": "theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_body_composition_tokens_keep_page_ownership_and_shared_heading_winner",
-      "line": "327",
+      "line": "383",
       "pinnedString": "document.querySelector('[data-bc-app]')",
       "candidateSurfaces": "theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "375",
+      "line": "431",
       "pinnedString": ".glass-neumorph-card .card-title",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "376",
+      "line": "432",
       "pinnedString": "[data-theme='dark'] .progression-plan-container .glass-neumorph-card .card-text",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "389",
+      "line": "445",
       "pinnedString": "background:",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "390",
+      "line": "446",
       "pinnedString": "border-color:",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "406",
+      "line": "462",
       "pinnedString": "class=\"progression-plan-container\"",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "407",
+      "line": "463",
       "pinnedString": "id=\"exerciseSelect\"",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "408",
+      "line": "464",
       "pinnedString": "id=\"suggestionsFatigueContext\" hidden",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "409",
+      "line": "465",
       "pinnedString": "document.getElementById('exerciseSelect')",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_progression_tokens_preserve_route_ownership_and_live_dark_cascade",
-      "line": "410",
+      "line": "466",
       "pinnedString": "section.className = 'progression-fatigue'",
       "candidateSurfaces": "components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "458",
+      "line": "514",
       "pinnedString": "[data-theme='dark'] .volume-splitter-container .results-section",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "459",
+      "line": "515",
       "pinnedString": "[data-theme='dark'] .volume-splitter-container .table thead th",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "460",
+      "line": "516",
       "pinnedString": "[data-theme='dark'] .volume-splitter-container .table tbody td",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "481",
+      "line": "537",
       "pinnedString": "border-color: var(--volume-dark-border) !important;",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "486",
+      "line": "542",
       "pinnedString": "background: var(--volume-dark-surface) !important;",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "501",
+      "line": "557",
       "pinnedString": "row.className = 'muscle-row mb-3'",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "502",
+      "line": "558",
       "pinnedString": "card.dataset.type = suggestion.type",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "503",
+      "line": "559",
       "pinnedString": "'volume-value-pill--excessive'",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
-      "line": "504",
+      "line": "560",
       "pinnedString": "var(--volume-track-bg)",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_welcome_tokens_extract_exact_values_without_dead_custom_properties",
-      "line": "562",
+      "line": "618",
       "pinnedString": "background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_welcome_tokens_extract_exact_values_without_dead_custom_properties",
-      "line": "565",
+      "line": "621",
       "pinnedString": "[data-theme='dark'] #welcome .bento-featured {",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_welcome_tokens_extract_exact_values_without_dead_custom_properties",
-      "line": "568",
+      "line": "624",
       "pinnedString": "id=\"welcome\" data-page=\"welcome\"",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_session_summary_tokens_extract_exact_values_value_preserving",
-      "line": "621",
+      "line": "677",
       "pinnedString": "--ss-dark-ink-bright: #fff;",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_session_summary_tokens_extract_exact_values_value_preserving",
-      "line": "629",
+      "line": "685",
       "pinnedString": "background-color: #ffffff !important;",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_session_summary_tokens_extract_exact_values_value_preserving",
-      "line": "631",
+      "line": "687",
       "pinnedString": "id=\"session-summary-container\"",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms",
-      "line": "688",
+      "line": "744",
       "pinnedString": "--wk-dark-ink-bright: #fff;",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms",
-      "line": "696",
+      "line": "752",
       "pinnedString": "#weekly-summary-container",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms",
-      "line": "697",
+      "line": "753",
       "pinnedString": "id=\"weekly-summary-container\"",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms",
-      "line": "701",
+      "line": "757",
       "pinnedString": "#isolated_muscles_filter",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms",
-      "line": "714",
+      "line": "770",
       "pinnedString": "background-color: #ffffff !important;",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_user_profile_tokens_extract_repeated_operands_value_preserving",
-      "line": "781",
+      "line": "837",
       "pinnedString": "--up-band-mostly: #4c6ef5;",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_user_profile_tokens_extract_repeated_operands_value_preserving",
-      "line": "803",
+      "line": "859",
       "pinnedString": "class=\"user-profile-page\"",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_user_profile_tokens_extract_repeated_operands_value_preserving",
-      "line": "804",
+      "line": "860",
       "pinnedString": "id=\"profile-lifts-form\"",
       "candidateSurfaces": "a11y.css, motion.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "886",
+      "line": "942",
       "pinnedString": "document.body.appendChild(popover)",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "890",
+      "line": "946",
       "pinnedString": ".wpdd-popover {",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "891",
+      "line": "947",
       "pinnedString": "@media (max-width: 768px)",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "903",
+      "line": "959",
       "pinnedString": "#workout[data-page=\"workout-plan\"] .wpdd-button,",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "904",
+      "line": "960",
       "pinnedString": ".wpdd-button:hover:not(:disabled),",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "905",
+      "line": "961",
       "pinnedString": ".wpdd-button:disabled,",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "906",
+      "line": "962",
       "pinnedString": ".wpdd-button.wpdd-filter.filter-active {",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_wpdd_route_ownership_cleanup",
-      "line": "907",
+      "line": "963",
       "pinnedString": "*:focus-visible,",
       "candidateSurfaces": "a11y.css, components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1007",
+      "line": "1059",
       "pinnedString": ":where([data-theme=\"dark\"] .frame-header) {",
       "candidateSurfaces": "components.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1008",
+      "line": "1060",
       "pinnedString": "backdrop-filter: blur(8px) !important;",
       "candidateSurfaces": "components.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1048",
-      "pinnedString": "<header class=\"table-header text-center\"",
+      "line": "1098",
+      "pinnedString": "<header class=\"ui-page-header\">",
       "candidateSurfaces": "components.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1049",
-      "pinnedString": "<h1>Workout Plan</h1>",
+      "line": "1099",
+      "pinnedString": "<h1 class=\"ui-page-title\">Workout Plan</h1>",
       "candidateSurfaces": "components.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1050",
+      "line": "1100",
       "pinnedString": "<h2 id=\"workout-plan-table-heading\"",
       "candidateSurfaces": "components.css, theme-dark.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1051",
-      "pinnedString": "const toggleButtons = document.querySelectorAll('.collapse-toggle');",
-      "candidateSurfaces": "components.css, theme-dark.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1052",
-      "pinnedString": "frame.classList.toggle('collapsed');",
-      "candidateSurfaces": "components.css, theme-dark.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup",
-      "line": "1053",
-      "pinnedString": "this.setAttribute('aria-expanded', !isExpanded);",
-      "candidateSurfaces": "components.css, theme-dark.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_drops_overridden_rest_state_declarations",
-      "line": "1337",
+      "line": "1384",
       "pinnedString": "#workout[data-page=\"workout-plan\"], .workout-log-page",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_drops_overridden_rest_state_declarations",
-      "line": "1338",
+      "line": "1385",
       "pinnedString": "#workout[data-page=\"workout-plan\"] #exercise-selection-frame #action-buttons-row.selection-actions {",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_plan_drops_overridden_rest_state_declarations",
-      "line": "1353",
+      "line": "1400",
       "pinnedString": "box-shadow:",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1425",
+      "line": "1476",
       "pinnedString": "col[data-column=\"routine\"]",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1426",
+      "line": "1477",
       "pinnedString": "grid-template-columns: repeat(2, minmax(0, 1fr))",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1428",
+      "line": "1479",
       "pinnedString": ".progression-plan-container .table.table-calm",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1437",
+      "line": "1488",
       "pinnedString": ".summary-frame.frame-calm-glass",
       "candidateSurfaces": "components.css"
     }
@@ -2847,7 +2845,7 @@
     "surfaces": {
       "components.css": {
         "lines": 5425,
-        "bytes": 171424,
+        "bytes": 171518,
         "importantLines": 883,
         "importantOccurrences": 883,
         "importantDeclarations": 883
@@ -2861,7 +2859,7 @@
       },
       "theme-dark.css": {
         "lines": 573,
-        "bytes": 21960,
+        "bytes": 21977,
         "importantLines": 125,
         "importantOccurrences": 125,
         "importantDeclarations": 124

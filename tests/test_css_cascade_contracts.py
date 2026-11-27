@@ -234,12 +234,19 @@ def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None
     plan_js = (
         ROOT / "static" / "js" / "modules" / "workout-plan-page.js"
     ).read_text(encoding="utf-8")
+    table_responsiveness = (ROOT / "static" / "js" / "table-responsiveness.js").read_text(
+        encoding="utf-8"
+    )
     fixtures = (ROOT / "e2e" / "fixtures.ts").read_text(encoding="utf-8")
 
-    assert 'class="collapsible-frame' in plan
-    assert "frame-header-2025" in plan
+    assert '<header class="ui-page-header">' in plan
+    assert 'class="collapsible-frame' not in plan
+    assert "frame-header-2025" not in plan
+    assert ".collapsible-frame" not in plan_js
+    toggle_class = re.search(r"toggle\.className = '([^']+)'", table_responsiveness)
+    assert toggle_class is not None
+    assert {"tbl-view-mode-toggle", "ui-btn", "ui-btn--small"} <= set(toggle_class[1].split())
     assert 'class="ui-page-header"' in log
-    assert ".collapsible-frame" in plan_js
     assert ".collapsible-frame" not in log_js
     assert 'class="workout-log-frame"' in log
     assert "PAGE_WORKOUT_LOG: '.workout-log-frame'" in fixtures
@@ -248,6 +255,55 @@ def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None
     assert 'class="progression-plan-container"' in progression
     for route_hook in ('id="workout"', "workout-log-page", "summary-frame"):
         assert route_hook not in progression
+
+
+def test_workout_plan_drawer_shadows_legacy_declarations() -> None:
+    legacy_css = (ROOT / "scss" / "pages" / "_workout_plan_volume_panel.scss").read_text(
+        encoding="utf-8"
+    )
+    new_css = "\n".join(
+        (ROOT / "static" / "css" / bundle).read_text(encoding="utf-8")
+        for bundle in ("components.css", "pages-workout-plan.css")
+    )
+    template = (ROOT / "templates" / "workout_plan.html").read_text(encoding="utf-8")
+    assert re.search(r'<aside\s+id="vpDrawer"\s+class="vp-drawer ui-drawer"', template)
+
+    def declarations(css: str) -> dict[str, set[str]]:
+        rules: dict[str, set[str]] = {}
+        for head, body in re.findall(r"^((?:\.|\[)[^{}]+)\{([^{}]*)\}", COMMENT_RE.sub("", css), re.M):
+            properties = set(re.findall(r"(?:^|;)\s*([\w-]+)\s*:", body))
+            for selector in re.split(r",(?![^()]*\))", head):
+                selector = " ".join(selector.split())
+                # The new rules group several equivalent status selectors inside :is().
+                status_group = re.search(r":is\((\.status-[^)]+)\)", selector)
+                if status_group:
+                    for status in status_group[1].split(","):
+                        expanded = selector.replace(status_group[0], status.strip())
+                        rules.setdefault(expanded, set()).update(properties)
+                else:
+                    rules.setdefault(selector, set()).update(properties)
+        return rules
+
+    replacement_rules = declarations(new_css)
+    legacy_rules = declarations(legacy_css)
+    for selector, properties in legacy_rules.items():
+        selector = selector.removeprefix("[data-theme='dark'] ")
+        if ".vp-" not in selector or selector.startswith((".vp-header-summary", ".vp-active-summary")):
+            continue
+        if selector.startswith(".vp-backdrop"):
+            # The drawer initializer appends the backdrop first, then the drawer.
+            replacement = f"{selector}:has(~ .ui-drawer)"
+        elif selector == ".vp-drawer" or selector.startswith(".vp-drawer["):
+            replacement = selector.replace(".vp-drawer", ".vp-drawer.ui-drawer", 1)
+        else:
+            replacement = f".ui-drawer {selector}"
+        covered = replacement_rules.get(replacement, set()).copy()
+        if "border" in covered:
+            covered.add("border-color")
+        for edge in ("left", "top", "bottom"):
+            if f"border-{edge}" in covered:
+                covered.add(f"border-{edge}-color")
+        assert properties <= covered, f"{replacement} is missing {sorted(properties - covered)}"
 
 
 def test_backup_tokens_remain_page_owned_under_the_late_global_theme() -> None:
@@ -847,7 +903,7 @@ def test_workout_plan_dormant_filter_glass_cluster_removed() -> None:
     assert ".exercise-dropdown.filter-applied {\n    animation: glowPulse" in css
     assert "@keyframes glowPulse" in css
     assert "#filters-form .form-label" in css
-    assert css.count("@media") == 44
+    assert css.count("@media") == 48
     assert "@layer workout-dropdowns {" in css
     assert "@layer workout {" in css
 
@@ -855,8 +911,8 @@ def test_workout_plan_dormant_filter_glass_cluster_removed() -> None:
     # converts them to wpdd controls. The retired naming toggle has no template
     # consumer and its legacy factory has no in-repo invocation (definition
     # only), which is why route-bundle toggle CSS had zero matched elements.
-    assert 'class="form-select uniform-dropdown filter-dropdown' in template
-    assert 'class="form-select uniform-dropdown exercise-dropdown' in template
+    assert re.search(r'<select\b[^>]*class="ui-field-input uniform-dropdown filter-dropdown"', template)
+    assert re.search(r'<select\b[^>]*class="ui-field-input uniform-dropdown exercise-dropdown"', template)
     assert "select.classList.add('wpdd-native')" in dropdown_js
     assert "filter-view-toggle" not in template
     assert view_mode_js.count("createToggleButton(") == 1
@@ -961,10 +1017,6 @@ def test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup() -> N
     template = (ROOT / "templates" / "workout_plan.html").read_text(
         encoding="utf-8"
     )
-    page_js = (
-        ROOT / "static" / "js" / "modules" / "workout-plan-page.js"
-    ).read_text(encoding="utf-8")
-
     start = css.index("Page Header - 2026 Glass/Neumorphic Style")
     end = css.index("Collapse Toggle Buttons - Modern 2025 Refresh", start)
     cluster = css[start:end]
@@ -1041,16 +1093,11 @@ def test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup() -> N
     assert "--wp-header-" not in cluster
     assert "--wp-frame-" not in cluster
 
-    # Runtime topology and collapse semantics remain wired.
-    assert template.count('class="collapsible-frame') == 3
-    assert template.count("frame-header-2025") == 3
-    assert template.count('class="collapse-toggle"') == 3
-    assert '<header class="table-header text-center"' in template
-    assert '<h1>Workout Plan</h1>' in template
+    assert 'class="collapsible-frame' not in template
+    assert 'class="collapse-toggle"' not in template
+    assert '<header class="ui-page-header">' in template
+    assert '<h1 class="ui-page-title">Workout Plan</h1>' in template
     assert '<h2 id="workout-plan-table-heading"' in template
-    assert "const toggleButtons = document.querySelectorAll('.collapse-toggle');" in page_js
-    assert "frame.classList.toggle('collapsed');" in page_js
-    assert "this.setAttribute('aria-expanded', !isExpanded);" in page_js
 
 
 def test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks() -> None:
@@ -1392,9 +1439,13 @@ def test_workout_plan_drops_dead_filter_button_family() -> None:
         assert 'getElementById("filter-btn")' not in stripped, path
         assert "#filter-btn" not in stripped, path
 
-    # --- 3. The live filter hooks are untouched. ---
+    # --- 3. The live filter hooks and shared button remain wired. ---
     template = (ROOT / "templates" / "workout_plan.html").read_text(encoding="utf-8")
-    assert 'id="clear-filters-btn"' in template
+    clear_filters = re.search(r'<button\b[^>]*\bid="clear-filters-btn"[^>]*>', template)
+    assert clear_filters is not None
+    button_class = re.search(r'\bclass="([^"]+)"', clear_filters[0])
+    assert button_class is not None
+    assert "ui-btn" in button_class[1].split()
     assert 'id="filters-form"' in template
     assert "filter-dropdown" in template
     filters_js = (ROOT / "static" / "js" / "modules" / "filters.js").read_text(

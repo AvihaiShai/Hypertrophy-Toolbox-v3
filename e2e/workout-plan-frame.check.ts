@@ -103,8 +103,8 @@ async function readOpeningPaint(page: Page) {
 }
 
 /** WP6 reads all closed records in one pass, including their rendered name and actions. */
-async function closedCards(page: Page) {
-  return planTable(page).evaluate(table => {
+async function closedCards(page: Page, railIds: (string | null)[]) {
+  return planTable(page).evaluate((table, railIds) => {
     const shown = (node: Element | null) => !!node && !!node.getClientRects().length;
     const textLines = (node: Element) => {
       const range = document.createRange();
@@ -115,11 +115,6 @@ async function closedCards(page: Page) {
       const name = card.querySelector('.exercise-name')!;
       const nameStyle = getComputedStyle(name);
       const prescription = card.querySelector('[data-label="Exercise"]')?.textContent ?? '';
-      const css = getComputedStyle(card);
-      const rail = [css, getComputedStyle(card, '::before'), getComputedStyle(card, '::after')].some(style =>
-        parseFloat(style.borderLeftWidth) > 0 && style.borderLeftStyle !== 'none' ||
-        style.content !== 'none' && style.content !== 'normal' &&
-          parseFloat(style.width) > 0 && style.backgroundColor !== 'rgba(0, 0, 0, 0)');
       return {
         name: name.textContent?.trim() ?? '', lines: textLines(name),
         fullName: nameStyle.textOverflow !== 'ellipsis' && name.scrollWidth <= name.clientWidth + 1,
@@ -135,10 +130,10 @@ async function closedCards(page: Page) {
         )].every(node => !shown(node)),
         pair: !!card.getAttribute('data-superset-group'),
         badge: [...card.querySelectorAll('.superset-badge')].some(node => shown(node) && /Superset/.test(node.textContent ?? '')),
-        rail,
+        rail: railIds.includes(card.getAttribute('data-exercise-id')),
       };
     });
-  });
+  }, railIds);
 }
 
 /** WP7 scrolls the focused named region and verifies each row's last action at the end. */
@@ -224,6 +219,8 @@ function supersetAppearance(page: Page) {
         legacy.add(getComputedStyle(probe).color);
       }
     }
+    probe.style.color = 'var(--ink-2)';
+    const railColor = getComputedStyle(probe).color;
     probe.remove();
     const withOldColor: string[] = [];
     for (const node of workout.querySelectorAll('tr[data-superset-group], tr[data-superset-group] *')) {
@@ -235,15 +232,38 @@ function supersetAppearance(page: Page) {
         }
       }
     }
-    const pairs = [...workout.querySelectorAll('tr[data-superset-group]')].map(row => {
+    const isVisible = (style: CSSStyleDeclaration) =>
+      style.display !== 'none' && style.visibility === 'visible' && Number(style.opacity) > 0;
+    const hasRail = (host: Element) => {
+      const box = host.getBoundingClientRect();
+      const base = getComputedStyle(host);
+      if (box.width === 0 || box.height === 0 || !isVisible(base)) return false;
+      const borderWidth = parseFloat(base.borderLeftWidth);
+      if (borderWidth > 1 && base.borderLeftStyle !== 'none' && base.borderLeftColor === railColor) return true;
+      return ['::before', '::after'].some(pseudo => {
+        const style = getComputedStyle(host, pseudo);
+        const width = parseFloat(style.width);
+        return isVisible(style) && style.content !== 'none' && style.content !== 'normal' &&
+          style.position === 'absolute' && parseFloat(style.left) === 0 &&
+          width > Math.max(1, borderWidth) && parseFloat(style.height) > width && style.backgroundColor === railColor;
+      });
+    };
+    const appearances = [...workout.querySelectorAll('#workout_plan_table_body tr')].map(row => {
       const badge = row.querySelector('.superset-badge');
-      const rowStyle = getComputedStyle(row);
-      const before = getComputedStyle(row, '::before');
-      const rail = Number.parseFloat(rowStyle.borderLeftWidth) > 0 ||
-        before.content !== 'none' && before.content !== 'normal' && Number.parseFloat(before.width) > 0;
-      return { rail, badge: badge?.textContent?.trim(), shown: !!badge?.getClientRects().length };
+      const firstCell = row.querySelector('td:first-child');
+      return {
+        id: row.getAttribute('data-exercise-id'),
+        paired: row.hasAttribute('data-superset-group'),
+        rail: hasRail(row) || (!!firstCell && hasRail(firstCell)),
+        badge: badge?.textContent?.trim(),
+        shown: !!badge?.getClientRects().length,
+      };
     });
-    return { pairs, withOldColor };
+    return {
+      pairs: appearances.filter(row => row.paired),
+      unpaired: appearances.filter(row => !row.paired),
+      withOldColor,
+    };
   });
 }
 
@@ -330,11 +350,12 @@ test('measure the Workout Plan on its own seeded server', async ({ page, baseURL
           const actions = await filledPlanActions(page);
           audits.push({ label, actions });
           record(label + ' one filled primary', JSON.stringify(actions) === JSON.stringify(singleAddAction));
-          if (populated) {
-            const supersets = await supersetAppearance(page);
+          const supersets = populated ? await supersetAppearance(page) : null;
+          if (supersets) {
             audits.push({ label, supersets });
             record(label + ' neutral rails and badges', supersets.pairs.length === 2 &&
               supersets.pairs.every(row => row.rail && row.shown && row.badge === 'Superset') &&
+              supersets.unpaired.length > 0 && supersets.unpaired.every(row => !row.rail && !row.shown) &&
               supersets.withOldColor.length === 0);
           }
 
@@ -356,20 +377,22 @@ test('measure the Workout Plan on its own seeded server', async ({ page, baseURL
                 await setPlanView(page, mode);
               }
               await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
+              await expect(page.locator('#navbar')).not.toHaveClass(/\bnb-compact\b/);
               const read = await readFrame(page, SELECTORS, measurePlan);
               entries.push({ ...pass, populated, tab, mode, ...read });
               record(label + '/' + tab + '/' + mode + ' panel order',
                 read.order.every(top => top !== null) && Number(read.order[0]) < Number(read.order[1]) &&
                 Number(read.order[1]) < Number(read.order[2]));
-              if (populated && width === 390 && scale === 6 && mode === 'simple' && tab === 'opening') {
-                const cardRead = await closedCards(page);
+              if (supersets && width === 390 && scale === 6 && mode === 'simple' && tab === 'opening') {
+                const rails = [...supersets.pairs, ...supersets.unpaired].filter(row => row.rail).map(row => row.id);
+                const cardRead = await closedCards(page, rails);
                 audits.push({ label, cardRead });
                 const openingCards = cardRead.filter(card => rows.some(row => row.exercise === card.name && row.routine === ROUTINE_A));
                 record(label + ' WP6 cards, content, rails and targets',
                   openingCards.length === 7 && read.firstCardTop !== null && read.firstCardTop < 600 &&
                   openingCards.every(card => card.fullName && card.drag && card.routine && card.prescription &&
                     card.swap && card.video && card.details && card.hidden &&
-                    (!card.pair || card.rail && card.badge) &&
+                    (card.pair ? card.rail && card.badge : !card.rail && !card.badge) &&
                     (card.name === LONG_EXERCISE || card.lines <= 2) &&
                     (card.lines !== 1 || card.height <= 200)));
                 record(label + ' WP6 fit and targets', (await phonePlanProblems(page)).length === 0);

@@ -35,6 +35,33 @@ function initializeFilterActiveStates() {
     });
 }
 
+function renderFilterChips() {
+    const chips = document.getElementById('filter-chips');
+    if (!chips) return;
+
+    const active = [...document.querySelectorAll('#filters-form select.filter-dropdown')]
+        .filter(select => select.value);
+    const buttons = active.map(select => {
+        const label = `${select.dataset.filterKey}: ${select.selectedOptions[0].textContent}`;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'ui-chip';
+        chip.dataset.filterId = select.id;
+        chip.setAttribute('aria-label', `Remove filter: ${label}`);
+        const text = document.createElement('span');
+        text.textContent = label;
+        const remove = document.createElement('span');
+        remove.setAttribute('aria-hidden', 'true');
+        remove.textContent = '×';
+        chip.append(text, remove);
+        return chip;
+    });
+
+    chips.replaceChildren(...buttons);
+    document.getElementById('filters-label').textContent =
+        active.length ? `Filters · ${active.length} active` : 'Filters';
+}
+
 export async function filterExercises(preserveSelection = false) {
     try {
         const filters = {};
@@ -112,6 +139,7 @@ export function initializeFilters() {
                 
                 // Update visual feedback - add/remove filter-active class
                 updateFilterActiveState(select);
+                renderFilterChips();
                 
                 // Auto-filter with debounce
                 debouncedFilterExercises();
@@ -128,6 +156,26 @@ export function initializeFilters() {
     // Initialize filter form submit handler
     const filterForm = document.getElementById('filters-form');
     if (filterForm) {
+        const toggle = document.getElementById('filters-toggle');
+        toggle?.addEventListener('click', () => {
+            filterForm.hidden = !filterForm.hidden;
+            toggle.setAttribute('aria-expanded', String(!filterForm.hidden));
+        });
+
+        const chips = document.getElementById('filter-chips');
+        chips?.addEventListener('click', event => {
+            const chip = event.target.closest('[data-filter-id]');
+            if (!chip) return;
+            const select = document.getElementById(chip.dataset.filterId);
+            if (!select) return;
+
+            const index = [...chips.children].indexOf(chip);
+            select.value = '';
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            const next = chips.children[index] || chips.lastElementChild || toggle;
+            next?.focus();
+        });
+
         filterForm.addEventListener('submit', (e) => {
             e.preventDefault();
             // Clear debounce and filter immediately
@@ -140,6 +188,7 @@ export function initializeFilters() {
     
     // Initialize active states for any pre-selected filters (e.g., restored from previous state)
     initializeFilterActiveStates();
+    renderFilterChips();
     
     // Log initial exercise count to console for debugging
     const exerciseDropdown = document.getElementById("exercise");
@@ -251,6 +300,7 @@ async function clearFilters() {
         showToast(error.message || "Failed to reload exercises", true);
     }
     
+    renderFilterChips();
     // Show success toast notification
     showToast('Filters cleared successfully');
 }

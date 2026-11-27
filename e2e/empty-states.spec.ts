@@ -11,7 +11,7 @@
 import { test, expect, ROUTES, SELECTORS, waitForPageReady, resetWorkoutPlan } from './fixtures';
 import { test as guardedTest } from './console-guard';
 import { loadPlan, planRows, routineTab } from './workout-plan-fixture';
-import { addPanel, planPanel } from './workout-plan-redesign';
+import { addPanel, moreButton, planPanel } from './workout-plan-redesign';
 
 /**
  * Helper to select a complete routine
@@ -60,6 +60,7 @@ test.describe('Empty Workout Plan - Export', () => {
     const rows = await page.locator('#workout_plan_table_body tr').count();
     
     expect(rows).toBe(0);
+    await moreButton(page).click();
     const exportBtn = page.locator(SELECTORS.EXPORT_EXCEL_BTN);
     await expect(exportBtn).toBeVisible();
 

@@ -21,12 +21,14 @@ export function buildExerciseThumbnailHtml(exercise) {
 }
 
 export function appendExerciseVideoButton(row, exercise) {
-    const cellContent = row.querySelector('.exercise-cell-content');
+    const cellContent = row.querySelector('.plan-card-actions');
     if (cellContent) {
         const playBtn = buildPlayButton({
             videoId: exercise.youtube_video_id,
             exerciseName: exercise.exercise || '',
         });
-        cellContent.appendChild(playBtn);
+        playBtn.classList.remove('btn', 'btn-calm-ghost');
+        playBtn.classList.add('ui-btn', 'ui-btn--ghost');
+        cellContent.insertBefore(playBtn, cellContent.querySelector('.plan-details-toggle'));
     }
 }

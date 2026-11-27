@@ -67,7 +67,7 @@ export function updateSupersetActionButtons() {
         // inside a `display:none` container is the same shape as the defect
         // #317 closed.
         infoSpan.textContent = '';
-        infoSpan.style.color = '';
+        delete infoSpan.dataset.state;
         linkBtn.hidden = false;
         linkBtn.disabled = true;
         unlinkBtn.hidden = true;
@@ -76,10 +76,7 @@ export function updateSupersetActionButtons() {
     }
 
     actionsContainer.style.display = 'flex';
-    // Every branch below writes textContent but only some write a colour, so
-    // without this a `--wp-warn` from a previous 2-row selection bleeds onto
-    // the next neutral message.
-    infoSpan.style.color = '';
+    delete infoSpan.dataset.state;
 
     // Get selected exercises info
     const selectedCheckboxes = document.querySelectorAll('.superset-checkbox:checked');
@@ -110,26 +107,26 @@ export function updateSupersetActionButtons() {
     } else if (selectedCount === 2) {
         if (!sameRoutine) {
             infoSpan.textContent = '⚠️ Exercises must be in the same routine';
-            infoSpan.style.color = 'var(--wp-bad)';
+            infoSpan.dataset.state = 'danger';
             linkBtn.disabled = true;
             unlinkBtn.hidden = true;
             linkBtn.hidden = false;
         } else if (hasExistingSuperset) {
             infoSpan.textContent = '⚠️ One or both exercises already in a superset';
-            infoSpan.style.color = 'var(--wp-warn)';
+            infoSpan.dataset.state = 'pending';
             linkBtn.disabled = true;
             unlinkBtn.hidden = false;
             linkBtn.hidden = true;
         } else {
             infoSpan.textContent = '2 exercises selected - ready to link';
-            infoSpan.style.color = 'var(--wp-good)';
+            infoSpan.dataset.state = 'achieved';
             linkBtn.disabled = false;
             unlinkBtn.hidden = true;
             linkBtn.hidden = false;
         }
     } else {
         infoSpan.textContent = `${selectedCount} exercises selected - supersets can only have 2 exercises`;
-        infoSpan.style.color = 'var(--wp-warn)';
+        infoSpan.dataset.state = 'pending';
         linkBtn.disabled = true;
         unlinkBtn.hidden = true;
         linkBtn.hidden = false;

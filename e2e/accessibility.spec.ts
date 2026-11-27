@@ -256,6 +256,7 @@ test.describe('Keyboard Navigation', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -463,6 +464,7 @@ test.describe('Focus Management', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -494,6 +496,8 @@ test.describe('Focus Management', () => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
+    const trigger = moreButton(page);
+    await trigger.click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
@@ -512,7 +516,7 @@ test.describe('Focus Management', () => {
     await hiddenPromise;
     await expect(modal).not.toBeVisible({ timeout: 3000 });
 
-    await expect(generateBtn).toBeFocused();
+    await expect(trigger).toBeFocused();
   });
 });
 
@@ -1106,6 +1110,7 @@ test.describe('Axe — deterministic states', () => {
     await waitForPageReady(page);
     await waitForWorkoutPlanReady(page);
 
+    await moreButton(page).click();
     const generateBtn = page.locator('#generate-plan-btn');
     await expect(generateBtn).toBeVisible();
     await expect(generateBtn).toBeEnabled();
