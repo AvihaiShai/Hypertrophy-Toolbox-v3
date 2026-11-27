@@ -1,5 +1,5 @@
 import { fetchWeeklySummary, fetchSessionSummary } from './summary.js';
-import { handleDateChange, isScoredRepField, updateScoredValue, validateScoredValue } from './workout-log.js';
+import { handleDateChange, isScoredRepField, saveEditedScore, validateScoredValue } from './workout-log.js';
 import { showToast } from './toast.js';
 
 /**
@@ -14,8 +14,7 @@ function addCustomSpinnerButtons(input) {
     // Create wrapper for the input + buttons
     const wrapper = document.createElement('div');
     wrapper.className = 'number-input-wrapper';
-    // Start hidden; the edit-click handler switches to inline-flex when the user opens the editor
-    wrapper.style.cssText = 'display: none; align-items: center; gap: 2px;';
+    wrapper.hidden = true;
     
     // Insert wrapper in place of input
     input.parentNode.insertBefore(wrapper, input);
@@ -24,22 +23,16 @@ function addCustomSpinnerButtons(input) {
     // Create minus button
     const minusBtn = document.createElement('button');
     minusBtn.type = 'button';
+    minusBtn.setAttribute('aria-label', 'Decrease ' + input.getAttribute('aria-label'));
     minusBtn.className = 'number-spinner-btn number-spinner-minus';
     minusBtn.innerHTML = '−'; // Use Unicode minus for better click area
-    minusBtn.style.cssText = `
-        width: 26px; height: 26px; padding: 0; border: 1px solid #ccc;
-        background: #f8f9fa; border-radius: 4px; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 16px; font-weight: bold; color: #495057; line-height: 1;
-        user-select: none;
-    `;
     
     // Create plus button
     const plusBtn = document.createElement('button');
     plusBtn.type = 'button';
+    plusBtn.setAttribute('aria-label', 'Increase ' + input.getAttribute('aria-label'));
     plusBtn.className = 'number-spinner-btn number-spinner-plus';
     plusBtn.innerHTML = '+'; // Use plain text for better click area
-    plusBtn.style.cssText = minusBtn.style.cssText;
     
     // Insert buttons
     wrapper.insertBefore(minusBtn, input);
@@ -107,7 +100,7 @@ export function initializeUIHandlers() {
         let edited = false;
         const editor = { cell, finish };
 
-        async function finish(save) {
+        async function finish(save, restoreFocus = false) {
             if (activeScoreEditor !== editor) return;
             activeScoreEditor = null;
 
@@ -119,21 +112,26 @@ export function initializeUIHandlers() {
             input.classList.remove('is-invalid', 'is-valid');
             if (submit) input.disabled = true;
             input.style.display = 'none';
-            wrapper.style.display = 'none';
-            cell.querySelector('.editable-text').style.display = 'block';
+            wrapper.hidden = true;
+            const trigger = cell.querySelector('.log-trigger, .editable-text');
+            trigger.disabled = false;
 
             if (changed && !valid) {
                 const message = isScoredRepField(field)
-                    ? 'Scored reps must be a whole number of at least 0.'
+                    ? 'Logged reps must be a whole number of at least 0.'
                     : `Enter a number from ${input.min} to ${input.max} for ${cell.dataset.label}.`;
                 showToast('warning', message);
             }
-            if (!submit) return;
-
-            try {
-                await updateScoredValue(logId, field, value);
-            } finally {
-                input.disabled = false;
+            if (restoreFocus) trigger.focus();
+            if (submit) {
+                try {
+                    await saveEditedScore(logId, field, value);
+                } finally {
+                    input.disabled = false;
+                }
+                if (restoreFocus && !trigger.getClientRects().length && document.activeElement === document.body) {
+                    cell.closest('tr').querySelector('.log-details')?.focus();
+                }
             }
         }
 
@@ -152,7 +150,7 @@ export function initializeUIHandlers() {
         wrapper.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' || (event.key === 'Enter' && event.target === input)) {
                 event.preventDefault();
-                void finish(event.key === 'Enter');
+                void finish(event.key === 'Enter', true);
             }
         });
     }
@@ -168,7 +166,7 @@ export function initializeUIHandlers() {
             }
             
             const input = this.querySelector('.editable-input');
-            const text = this.querySelector('.editable-text');
+            const text = this.querySelector('.log-trigger, .editable-text');
             const wrapper = this.querySelector('.number-input-wrapper');
             
             if (input) {
@@ -176,11 +174,12 @@ export function initializeUIHandlers() {
                     if (input.disabled || input.style.display !== 'none') return;
                     input.value = confirmedScore(this);
                 }
-                text.style.display = 'none';
                 input.style.display = 'block';
-                // Also show the wrapper if it exists (for number inputs with custom buttons)
                 if (wrapper) {
-                    wrapper.style.display = 'inline-flex';
+                    wrapper.hidden = false;
+                    text.disabled = true;
+                } else {
+                    text.style.display = 'none';
                 }
                 input.focus();
                 
@@ -221,13 +220,13 @@ export function initializeUIHandlers() {
             document.querySelectorAll('.editable-input').forEach(input => {
                 input.style.display = 'none';
             });
-            document.querySelectorAll('.editable-text').forEach(text => {
+            document.querySelectorAll('.log-trigger, .editable-text:not(.log-trigger .editable-text)').forEach(text => {
                 // Use flex for date displays, block for others
-                text.style.display = text.classList.contains('date-display') ? 'flex' : 'block';
+                text.style.display = text.classList.contains('log-trigger') ? '' : text.classList.contains('date-display') ? 'flex' : 'block';
             });
             // Also hide number input wrappers
             document.querySelectorAll('.number-input-wrapper').forEach(wrapper => {
-                wrapper.style.display = 'none';
+                wrapper.hidden = true;
             });
         }
     });

@@ -84,8 +84,7 @@
 /* Frames and Sections - Glass */
 :where([data-theme="dark"] .collapsible-frame),
 :where([data-theme="dark"] .filters-section),
-:where([data-theme="dark"] .summary-frame),
-:where([data-theme="dark"] .workout-log-frame) {
+:where([data-theme="dark"] .summary-frame) {
     background: var(--glass-bg) !important;
     backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;

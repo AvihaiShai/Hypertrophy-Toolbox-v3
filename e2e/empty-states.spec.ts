@@ -148,7 +148,8 @@ test.describe('Empty Workout Log Operations', () => {
   test('empty log table shows appropriate message', async ({ page }) => {
     const table = page.locator('.workout-log-table');
     
-    await expect(table).toBeVisible();
+    await expect(table).toBeHidden();
+    await expect(page.getByRole('heading', {name: 'No exercises logged yet'})).toBeVisible();
     await expect(table.locator('tbody tr')).toHaveCount(0);
   });
 });

@@ -154,7 +154,7 @@ def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
 
     # The two layered blocks inside surfaces this arc owns.
     assert layers["spans"]["components.css"] == [
-        {"layer": "workout", "openLine": 3539, "closeLine": 4104}
+        {"layer": "workout", "openLine": 3358, "closeLine": 3923}
     ]
     assert layers["spans"]["navbar.css"] == [
         {"layer": "navbar", "openLine": 6, "closeLine": 874}
@@ -674,7 +674,9 @@ def test_fatigue_baselines_exist_on_both_platforms() -> None:
     assert len(linux_present) in (0, 6)
 
 
-def test_contract_anchor_register_covers_every_shared_surface() -> None:
+def test_contract_anchor_register_covers_every_shared_surface(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """A8 + F6 — each packet must know its ceiling before it starts.
 
     The shared cascade contract pins literal strings *inside* the surfaces b-f
@@ -698,8 +700,39 @@ def test_contract_anchor_register_covers_every_shared_surface() -> None:
     assert "--nav-gap: var(--s-3);" in pinned_strings
     assert "*:focus-visible," in pinned_strings
 
-    # G9 — the Region H block stays locked byte-for-byte.
-    cascade = (ROOT / "tests" / "test_css_cascade_contracts.py").read_text(
-        encoding="utf-8"
-    )
-    assert "REGION_H_SHA256" in cascade
+    # G9 — Region H was retired with the Workout Log pilot (#736). The lock is now
+    # its absence, and the cascade contract that refuses its return.
+    _assert_region_h_stays_retired(tmp_path, monkeypatch)
+
+
+# Region H was the metric-lane colour block of the Workout Log bundle, locked byte
+# for byte until the pilot deleted it (Section 0, assumption A7). The markers are
+# matched on the raw, lower-cased file, so the anchor in a comment counts as well.
+REGION_H_BUNDLE = "pages-workout-log.css"
+REGION_H_MARKERS = ("explicit metric lane pairing", ".metric-lane")
+REGION_H_RULE = "\n.workout-log-table .metric-lane--rir { background: rgb(0 0 0 / 4%); }\n"
+
+
+def _assert_region_h_stays_retired(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    css_root = ROOT / "static" / "css"
+    log_css = (css_root / REGION_H_BUNDLE).read_text(encoding="utf-8")
+    for marker in REGION_H_MARKERS:
+        assert marker not in log_css.lower(), f"Region H is back: {marker}"
+
+    # The cascade contract must still refuse the block. Its guard runs here on a
+    # copy of the two bundles it reads: as committed, then with one rule restored.
+    from tests import test_css_cascade_contracts as cascade
+
+    guard = cascade.test_workout_log_drops_cascade_dead_header_and_cell_glass
+    scratch = tmp_path / "static" / "css"
+    scratch.mkdir(parents=True)
+    for name in ("components.css", REGION_H_BUNDLE):
+        committed = (css_root / name).read_text(encoding="utf-8")
+        (scratch / name).write_text(committed, encoding="utf-8")
+    monkeypatch.setattr(cascade, "ROOT", tmp_path)
+    guard()
+    (scratch / REGION_H_BUNDLE).write_text(log_css + REGION_H_RULE, encoding="utf-8")
+    with pytest.raises(AssertionError):
+        guard()

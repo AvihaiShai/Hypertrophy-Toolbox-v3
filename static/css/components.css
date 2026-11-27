@@ -1592,206 +1592,25 @@ input.form-control#sets.value-changed {
     color: #fff;
 }
 
-/* Dark mode for workout log frame - 2026 Glass Style */
-[data-theme='dark'] .workout-log-frame {
-    background: linear-gradient(135deg,
-      rgba(26, 32, 44, 0.95) 0%,
-      rgba(20, 25, 35, 0.98) 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: #e2e8f0 !important;
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.35),
-      0 2px 8px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-[data-theme='dark'] .workout-log-frame::before {
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(79, 140, 255, 0.2) 50%,
-      transparent 100%);
-}
-
-[data-theme='dark'] .workout-log-frame:hover {
-    box-shadow:
-      0 12px 40px rgba(0, 0, 0, 0.45),
-      0 4px 12px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Dark mode for workout log table - Glass Style */
-[data-theme='dark'] .workout-log-frame table {
-    background-color: transparent !important;
-    color: #e2e8f0 !important;
-}
-
-[data-theme='dark'] .workout-log-frame th {
-    background: linear-gradient(180deg,
-      rgba(30, 36, 48, 0.98) 0%,
-      rgba(26, 32, 44, 0.95) 100%) !important;
-    color: #e2e8f0 !important;
-    border-color: rgba(79, 140, 255, 0.2) !important;
-    box-shadow: none !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme='dark'] .workout-log-frame td {
-    background: rgba(26, 32, 44, 0.6) !important;
-    color: #e2e8f0 !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
-    box-shadow: none !important;
-}
-
-[data-theme='dark'] .workout-log-frame tr:hover td {
-    background: rgba(79, 140, 255, 0.1) !important;
-    color: #f0f4f8 !important;
-}
-
-/* Dark mode for editable cells */
-[data-theme='dark'] .workout-log-frame .editable-text {
-    color: #e0e0e0 !important;
-    background-color: transparent;
-}
-
-[data-theme='dark'] .workout-log-frame .editable-input {
-    background-color: #2c3034;
-    color: #e0e0e0 !important;
-    border-color: #495057;
-}
-
-/* Dark mode for badges in workout log */
-[data-theme='dark'] .workout-log-frame .badge {
-    border: 1px solid #495057;
-}
-
-[data-theme='dark'] .workout-log-frame .badge.bg-success {
-    background-color: #198754 !important;
-    color: #fff;
-}
-
-[data-theme='dark'] .workout-log-frame .badge.bg-warning {
-    background-color: #ffc107 !important;
-    color: #000;
-}
-
-/* Dark mode for table text elements */
-[data-theme='dark'] .workout-log-frame .form-control,
-[data-theme='dark'] .workout-log-frame .form-select,
-[data-theme='dark'] .workout-log-frame input,
-[data-theme='dark'] .workout-log-frame select,
-[data-theme='dark'] .workout-log-frame label,
-[data-theme='dark'] .workout-log-frame .text-muted {
-    color: #e0e0e0 !important;
-    font-weight: bold;
-    background-color: #343a40;
-    border-color: #495057;
-}
-
-/* Dark mode for table cells and their content */
-[data-theme='dark'] .workout-log-frame td,
-[data-theme='dark'] .workout-log-frame th,
-[data-theme='dark'] .workout-log-frame td *,
-[data-theme='dark'] .workout-log-frame th * {
-    color: #e0e0e0 !important;
-}
-
-/* Dark mode for date inputs */
-[data-theme='dark'] .workout-log-frame input[type="date"] {
-    background-color: #2c3034;
-    color: #e9ecef !important;
-    border-color: #495057;
-}
-
-/* Dark mode for form controls */
-[data-theme='dark'] .workout-log-frame .form-control,
-[data-theme='dark'] .workout-log-frame .form-select,
-[data-theme='dark'] .workout-log-frame input,
-[data-theme='dark'] .workout-log-frame select {
-    background-color: #2c3034;
-    color: #e0e0e0 !important;
-    border-color: #495057;
-}
-
-/* Dark mode for labels and text */
-[data-theme='dark'] .workout-log-frame label,
-[data-theme='dark'] .workout-log-frame .text-muted {
-    color: #adb5bd !important;
-}
-
-[data-theme='dark'] .workout-log-frame tr:hover td {
-    background-color: #2c3034;
-    color: #e0e0e0 !important;
-}
-
-/* Keep numbers under # column white */
-[data-theme='dark'] .workout-log-frame td:first-child {
-    color: #fff !important;
-}
-
-[data-theme='dark'] .workout-log-frame td:first-child * {
-    color: #fff !important;
-}
-
-/* Make all icons white in dark mode by default */
-[data-theme='dark'] .workout-log-frame i,
-[data-theme='dark'] .workout-log-frame .fas,
-[data-theme='dark'] .workout-log-frame .far,
-[data-theme='dark'] .workout-log-frame .fab {
-    color: #e0e0e0 !important;
-}
-
-/* Make trash icon white in dark mode */
-[data-theme='dark'] .workout-log-frame .fa-trash {
-    color: #fff !important;
-}
-
-[data-theme='dark'] .workout-log-frame .btn-danger i {
-    color: #fff !important;
-}
-
-/* Preserve colored progression indicators */
-[data-theme='dark'] .workout-log-frame .text-success,
-[data-theme='dark'] .workout-log-frame i.text-success {
-    color: #28a745 !important;
-}
-
-[data-theme='dark'] .workout-log-frame .text-danger,
-[data-theme='dark'] .workout-log-frame i.text-danger {
-    color: #dc3545 !important;
-}
-
-[data-theme='dark'] .workout-log-frame .text-warning,
-[data-theme='dark'] .workout-log-frame i.text-warning {
-    color: #ffc107 !important;
-}
-
-/* Preserve white color for first column and trash icon on hover */
-[data-theme='dark'] .workout-log-frame tr:hover td:first-child,
-[data-theme='dark'] .workout-log-frame tr:hover td:first-child *,
-[data-theme='dark'] .workout-log-frame tr:hover .fa-trash,
-[data-theme='dark'] .workout-log-frame tr:hover .btn-danger i {
-    color: #fff !important;
-}
-
 /* Consolidated Editable Styles */
-.editable {
+.editable:where(:not([data-key])) {
     cursor: pointer;
     position: relative;
     transition: all 0.2s ease-in-out;
 }
 
 /* Light Mode Styles */
-.editable:hover,
-.table tbody tr .editable:hover {  /* More specific selector to override table hover */
+.editable:where(:not([data-key])):hover,
+.table tbody tr .editable:where(:not([data-key])):hover {  /* More specific selector to override table hover */
     background-color: rgba(13, 110, 253, 0.08) !important;  /* Light blue */
 }
 
-.editable.editing,
-.table tbody tr .editable.editing {
+.editable:where(:not([data-key])).editing,
+.table tbody tr .editable:where(:not([data-key])).editing {
     background-color: rgba(13, 110, 253, 0.12) !important;  /* Slightly darker light blue */
 }
 
-.editable input {
+.editable:where(:not([data-key])) input {
     width: 100%;
     padding: 4px 8px;
     border: 2px solid #0d6efd;
@@ -1800,7 +1619,7 @@ input.form-control#sets.value-changed {
     color: #212529;
 }
 
-.editable input:focus {
+.editable:where(:not([data-key])) input:focus {
     outline: none;
     border-color: #0d6efd;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
@@ -1808,8 +1627,8 @@ input.form-control#sets.value-changed {
 }
 
 /* Selection Highlighting */
-.editable::selection,
-.editable input::selection,
+.editable:where(:not([data-key]))::selection,
+.editable:where(:not([data-key])) input::selection,
 ::selection {
     background-color: rgba(13, 110, 253, 0.2) !important;
     color: #212529;
@@ -1821,30 +1640,30 @@ input.form-control#sets.value-changed {
 }
 
 /* Dark Mode Styles */
-[data-theme='dark'] .editable:hover,
-[data-theme='dark'] .table tbody tr .editable:hover {
+[data-theme='dark'] .editable:where(:not([data-key])):hover,
+[data-theme='dark'] .table tbody tr .editable:where(:not([data-key])):hover {
     background-color: rgba(52, 152, 219, 0.2) !important;
 }
 
-[data-theme='dark'] .editable.editing,
-[data-theme='dark'] .table tbody tr .editable.editing {
+[data-theme='dark'] .editable:where(:not([data-key])).editing,
+[data-theme='dark'] .table tbody tr .editable:where(:not([data-key])).editing {
     background-color: rgba(52, 152, 219, 0.25) !important;
 }
 
-[data-theme='dark'] .editable input {
+[data-theme='dark'] .editable:where(:not([data-key])) input {
     background-color: #2c3034 !important;
     border-color: #3498db;
     color: #fff;
 }
 
-[data-theme='dark'] .editable input:focus {
+[data-theme='dark'] .editable:where(:not([data-key])) input:focus {
     border-color: #2980b9;
     box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
     background-color: #2c3034 !important;
 }
 
 /* Pencil Icon */
-.editable:hover::after {
+.editable:where(:not([data-key])):hover::after {
     content: '✎';
     position: absolute;
     right: 5px;
@@ -1855,7 +1674,7 @@ input.form-control#sets.value-changed {
     color: #0d6efd;  /* Light mode pencil color */
 }
 
-[data-theme='dark'] .editable:hover::after {
+[data-theme='dark'] .editable:where(:not([data-key])):hover::after {
     color: #3498db;  /* Dark mode pencil color */
 }
 
@@ -5204,4 +5023,69 @@ h1, h2, h3 {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+}
+
+.ui-panel, .ui-record-card {
+  background: var(--surface-2);
+  color: var(--ink-1);
+}
+.ui-panel, .ui-empty-state {
+  padding: 16px;
+  border: 1px solid var(--ui-hairline);
+  border-radius: var(--ui-panel-radius);
+}
+.ui-empty-state { padding-block: 32px; text-align: center; }
+.ui-empty-state h2 { font-size: 18px; line-height: 24px; font-weight: 600; }
+.ui-empty-state p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.ui-btn, .ui-field {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--ink-1);
+  background: var(--surface-2);
+  border: 1px solid var(--ink-3);
+  border-radius: var(--ui-control-radius);
+  font: 500 14px/20px Inter, sans-serif;
+}
+.ui-btn--primary { color: white; background: var(--ui-primary); border-color: var(--ui-primary); }
+.ui-btn--ghost { color: var(--ink-2); background: transparent; border-color: transparent; }
+.ui-btn--danger { color: var(--ui-danger); }
+.ui-btn--small, .ui-field { min-height: 32px; padding-inline: 6px; }
+.ui-field { width: 100%; text-align: right; font-variant-numeric: tabular-nums; background: var(--ui-field-surface); }
+.ui-field:focus-visible, .ui-btn:focus-visible, .log-sort:focus-visible {
+  outline: 2px solid var(--ink-2);
+  outline-offset: 1px;
+}
+.badge.ui-badge { padding: 2px 8px; border-radius: var(--ui-pill-radius); font: 500 12px/16px Inter, sans-serif; }
+.ui-badge--achieved { color: var(--ui-achieved); background: var(--ui-achieved-bg); }
+.ui-badge--pending { color: var(--ui-pending); background: var(--ui-pending-bg); }
+.ui-data-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+@media (max-width: 767.98px) {
+  .ui-field, .ui-btn { min-height: 44px; }
+}
+.ui-field-input, :has(> .ui-field-input) > .number-spinner-btn {
+  color: var(--ink-1);
+  border: 1px solid var(--ink-3);
+  border-radius: var(--ui-control-radius);
+}
+.ui-field-input { background: var(--ui-field-surface); }
+:has(> .ui-field-input) > .number-spinner-btn { background: var(--surface-1); font: 500 16px/1 Inter, sans-serif; }
+@media (min-width: 1360px) {
+  [role="region"]:has(> .ui-data-table) { overflow-x: auto; border-radius: var(--ui-panel-radius); }
+  .ui-data-table { border: 1px solid var(--ui-hairline); border-radius: var(--ui-panel-radius); overflow: hidden; }
+  .ui-data-table th, .ui-data-table td { padding: 4px; }
+  .ui-data-table th { background: var(--surface-1); font-size: 12px; line-height: 16px; font-weight: 500; }
+  .ui-data-table td { border-top: 1px solid var(--ui-hairline); height: 56px; }
+  .ui-data-table thead td { background: var(--surface-1); border: 0; height: auto; }
+}
+@media (max-width: 1359.98px) {
+  .ui-field { min-height: 44px; min-width: 44px; font-size: 16px; line-height: 24px; }
+  .ui-record-card {
+    padding: 12px 16px;
+    border: 1px solid var(--ui-hairline);
+    border-radius: var(--ui-panel-radius);
+  }
 }

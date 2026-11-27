@@ -12,6 +12,15 @@ For how the CSS is structured and how to add to it, see
 [`../../.claude/rules/frontend.md`](../../.claude/rules/frontend.md) and
 [`../CSS_OWNERSHIP_MAP.md`](../CSS_OWNERSHIP_MAP.md).
 
+## Workout Log pilot
+
+The Workout Log uses a shared page frame with 16 px gutters on phones, 24 px from 768 px,
+and 32 px from 1360 px. The empty state gives Import the indigo fill. Once exercises appear,
+Import uses an outline and the exercise results take priority. Inter text uses weights 400,
+500 and 600. Controls and thumbnails have an 8 px radius, cards use 12 px and status labels
+use a pill. Fields have a 1 px `--ink-3` border on `--surface-2` in light and on `--surface-0`
+in dark. Light and dark status colors and surfaces come from the same component tokens.
+
 ## Why this was measured and not grepped
 
 A design token existing in `tokens.css` is **not** evidence that it owns anything on screen. A

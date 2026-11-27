@@ -350,17 +350,27 @@ generated data with `persisted: false` and `persist_error: "Failed to save gener
 **Purpose.** Record what was actually performed against what was planned. Each row carries both
 the `planned_*` snapshot and the `scored_*` values.
 
+Below 1360 px each exercise appears as a card. Two cards fit per row from 768 px.
+Each card shows its planned prescription and editable logged reps, weight and RIR.
+A logged RPE or an RPE-only prescription adds RPE to the main row. A card too narrow
+for its logged fields on one row wraps them onto two. Details opens the
+remaining values, Last Progression, Reference Video and Delete Entry. On desktop,
+the Planned and Logged groups have individually sortable field headings. Number
+columns sort as numbers, so zero and decimals take their numeric place, and Last
+Progression sorts by its saved date, including a date just saved in the row. An
+empty date and a missing or cleared number sort last in both directions.
+
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | Import from Plan | API | `POST /export_to_workout_log`, same endpoint the Plan page uses |
-| Scored weight / min reps / max reps / RIR / RPE | API | `POST /update_workout_log` with `{id, updates: {field: value}}` per field. Enter or leaving the editor saves a changed value once. Escape discards the draft, including spinner changes. Clearing a saved score sends `null` |
+| Logged weight / min reps / max reps / RIR / RPE | API | `POST /update_workout_log` with `{id, updates: {field: value}}` per field. Enter or leaving the editor saves a changed value once. Escape discards the draft, including spinner changes. Clearing a saved score sends `null` |
 | Progression date | API | `POST /update_progression_date` |
 | Progression status check | API | `GET /check_progression/<log_id>` |
 | Delete row | API | `POST /delete_workout_log` |
 | Clear Log | Presentation → API | Modal, then `POST /clear_workout_log` |
 | Reference video / thumbnail | Presentation | A curated video opens the shared video modal. The video button opens a YouTube search in a new tab when the exercise lacks a valid video ID. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 
-Scored reps accept whole numbers of at least 0 within SQLite's integer range. The minimum cannot
+Logged reps accept whole numbers of at least 0 within SQLite's integer range. The minimum cannot
 exceed a usable maximum. A saved value displays as the stored number, so a zero displays as `0`,
 including after reload, and its progression indicator is shown. A clear displays as `--`. Invalid drafts show a warning and keep the last saved value visible. If the server
 rejects a scored edit, it returns HTTP 400 `VALIDATION_ERROR` and leaves the row unchanged.

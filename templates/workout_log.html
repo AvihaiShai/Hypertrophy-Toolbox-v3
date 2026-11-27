@@ -6,280 +6,136 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-workout-log.css') }}?v={{ app_version }}">
 {% endblock %}
 
+{% block main_class %}ui-page-frame{% endblock %}
 {% block content %}
-<div class="container-fluid px-1 workout-log-page">
-    <div class="page-header text-center" data-visual-surface>
-        <h1>{{ page_title }}</h1>
-        <div class="header-underline"></div>
-    </div>
-
-    <!-- Import Controls Section -->
-    <div class="workout-log-controls-frame mb-4">
-        <div class="collapsible-frame action-frame" data-visual-surface data-section="import-controls">
-            <div class="frame-header frame-header-2025">
-                <div class="frame-header-left">
-                    <span class="frame-title"><i class="fas fa-download me-2"></i>Import from Workout Plan</span>
-                </div>
-                <div class="frame-header-right">
-                    <button class="collapse-toggle" type="button" title="Collapse import controls" aria-expanded="true" aria-controls="import-content">
-                        <i class="fas fa-chevron-up toggle-icon" data-visual-icon aria-hidden="true"></i>
-                        <span class="toggle-text">Hide</span>
-                    </button>
-                </div>
-            </div>
-            <div class="frame-content" id="import-content">
-                <div class="import-controls-container">
-                    <div class="import-description">
-                        <p class="text-muted mb-3">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Import your current workout plan to start logging your session. This will copy all exercises from your workout plan with their planned values.
-                        </p>
-                    </div>
-                    <div class="import-actions">
-                        <button id="import-from-plan-btn" class="btn btn-primary btn-calm-primary" type="button" onclick="importFromWorkoutPlan()">
-                            <i class="fas fa-file-import me-2"></i> Import Current Workout Plan
-                        </button>
-                        <button id="clear-log-btn" class="btn btn-danger btn-calm-danger" type="button" data-bs-toggle="modal" data-bs-target="#clearLogModal">
-                            <i class="fas fa-eraser me-2"></i> Clear Log
-                        </button>
-                    </div>
-                </div>
-            </div>
+{% set missing = (none, '', 'None', '--') %}
+{% set metrics = [('sets', 'Sets'), ('min_reps', 'Min Reps'), ('max_reps', 'Max Reps'), ('rir', 'RIR'), ('rpe', 'RPE'), ('weight', 'Weight')] %}
+{% macro heading(key, label, group='') %}
+<th scope="col" id="log-{{ key }}" data-label="{{ label }}">
+    <button class="log-sort" data-sort-field="{{ key }}" type="button" aria-label="Sort by {{ group }} {{ label }}">{{ label }}<i class="fas fa-sort" aria-hidden="true"></i></button>
+</th>
+{% endmacro %}
+<div class="workout-log-page">
+    <header class="ui-page-header">
+        <h1 class="ui-page-title">{{ page_title }}</h1>
+        <div class="ui-page-actions">
+            <button id="import-from-plan-btn" class="ui-btn ui-btn--{{ 'secondary' if workout_logs else 'primary' }}"
+                    type="button" onclick="importFromWorkoutPlan()">Import Current Workout Plan</button>
+            <button id="clear-log-btn" class="ui-btn ui-btn--danger" type="button"
+                    data-bs-toggle="modal" data-bs-target="#clearLogModal">Clear Log</button>
         </div>
+    </header>
+    <div class="progression-legend" {% if not workout_logs %}hidden{% endif %}>
+        <span>Compared with the plan:</span>
+        <span><i class="fas fa-arrow-up log-improved" aria-hidden="true"></i> Improved</span>
+        <span><i class="fas fa-equals" aria-hidden="true"></i> Maintained</span>
+        <span><i class="fas fa-arrow-down log-below" aria-hidden="true"></i> Below Target</span>
     </div>
-
-    <!-- Legend for Progressive Overload -->
-    <div class="progression-legend mb-3">
-        <div class="legend-title"><i class="fas fa-chart-line me-2"></i>Progressive Overload Legend:</div>
-        <div class="legend-items">
-            <span class="legend-item"><i class="fas fa-arrow-up text-success"></i> Improved (scored better than planned)</span>
-            <span class="legend-item"><i class="fas fa-equals text-warning"></i> Maintained (same as planned)</span>
-            <span class="legend-item"><i class="fas fa-arrow-down text-danger"></i> Below Target</span>
-        </div>
-    </div>
-
     <div class="workout-log-frame">
-        <!-- AGENT:START B-2 PRIORITY-CLASSES -->
-        <div class="tbl-wrap tbl-wrap--full" role="region" aria-label="Workout log table">
-            <table id="workout-log-table"
-                   data-testid="workout-log-table"
-                   class="table table-striped workout-log-table table-calm tbl tbl--responsive" data-visual-surface
-                   role="table" 
-                   aria-label="Workout log entries">
-                <thead>
-                    <tr>
-                        <th scope="col" class="col--high" data-label="#">#</th>
-                        <th scope="col" class="col--high" data-label="Routine">Routine</th>
-                        <th scope="col" class="col--high" data-label="Exercise">Exercise</th>
-                        <th scope="col" class="col--high is-num" data-label="Planned Sets">Planned<br>Sets</th>
-                        <th scope="col" class="col--med is-num metric-lane metric-lane--min-reps metric-lane--planned" data-label="Planned Min Reps">Planned<br>Min Reps</th>
-                        <th scope="col" class="col--med is-num metric-lane metric-lane--max-reps metric-lane--planned" data-label="Planned Max Reps">Planned<br>Max Reps</th>
-                        <th scope="col" class="col--med is-num metric-lane metric-lane--rir metric-lane--planned" data-label="Planned RIR">Planned<br>RIR</th>
-                        <th scope="col" class="col--med is-num metric-lane metric-lane--rpe metric-lane--planned" data-label="Planned RPE">Planned<br>RPE</th>
-                        <th scope="col" class="col--high is-num metric-lane metric-lane--weight metric-lane--planned" data-label="Planned Weight">Planned<br>Weight</th>
-                        <th scope="col" class="col--high is-num editable metric-lane metric-lane--min-reps metric-lane--scored" data-label="Scored Min Reps">Scored<br>Min Reps</th>
-                        <th scope="col" class="col--high is-num editable metric-lane metric-lane--max-reps metric-lane--scored" data-label="Scored Max Reps">Scored<br>Max Reps</th>
-                        <th scope="col" class="col--med is-num editable metric-lane metric-lane--rir metric-lane--scored" data-label="Scored RIR">Scored<br>RIR</th>
-                        <th scope="col" class="col--med is-num editable metric-lane metric-lane--rpe metric-lane--scored" data-label="Scored RPE">Scored<br>RPE</th>
-                        <th scope="col" class="col--high is-num editable metric-lane metric-lane--weight metric-lane--scored" data-label="Scored Weight">Scored<br>Weight</th>
-                        <th scope="col" class="col--med" data-label="Last Progression" data-sort-type="date">Last<br>Progression</th>
-                        <th scope="col" class="col--high" data-label="Progressive Overload">Progressive<br>Overload</th>
-                        <th scope="col" class="col--high" data-label="Actions">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in workout_logs %}
-                    {% set routine_parts = log.routine.split(' - ') if log.routine else ['', '', ''] %}
-                    <tr data-log-id="{{ log.id }}" data-assisted-bodyweight="{{ 'true' if is_assisted_bodyweight_exercise(log.exercise) else 'false' }}">
-                        <td data-label="#">{{ loop.index }}</td>
-                        <td data-label="Routine" class="routine-cell">
-                            <div>
-                                <span class="routine-env">{{ routine_parts[0] if routine_parts|length > 0 else '' }}</span>
-                                <span class="routine-program">{{ routine_parts[1] if routine_parts|length > 1 else '' }}</span>
-                                <span class="routine-workout">{{ routine_parts[2] if routine_parts|length > 2 else '' }}</span>
-                            </div>
+        <section class="ui-panel ui-empty-state" {% if workout_logs %}hidden{% endif %}>
+            <h2>No exercises logged yet</h2>
+            <p>Import your current workout plan to start logging this session. It copies every exercise from the plan with its planned values.</p>
+        </section>
+        <div role="region" aria-label="Workout log entries" tabindex="0" {% if not workout_logs %}hidden{% endif %}>
+        <table id="workout-log-table" data-testid="workout-log-table" class="workout-log-table ui-data-table" aria-label="Workout log entries">
+            <colgroup><col data-column="number"><col data-column="routine"><col data-column="exercise"></colgroup>
+            {% for prefix in ['planned', 'scored'] %}
+            <colgroup>{% for key, label in metrics if prefix == 'planned' or key != 'sets' %}<col data-column="{{ prefix }}_{{ key }}">{% endfor %}</colgroup>
+            {% endfor %}
+            <colgroup><col data-column="last_progression_date"><col data-column="status"><col data-column="actions"></colgroup>
+            <thead>
+                <tr><td colspan="3"></td><th id="log-planned" colspan="6" scope="colgroup">Planned</th><th id="log-scored" colspan="5" scope="colgroup">Logged</th><td colspan="3"></td></tr>
+                <tr>
+                    {{ heading('number', '#') }}{{ heading('routine', 'Routine') }}{{ heading('exercise', 'Exercise') }}
+                    {% for prefix, group in [('planned', 'Planned'), ('scored', 'Logged')] %}
+                        {% for key, label in metrics if prefix == 'planned' or key != 'sets' %}
+                            {{ heading(prefix ~ '_' ~ key, label, group) }}
+                        {% endfor %}
+                    {% endfor %}
+                    {{ heading('last_progression_date', 'Last Progression') }}{{ heading('status', 'Progressive Overload') }}
+                    <th scope="col" id="log-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for log in workout_logs %}
+                {% set id = log.id %}
+                {% set routine = (log.routine or '').split(' - ') %}
+                {% set effort = log.scored_rpe not in missing or (log.planned_rpe not in missing and log.planned_rir in missing) %}
+                <tr class="ui-record-card" data-log-id="{{ id }}" data-main-rpe="{{ 'true' if effort else 'false' }}"
+                    data-assisted-bodyweight="{{ 'true' if is_assisted_bodyweight_exercise(log.exercise) else 'false' }}">
+                    <td headers="log-number" data-key="number" data-sort-value="{{ loop.index }}">
+                        <span class="log-number">{{ loop.index }}</span>
+                        <button type="button" class="ui-btn ui-btn--ghost log-details" aria-expanded="false"
+                                aria-controls="{% for key, label in metrics %}plan-{{ id }}-{{ key }} {% endfor %}rpe-{{ id }} date-{{ id }} actions-{{ id }}">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+                    </td>
+                    <td headers="log-routine" data-key="routine" data-sort-value="{{ log.routine }}">
+                        <span>{{ routine[-1] }}</span> <small>{{ routine[:-1] | join(' · ') }}</small>
+                    </td>
+                    <td headers="log-exercise" data-label="Exercise" data-key="exercise" data-sort-value="{{ log.exercise }}">
+                        <div class="log-exercise">
+                            {% set media = log.media_path | safe_media_path %}
+                            {% if media %}<img class="exercise-thumbnail" src="{{ url_for('static', filename='vendor/free-exercise-db/exercises/' + media) }}" alt="" width="32" height="32" loading="lazy">
+                            {% else %}<span class="log-thumbnail-placeholder" aria-hidden="true"></span>{% endif %}
+                            <span class="exercise-name">{{ log.exercise }}</span>
+                            <button type="button" class="ui-btn ui-btn--ghost log-play-video-btn" data-action="play-video"
+                                    data-video-id="{{ log.youtube_video_id or '' }}" data-exercise-name="{{ log.exercise }}"
+                                    aria-label="{% if log.youtube_video_id %}Play reference video for {{ log.exercise }}{% else %}Search YouTube for a {{ log.exercise }} reference video{% endif %}"><i class="fas {{ 'fa-play' if log.youtube_video_id else 'fa-search' }}" aria-hidden="true"></i><span class="log-card-only">Reference Video</span></button>
+                        </div>
+                    </td>
+                    {% for key, label in metrics %}
+                        {% set field = 'planned_' ~ key %}
+                        <td headers="log-planned log-{{ field }}" data-key="{{ field }}" data-sort-value="{{ log[field] }}">
+                            {% if key == 'sets' %}
+                            <span class="log-prescription">{{ log.planned_sets }} sets × {{ log.planned_min_reps }}–{{ log.planned_max_reps }} reps{% if log.planned_weight not in missing %} · {{ log.planned_weight }} kg{% endif %}{% if log.planned_rir not in missing %} · RIR {{ log.planned_rir }}{% endif %}{% if log.planned_rpe not in missing %} · RPE {{ log.planned_rpe }}{% endif %}</span>
+                            {% endif %}
+                            <span id="plan-{{ id }}-{{ key }}" class="log-plan-value" data-label="Planned {{ label }}" data-field="{{ field }}">{{ log[field] if log[field] not in missing else '--' }}</span>
                         </td>
-                        <td data-label="Exercise" class="exercise-cell">
-                            <div class="exercise-cell-content">
-                                {# §4 — free-exercise-db thumbnail. `safe_media_path` revalidates against the §4.3 shape rules (defense-in-depth — the apply script validates on write, but rows can be edited out-of-band). #}
-                                {% set safe_path = log.media_path | safe_media_path %}
-                                {% if safe_path %}
-                                <img class="exercise-thumbnail"
-                                     src="{{ url_for('static', filename='vendor/free-exercise-db/exercises/' + safe_path) }}"
-                                     alt="{{ log.exercise }} reference"
-                                     loading="lazy"
-                                     width="32"
-                                     height="32">
-                                {% endif %}
-                                <span class="exercise-name">{{ log.exercise }}</span>
-                                {# §5 — reference video play button. data-* attrs feed window.openExerciseVideoModal. #}
-                                <button type="button"
-                                        class="btn btn-video btn-calm-ghost log-play-video-btn"
-                                        data-action="play-video"
-                                        data-video-id="{{ log.youtube_video_id or '' }}"
-                                        data-exercise-name="{{ log.exercise }}"
-                                        title="{% if log.youtube_video_id %}Watch reference video{% else %}Search YouTube for reference video{% endif %}"
-                                        aria-label="{% if log.youtube_video_id %}Play reference video for {{ log.exercise }}{% else %}Search YouTube for a {{ log.exercise }} reference video{% endif %}">
-                                    <i class="fas {% if log.youtube_video_id %}fa-play{% else %}fa-search{% endif %}" aria-hidden="true"></i>
+                    {% endfor %}
+                    {% for key, label in metrics if key != 'sets' %}
+                        {% set field = 'scored_' ~ key %}
+                        <td headers="log-scored log-{{ field }}" data-key="{{ field }}" data-field="{{ field }}" data-label="Logged {{ label }}" class="editable scored-cell"
+                            {% if key == 'rpe' %}id="rpe-{{ id }}"{% endif %}>
+                            <span class="log-field-label">{{ label }}</span>
+                            <div class="scored-value-container">
+                                <input type="number" class="ui-field-input editable-input number-input" min="0" aria-label="Logged {{ label }} for {{ log.exercise }}"
+                                       {% if key in ('rir', 'rpe') %}max="10"{% elif key == 'weight' %}step="0.5" max="1000"{% endif %}
+                                       value="{{ log[field] if log[field] not in missing else '' }}" style="display: none;">
+                                <button type="button" class="ui-field log-trigger">
+                                    <span class="visually-hidden">Edit logged {{ label }} for {{ log.exercise }} </span>
+                                    {% if key == 'weight' and log.scored_weight not in missing %}
+                                        {% set mark = get_weight_progression_indicator(log.exercise, log.planned_weight, log.scored_weight) %}
+                                        {% if mark %}<i class="fas {{ mark.icon }} progression-indicator" title="{{ mark.title }}" aria-hidden="true"></i>{% endif %}
+                                    {% endif %}
+                                    <span class="editable-text">{{ log[field] if log[field] not in missing else '--' }}</span>
                                 </button>
                             </div>
                         </td>
-                        <td data-label="Planned Sets">{{ log.planned_sets }}</td>
-                        <td data-label="Planned Min Reps" class="metric-lane metric-lane--min-reps metric-lane--planned" data-field="planned_min_reps">{{ log.planned_min_reps }}</td>
-                        <td data-label="Planned Max Reps" class="metric-lane metric-lane--max-reps metric-lane--planned" data-field="planned_max_reps">{{ log.planned_max_reps }}</td>
-                        <td data-label="Planned RIR" class="metric-lane metric-lane--rir metric-lane--planned" data-field="planned_rir">{{ log.planned_rir }}</td>
-                        <td data-label="Planned RPE" class="metric-lane metric-lane--rpe metric-lane--planned" data-field="planned_rpe">{{ log.planned_rpe }}</td>
-                        <td data-label="Planned Weight" class="metric-lane metric-lane--weight metric-lane--planned" data-field="planned_weight">{{ log.planned_weight }}</td>
-                        {% set has_scored_min_reps = log.scored_min_reps not in (none, '', 'None') %}
-                        <td data-label="Scored Min Reps" class="editable scored-cell metric-lane metric-lane--min-reps metric-lane--scored" data-field="scored_min_reps">
-                            <div class="scored-value-container">
-                                <input type="number" 
-                                       class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_min_reps if has_scored_min_reps else '' }}"
-                                       min="0"
-                                       style="display: none;">
-                                <span class="editable-text">{{ log.scored_min_reps if has_scored_min_reps else '--' }}</span>
-                                {% if log.scored_min_reps is integer and log.planned_min_reps is integer and log.planned_min_reps %}
-                                    {% if log.scored_min_reps > log.planned_min_reps %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Above target! (+{{ log.scored_min_reps - log.planned_min_reps }})"></i>
-                                    {% elif log.scored_min_reps == log.planned_min_reps %}
-                                        <i class="fas fa-equals progression-indicator text-warning" title="Met target"></i>
-                                    {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Below target ({{ log.scored_min_reps - log.planned_min_reps }})"></i>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </td>
-                        {% set has_scored_max_reps = log.scored_max_reps not in (none, '', 'None') %}
-                        <td data-label="Scored Max Reps" class="editable scored-cell metric-lane metric-lane--max-reps metric-lane--scored" data-field="scored_max_reps">
-                            <div class="scored-value-container">
-                                <input type="number" 
-                                       class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_max_reps if has_scored_max_reps else '' }}"
-                                       min="0"
-                                       style="display: none;">
-                                <span class="editable-text">{{ log.scored_max_reps if has_scored_max_reps else '--' }}</span>
-                                {% if log.scored_max_reps is integer and log.planned_max_reps is integer and log.planned_max_reps %}
-                                    {% if log.scored_max_reps > log.planned_max_reps %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Above target! (+{{ log.scored_max_reps - log.planned_max_reps }})"></i>
-                                    {% elif log.scored_max_reps == log.planned_max_reps %}
-                                        <i class="fas fa-equals progression-indicator text-warning" title="Met target"></i>
-                                    {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Below target ({{ log.scored_max_reps - log.planned_max_reps }})"></i>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </td>
-                        {% set has_scored_rir = log.scored_rir not in (none, '', 'None') %}
-                        <td data-label="Scored RIR" class="editable scored-cell metric-lane metric-lane--rir metric-lane--scored" data-field="scored_rir">
-                            <div class="scored-value-container">
-                                <input type="number" 
-                                       class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_rir if has_scored_rir else '' }}"
-                                       min="0" max="10"
-                                       style="display: none;">
-                                <span class="editable-text">{{ log.scored_rir if has_scored_rir else '--' }}</span>
-                                {# For RIR, LOWER is BETTER (means you pushed harder) #}
-                                {% if has_scored_rir and log.planned_rir is not none %}
-                                    {% if log.scored_rir|float < log.planned_rir|float %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Pushed harder! (RIR -{{ (log.planned_rir|float - log.scored_rir|float)|round(2) }})"></i>
-                                    {% elif log.scored_rir|float == log.planned_rir|float %}
-                                        <i class="fas fa-equals progression-indicator text-warning" title="Met target RIR"></i>
-                                    {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Easier than planned (RIR +{{ (log.scored_rir|float - log.planned_rir|float)|round(2) }})"></i>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </td>
-                        {% set has_scored_rpe = log.scored_rpe not in (none, '', 'None') %}
-                        <td data-label="Scored RPE" class="editable scored-cell metric-lane metric-lane--rpe metric-lane--scored" data-field="scored_rpe">
-                            <div class="scored-value-container">
-                                <input type="number" 
-                                       class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_rpe if has_scored_rpe else '' }}"
-                                       min="0" max="10"
-                                       style="display: none;">
-                                <span class="editable-text">{{ log.scored_rpe if has_scored_rpe else '--' }}</span>
-                                {# For RPE, HIGHER means you pushed harder - it's a measure of effort #}
-                                {% if has_scored_rpe and log.planned_rpe is not none %}
-                                    {% if log.scored_rpe|float > log.planned_rpe|float %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Higher effort! (+{{ (log.scored_rpe|float - log.planned_rpe|float)|round(1) }})"></i>
-                                    {% elif log.scored_rpe|float == log.planned_rpe|float %}
-                                        <i class="fas fa-equals progression-indicator text-warning" title="Met target RPE"></i>
-                                    {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Lower effort ({{ (log.scored_rpe|float - log.planned_rpe|float)|round(1) }})"></i>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td data-label="Scored Weight" class="editable scored-cell metric-lane metric-lane--weight metric-lane--scored" data-field="scored_weight">
-                            <div class="scored-value-container">
-                                <input type="number" 
-                                       class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_weight if log.scored_weight is not none and log.scored_weight != 'None' else '' }}"
-                                       step="0.5"
-                                       min="0" max="1000"
-                                       style="display: none;">
-                                <span class="editable-text">{{ log.scored_weight if log.scored_weight is not none and log.scored_weight != 'None' else '--' }}</span>
-                                {% if log.scored_weight is not none and log.scored_weight != 'None' and log.planned_weight is not none %}
-                                    {% set weight_indicator = get_weight_progression_indicator(log.exercise, log.planned_weight, log.scored_weight) %}
-                                    {% if weight_indicator %}
-                                        <i class="fas {{ weight_indicator.icon }} progression-indicator {{ weight_indicator.class }}" title="{{ weight_indicator.title }}"></i>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td data-label="Last Progression" class="editable date-editable" data-field="last_progression_date" title="Click to set date">
-                            <input type="date" 
-                                   class="editable-input date-input form-control input-calm-inset"
-                                   value="{{ log.last_progression_date if log.last_progression_date and log.last_progression_date != 'None' else '' }}"
-                                   data-log-id="{{ log.id }}"
-                                   style="display: none;">
-                            <span class="editable-text date-display">
-                                {% if log.last_progression_date and log.last_progression_date != 'None' %}
-                                    {{ log.last_progression_date|datetime('%d-%m-%y') }}
-                                {% else %}
-                                    <i class="fas fa-calendar-alt date-icon"></i>
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td data-label="Progressive Overload">
-                            {% set is_progressive = check_progression(log) %}
-                            <span class="badge {{ 'bg-success' if is_progressive else 'bg-warning' }}">
-                                {{ 'Achieved' if is_progressive else 'Pending' }}
-                            </span>
-                        </td>
-                        <td data-label="Actions">
-                            <button class="btn btn-danger btn-sm delete-btn" onclick="deleteWorkoutLog('{{ log.id }}')" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
                     {% endfor %}
-                </tbody>
-            </table>
+                    {% set progressed = log.last_progression_date|datetime('%d-%m-%y') if log.last_progression_date not in missing else '' %}
+                    <td id="date-{{ id }}" headers="log-last_progression_date" data-key="last_progression_date" data-field="last_progression_date" class="editable date-editable"
+                        data-sort-value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}">
+                        <span class="log-field-label">Last Progression</span>
+                        <input type="date" class="ui-field-input editable-input date-input" value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}"
+                               data-log-id="{{ id }}" aria-label="Last Progression for {{ log.exercise }}" style="display: none;">
+                        <button type="button" class="ui-field editable-text date-display" aria-label="Edit Last Progression for {{ log.exercise }}, {{ progressed or 'Set Date' }}">
+                            {% if progressed %}{{ progressed }}{% else %}<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>Set Date{% endif %}
+                        </button>
+                    </td>
+                    <td headers="log-status" data-label="Progressive Overload" data-key="status">
+                        {% set improved = check_progression(log) %}
+                        <span class="badge ui-badge ui-badge--{{ 'achieved' if improved else 'pending' }}">{{ 'Achieved' if improved else 'Pending' }}</span>
+                    </td>
+                    <td id="actions-{{ id }}" headers="log-actions" data-key="actions">
+                        <button type="button" class="ui-btn ui-btn--danger ui-btn--small delete-btn" onclick="deleteWorkoutLog('{{ id }}')" aria-label="Delete Entry for {{ log.exercise }}">
+                            <i class="fas fa-trash" aria-hidden="true"></i><span class="log-card-only">Delete Entry</span>
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
         </div>
-        <!-- AGENT:END B-2 PRIORITY-CLASSES -->
     </div>
-</div>
-
-<!-- Empty placeholder for an export control that was never built: GET
-     /export_workout_log exists and is tested, but no UI binds to it (recorded in
-     docs/product/APP_FLOW.md, Known discrepancies).
-
-     It carried aria-label="Export controls" on a role-less div, so the name was
-     discarded outright (A11Y_EXCEPTIONS row X13). The name is gone rather than
-     given a role: naming an empty group announces controls that do not exist,
-     and the honest fix is to bind the export button, not to describe a
-     container holding nothing.
-
-     The element itself stays. As `display: inline-flex` it still generates a
-     line box, so deleting it shortens all six full-page `workout-log-*`
-     captures in e2e/visual.spec.ts by 21px (measured 1440x1095 -> 1440x1074) —
-     a 12-capture two-platform re-baseline, which belongs with whatever change
-     next moves these captures. -->
-<div class="btn-group">
-    <!-- Other buttons in the group -->
 </div>
 
 <!-- Clear Log Confirmation Modal -->
@@ -303,7 +159,7 @@
                 <button type="button" class="btn btn-secondary btn-calm-ghost" data-bs-dismiss="modal">
                     <i class="fas fa-times me-1"></i>Cancel
                 </button>
-                <button type="button" class="btn btn-danger btn-calm-danger" id="confirm-clear-log-btn" onclick="window.confirmClearWorkoutLog()">
+                <button type="button" class="btn btn-danger btn-calm-danger" id="confirm-clear-log-btn">
                     <i class="fas fa-trash me-1"></i>Yes, Clear All
                 </button>
             </div>

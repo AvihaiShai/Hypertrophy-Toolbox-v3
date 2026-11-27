@@ -475,3 +475,36 @@
   --calm-glass-bg: rgba(25, 32, 40, 0.94);
   --calm-glass-border: rgba(185, 203, 224, 0.16);
 }
+
+:root {
+  --ui-control-radius: 8px;
+  --ui-panel-radius: 12px;
+  --ui-pill-radius: 999px;
+  --ui-hairline: #dfe3ec;
+  --ui-field-surface: var(--surface-2);
+  --ui-primary: #4263eb;
+  --ui-danger: #c0362c;
+  --ui-achieved: #0b7a55;
+  --ui-achieved-bg: #e6f6ef;
+  --ui-pending: #8a5300;
+  --ui-pending-bg: #fdf1d8;
+  --ui-gutter: 16px;
+  --ui-title-size: 20px;
+  --ui-title-line: 28px;
+}
+[data-theme="dark"] {
+  --ui-hairline: #3a4654;
+  --ui-field-surface: var(--surface-0);
+  --ui-primary: #5264ad;
+  --ui-danger: #f08a80;
+  --ui-achieved: #5fd3a6;
+  --ui-achieved-bg: #203c37;
+  --ui-pending: #f3c56b;
+  --ui-pending-bg: #42392d;
+}
+@media (min-width: 768px) {
+  :root { --ui-gutter: 24px; --ui-title-size: 24px; --ui-title-line: 32px; }
+}
+@media (min-width: 1360px) {
+  :root { --ui-gutter: 32px; }
+}

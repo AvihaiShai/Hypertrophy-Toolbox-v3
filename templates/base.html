@@ -225,7 +225,7 @@
     </header>
 
     <!-- Main Content Area -->
-    <main id="main-content" class="container-fluid mt-4" tabindex="-1">
+    <main id="main-content" class="{% block main_class %}container-fluid mt-4{% endblock %}" tabindex="-1">
         {% block content %}
         <!-- Default Fallback Content -->
         <div class="alert alert-info text-center" role="alert">

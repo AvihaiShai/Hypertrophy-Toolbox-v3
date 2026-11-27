@@ -108,7 +108,8 @@ def test_the_repair_added_no_lines() -> None:
     reds `tests/test_css_wp4_4_a_baseline_contracts.py` — a file neither packet
     may edit.
     """
-    assert _css().count("\n") == 5207
+    # The approved Log pilot removes the former Log frame before the layer.
+    assert _css().count("\n") == 5091
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
@@ -206,23 +207,23 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     whole-file totals that partition implies, asserted on the raw text so the two
     files would disagree if either drifted.
 
-    The partition is measured on comment-stripped text and implies `:hover` 117;
-    the raw count is 118 because one `:hover` lives inside a comment. That single
+    The partition is measured on comment-stripped text and implies `:hover` 110;
+    the raw count is 111 because one `:hover` lives inside a comment. That single
     occurrence is asserted here rather than left as an unstated offset.
     """
     css = _css()
     assert css.count(":is(") == 19
-    assert css.count(":where(") == 59
-    assert css.count(":hover") == 118
+    assert css.count(":where(") == 76
+    assert css.count(":hover") == 111
     commented_hovers = sum(
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
     )
     assert commented_hovers == 1, (
-        "the raw/stripped :hover offset changed; the 118 above and the 117 in "
+        "the raw/stripped :hover offset changed; the 111 above and the 110 in "
         "test_css_wp4_4_components_contracts.py no longer reconcile"
     )
-    # Unchanged: a selector rewrite adds no declarations. WP4.4-h shipped 919.
-    assert len(re.findall(r"!important", css)) == 919
+    # The pilot removed 36 of the 919 important declarations WP4.4-h shipped.
+    assert len(re.findall(r"!important", css)) == 883
 
 
 def test_the_progression_arm_is_id_free_and_the_donor_arm_is_not() -> None:

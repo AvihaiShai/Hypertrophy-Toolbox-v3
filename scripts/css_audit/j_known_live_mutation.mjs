@@ -61,10 +61,10 @@ const arg = (name, fallback = null) => {
 /**
  * The post-removal `theme-dark.css` this control is defined against, as the
  * sha256 of its **LF-normalized** text — see "What the digests are digests of".
- * Re-pinned from the CRLF digest `e54818bf…` (LEFTOVERS P2.6); the file itself
- * is untouched.
+ * Re-pinned from the CRLF digest `e54818bf…` (LEFTOVERS P2.6). The pinned text has
+ * no `.workout-log-frame` branch in its grouped dark glass rule.
  */
-const EXPECTED_INPUT = 'c567fc273b700b215558467bea675e9be53a9c15a64e594b2fa20f2dc6361b3c';
+const EXPECTED_INPUT = '589455639efbf164b76198f7cc2a06b9125962af1f27b554bca1eeb446bb9d26';
 const TOKEN = '--bg-primary';
 /**
  * `--bg-primary` proves the instrument is live, but it only surfaces where no

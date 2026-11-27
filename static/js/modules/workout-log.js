@@ -38,12 +38,17 @@ function computeProgressionState(row) {
         improved('weight', isAssistedBodyweightRow(row));
 }
 
+function setBadgeVariant(badge, achieved) {
+    badge.classList.toggle('ui-badge--achieved', achieved);
+    badge.classList.toggle('ui-badge--pending', !achieved);
+}
+
 function updateProgressionBadge(row) {
     const badge = row?.querySelector('.badge');
     if (!badge) return;
 
     const isProgressive = computeProgressionState(row);
-    badge.className = `badge ${isProgressive ? 'bg-success' : 'bg-warning'}`;
+    setBadgeVariant(badge, isProgressive);
     badge.textContent = isProgressive ? 'Achieved' : 'Pending';
 }
 
@@ -73,11 +78,9 @@ export function initializeWorkoutLog() {
     // Initialize simple table sorting
     const workoutLogTable = document.querySelector('.workout-log-table');
     if (workoutLogTable) {
-        initializeSimpleTableSorting(workoutLogTable);
+        initializeRecordLayouts(workoutLogTable);
+        initializeFieldSorting(workoutLogTable);
     }
-
-    // Initialize collapse toggles for the import section
-    initializeCollapseToggles();
 
     // Move modal to body for proper z-index stacking, THEN bind events
     moveModalToBody();
@@ -130,33 +133,6 @@ function moveModalToBody() {
     if (modal && modal.parentElement !== document.body) {
         document.body.appendChild(modal);
     }
-}
-
-/**
- * Initialize collapse toggle functionality for the import controls frame
- */
-function initializeCollapseToggles() {
-    const toggleButtons = document.querySelectorAll('.workout-log-controls-frame .collapse-toggle');
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const frame = this.closest('.collapsible-frame');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            const toggleText = this.querySelector('.toggle-text');
-            
-            // Toggle collapsed state
-            frame.classList.toggle('collapsed');
-            
-            // Update aria-expanded
-            this.setAttribute('aria-expanded', !isExpanded);
-            
-            // Update button text
-            if (toggleText) {
-                toggleText.textContent = isExpanded ? 'Show' : 'Hide';
-            }
-        });
-    });
 }
 
 /**
@@ -243,63 +219,146 @@ export async function confirmClearWorkoutLog() {
 window.importFromWorkoutPlan = importFromWorkoutPlan;
 window.confirmClearWorkoutLog = confirmClearWorkoutLog;
 
-function initializeSimpleTableSorting(table) {
-    const headers = table.querySelectorAll('th');
-    headers.forEach((header, index) => {
-        header.style.cursor = 'pointer';
-        header.title = 'Click to sort';
-        header.addEventListener('click', () => {
-            sortTableByColumn(table, index);
-        });
-    });
+const pendingScores = new Set();
+
+export function saveEditedScore(id, field, value) {
+    const write = updateScoredValue(id, field, value);
+    pendingScores.add(write);
+    return write.finally(() => pendingScores.delete(write));
 }
 
-function sortTableByColumn(table, columnIndex) {
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const header = table.querySelectorAll('th')[columnIndex];
-    const descending = header.classList.contains('sort-asc');
-    const direction = descending ? -1 : 1;
-    const dateColumn = header.dataset.sortType === 'date';
-    const numericColumn = header.classList.contains('is-num');
-    
-    // Remove sort classes from all headers
-    table.querySelectorAll('th').forEach(h => {
-        h.classList.remove('sort-asc', 'sort-desc');
-    });
-    
-    // Add appropriate sort class
-    header.classList.add(descending ? 'sort-desc' : 'sort-asc');
-    
-    function sortValue(row) {
-        const cell = row.cells[columnIndex];
-        if (dateColumn) return cell.querySelector('.date-input').defaultValue;
-        if (numericColumn) {
-            const value = (cell.querySelector('.editable-text') ?? cell).textContent.trim();
-            return value === 'None' || value === '--' ? '' : value;
-        }
-        return cell.textContent.trim();
+function initializeFieldSorting(table) {
+    for (const button of table.querySelectorAll('[data-sort-field]')) {
+        button.addEventListener('click', async () => {
+            await Promise.allSettled(pendingScores);
+            const key = button.dataset.sortField;
+            const header = button.closest('th');
+            const descending = header.getAttribute('aria-sort') === 'ascending';
+            const previous = table.querySelector('[aria-sort]');
+            if (previous) {
+                previous.removeAttribute('aria-sort');
+                previous.querySelector('i').className = 'fas fa-sort';
+            }
+            header.setAttribute('aria-sort', descending ? 'descending' : 'ascending');
+            header.querySelector('i').className = descending ? 'fas fa-sort-down' : 'fas fa-sort-up';
+            const body = table.tBodies[0];
+            // A column compares as numbers or as text, never both. Saved dates are ISO text.
+            const numeric = key === 'number' || /^(planned|scored)_/.test(key);
+            function value(row) {
+                const cell = row.querySelector(`[data-key="${key}"]`);
+                const text = cell.dataset.sortValue ?? (cell.querySelector('.editable-text') ?? cell).textContent.trim();
+                return numeric ? parseFloat(text) : text;
+            }
+            // An empty date and a missing or cleared number stay last in both directions.
+            const missing = item => numeric ? !Number.isFinite(item) : item === '';
+            const sorted = Array.from(body.rows).sort((a, b) => {
+                const left = value(a), right = value(b);
+                if (missing(left) || missing(right)) return Number(missing(left)) - Number(missing(right));
+                const order = numeric ? left - right : left.localeCompare(right);
+                return descending ? -order : order;
+            });
+            for (const row of sorted) body.appendChild(row);
+        });
     }
+}
 
-    rows.sort((a, b) => {
-        const left = sortValue(a);
-        const right = sortValue(b);
-        if (left === right) return 0;
-        if (left === '') return 1;
-        if (right === '') return -1;
+function placeRecordCells(row, desktop) {
+    const cells = Array.from(row.cells);
+    const byKey = new Map(cells.map(cell => [cell.dataset.key, cell]));
+    const planned = ['planned_min_reps', 'planned_max_reps', 'planned_rir', 'planned_rpe', 'planned_weight'];
+    const desktopOrder = ['number', 'routine', 'exercise', 'planned_sets', ...planned, 'scored_min_reps',
+        'scored_max_reps', 'scored_rir', 'scored_rpe', 'scored_weight', 'last_progression_date', 'status', 'actions'];
+    const phoneOrder = ['exercise', 'routine', 'status', 'planned_sets', 'scored_min_reps', 'scored_max_reps',
+        'scored_weight', 'scored_rir'];
+    if (row.dataset.mainRpe === 'true') phoneOrder.push('scored_rpe');
+    phoneOrder.push('number', ...planned);
+    if (row.dataset.mainRpe === 'false') phoneOrder.push('scored_rpe');
+    phoneOrder.push('last_progression_date', 'actions');
+    // Leave the focused cell attached while moving its siblings into reading order.
+    const active = document.activeElement;
+    const anchor = active?.closest('td');
+    const order = (desktop ? desktopOrder : phoneOrder).map(key => byKey.get(key));
+    const pivot = order.indexOf(anchor);
+    for (const [index, cell] of order.entries()) {
+        if (cell !== anchor) row.insertBefore(cell, index < pivot ? anchor : null);
+    }
+    const video = row.querySelector('.log-play-video-btn');
+    const target = desktop ? row.querySelector('.log-exercise') : byKey.get('actions');
+    if (video.parentElement !== target) {
+        if (desktop) target.appendChild(video);
+        else target.prepend(video);
+        if (active === video && video.getClientRects().length) video.focus();
+    }
+    if (active && row.contains(active) && !active.getClientRects().length) {
+        const destination = desktop ? row.querySelector('[data-field="scored_rir"] .log-trigger') : row.querySelector('.log-details');
+        destination.focus();
+    }
+}
 
-        if (dateColumn) return direction * left.localeCompare(right);
-        const difference = parseFloat(left) - parseFloat(right);
-        return direction * (Number.isNaN(difference) ? left.localeCompare(right) : difference);
+// A grid cannot count the columns its content needs, so the script measures. A card
+// whose logged fields run past its content box on one row takes the two-row template.
+function fitRecordFields(body) {
+    const rows = Array.from(body.querySelectorAll('tr[data-log-id]'));
+    const cards = !window.matchMedia('(min-width: 1360px)').matches;
+    // Every card is measured on one row. The list holds its height meanwhile, so
+    // the page does not shorten under a scroll position near its end.
+    if (cards) body.style.minHeight = getComputedStyle(body).height;
+    for (const row of rows) delete row.dataset.fieldRows;
+    // The exercise cell spans every column. Columns wider than the content box
+    // leave it nearer the card's right edge than its left.
+    const crowded = cards ? rows.filter(row => {
+        const card = row.getBoundingClientRect();
+        const span = row.querySelector('[data-key="exercise"]').getBoundingClientRect();
+        return card.right - span.right < span.left - card.left - 0.5;
+    }) : [];
+    for (const row of crowded) row.dataset.fieldRows = '2';
+    body.style.minHeight = '';
+}
+
+function initializeRecordLayouts(table) {
+    const media = window.matchMedia('(min-width: 1360px)');
+    const body = table.tBodies[0];
+    const fit = () => fitRecordFields(body);
+    for (const row of body.rows) {
+        row.querySelector('.log-details').addEventListener('click', event => {
+            const expanded = row.classList.toggle('details-open');
+            event.currentTarget.setAttribute('aria-expanded', String(expanded));
+        });
+        for (const cell of row.querySelectorAll('.scored-cell')) {
+            updateProgressionIndicator(row, cell.dataset.field, cell.querySelector('.editable-text').textContent);
+        }
+        placeRecordCells(row, media.matches);
+    }
+    media.addEventListener('change', () => {
+        for (const row of body.rows) placeRecordCells(row, media.matches);
+        fit();
     });
-    
-    // Re-append sorted rows
-    rows.forEach(row => tbody.appendChild(row));
+    fit();
+    document.fonts.ready.then(fit);
+    // A card's width follows the viewport, the app scale and the page scrollbar.
+    // Fitting changes the observed height, so it waits for the next frame.
+    let width;
+    new ResizeObserver(([entry]) => {
+        if (entry.contentRect.width === width) return;
+        width = entry.contentRect.width;
+        requestAnimationFrame(fit);
+    }).observe(body);
+}
+
+function refreshRpePlacement(row) {
+    const present = text => !['', '--', 'None'].includes(text.trim());
+    const text = selector => row.querySelector(selector).textContent;
+    const mainRpe = present(text('[data-field="scored_rpe"] .editable-text')) ||
+        (present(text('[data-field="planned_rpe"]')) && !present(text('[data-field="planned_rir"]')));
+    if (row.dataset.mainRpe !== String(mainRpe)) {
+        row.dataset.mainRpe = String(mainRpe);
+        placeRecordCells(row, window.matchMedia('(min-width: 1360px)').matches);
+    }
 }
 
 export function initializeProgressionChecks() {
     // Initialize progression status for all log entries
-    document.querySelectorAll('[data-log-id]').forEach(entry => {
+    document.querySelectorAll('tr[data-log-id]').forEach(entry => {
         const logId = entry.dataset.logId;
         checkProgressiveOverload(logId);
     });
@@ -353,7 +412,7 @@ export async function updateProgressionStatus(logId) {
 
         const badge = document.querySelector(`tr[data-log-id="${logId}"] .progression-badge`);
         if (badge && response.data) {
-            badge.className = `badge ${response.data.is_progressive ? 'bg-success' : 'bg-warning'}`;
+            setBadgeVariant(badge, response.data.is_progressive);
             badge.textContent = response.data.status;
         }
 
@@ -385,6 +444,8 @@ export async function updateScoredValue(logId, field, value) {
             
             // Update progression indicator for this cell
             updateProgressionIndicator(row, field, value);
+            if (field === 'scored_rpe') refreshRpePlacement(row);
+            fitRecordFields(row.parentElement);
         }
 
         updateProgressionBadge(row);
@@ -447,6 +508,7 @@ function updateProgressionIndicator(row, field, scoredValue) {
     // Create new indicator
     const indicator = document.createElement('i');
     indicator.classList.add('fas', 'progression-indicator');
+    indicator.setAttribute('aria-hidden', 'true');
     
     // Determine the comparison logic based on field type
     let isImproved, isSame, diff;
@@ -458,13 +520,13 @@ function updateProgressionIndicator(row, field, scoredValue) {
         diff = Number(Math.abs(plannedValue - scored).toFixed(2));
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = `Pushed harder! (RIR -${diff})`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = 'Met target RIR';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = `Easier than planned (RIR +${diff})`;
         }
     } else if (field === 'scored_rpe') {
@@ -474,13 +536,13 @@ function updateProgressionIndicator(row, field, scoredValue) {
         diff = (scored - plannedValue).toFixed(1);
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = `Higher effort! (+${diff})`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = 'Met target RPE';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = `Lower effort (${diff})`;
         }
     } else if (field === 'scored_weight') {
@@ -491,15 +553,15 @@ function updateProgressionIndicator(row, field, scoredValue) {
         const absDiff = Math.abs(scored - plannedValue).toFixed(1);
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = isAssistedBodyweight
                 ? `Assistance decreased! (-${absDiff}kg assistance)`
                 : `Weight increased! (+${diff}kg)`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = isAssistedBodyweight ? 'Same assistance' : 'Same weight';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = isAssistedBodyweight
                 ? `Assistance increased (+${absDiff}kg assistance)`
                 : `Weight decreased (${diff}kg)`;
@@ -511,22 +573,18 @@ function updateProgressionIndicator(row, field, scoredValue) {
         diff = scored - plannedValue;
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = `Above target! (+${diff})`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = 'Met target';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = `Below target (${diff})`;
         }
     }
     
-    // Add indicator to the container
-    const container = scoredCell.querySelector('.scored-value-container');
-    if (container) {
-        container.appendChild(indicator);
-    }
+    scoredCell.querySelector('.log-trigger').prepend(indicator);
 }
 
 export function isScoredRepField(field) {
@@ -603,7 +661,7 @@ export async function checkProgressionStatus(logId) {
         const data = await api.get(`/check_progression/${logId}`, { showLoading: false, showErrorToast: false });
         const result = data.data !== undefined ? data.data : data;
         
-        progressionBadge.className = `badge ${result.achieved ? 'bg-success' : 'bg-warning'}`;
+        setBadgeVariant(progressionBadge, result.achieved);
         progressionBadge.textContent = result.achieved ? 'Achieved' : 'Pending';
     } catch (error) {
         console.error('Error checking progression:', error);
@@ -618,7 +676,14 @@ export async function deleteWorkoutLog(logId) {
         // Remove the row from the table
         const row = document.querySelector(`tr[data-log-id="${logId}"]`);
         if (row) {
+            const page = row.closest('.workout-log-page');
             row.remove();
+            if (page && !page.querySelector('tr[data-log-id]')) {
+                page.querySelector('.workout-log-frame [role="region"]').hidden = true;
+                page.querySelector('.progression-legend').hidden = true;
+                page.querySelector('.ui-empty-state').hidden = false;
+                page.querySelector('#import-from-plan-btn').classList.replace('ui-btn--secondary', 'ui-btn--primary');
+            }
         }
 
         showToast('success', 'Log entry deleted successfully');
@@ -668,9 +733,6 @@ export async function handleDateChange(event, logId) {
             date: inputValue // Send YYYY-MM-DD format to backend
         }, { showLoading: false, showErrorToast: false });
 
-        // The sorter reads the last saved ISO date, including while another edit is open.
-        input.defaultValue = inputValue;
-
         // Update the display text and hide the input
         const cell = input.closest('.editable');
         const display = cell.querySelector('.editable-text');
@@ -678,14 +740,21 @@ export async function handleDateChange(event, logId) {
             if (displayDate) {
                 display.innerHTML = displayDate;
             } else {
-                // Show calendar icon when no date is set
-                display.innerHTML = '<i class="fas fa-calendar-alt date-icon"></i>';
+                // Show the calendar icon and its prompt when no date is set
+                display.innerHTML = '<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>Set Date';
             }
+            // Sorting reads the saved ISO date, not the displayed one.
+            cell.dataset.sortValue = inputValue;
+            const exercise = cell.closest('tr').querySelector('.exercise-name').textContent;
+            display.setAttribute('aria-label', `Edit Last Progression for ${exercise}, ${displayDate || 'Set Date'}`);
             display.style.display = 'flex';
         }
         
-        // Hide the input after successful update
+        // Hide the input after successful update. Focus returns to the date
+        // field unless the user has already moved it elsewhere.
+        const hadFocus = document.activeElement === input;
         input.style.display = 'none';
+        if (hadFocus && display) display.focus();
 
         // Changing the date does not affect progression, but repaint from the
         // same shared decision used by initial load and scored-value updates.
