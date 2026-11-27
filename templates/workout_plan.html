@@ -183,7 +183,7 @@
                 Exercise
                 <span id="exercise-match-count" class="exercise-match-count" aria-live="polite" aria-label="Matching exercises count"></span>
             </label>
-            <select id="exercise" name="exercise" data-testid="exercise-search" class="ui-field-input uniform-dropdown exercise-dropdown" aria-label="Select exercise">
+            <select id="exercise" name="exercise" data-testid="exercise-search" class="ui-field-input exercise-dropdown" aria-label="Select exercise">
                 {% for exercise in exercises %}
                 {% if exercise %}
                 <option value="{{ exercise }}">{{ exercise }}</option>
@@ -205,7 +205,7 @@
             {% set filter_id = filter_name | lower | replace(' ', '_') %}
             <div class="plan-form-field">
                 <label for="{{ filter_id }}" class="form-label">{{ filter_name }}</label>
-                <select id="{{ filter_id }}" name="{{ filter_id }}" data-filter-key="{{ filter_name }}" class="ui-field-input uniform-dropdown filter-dropdown" aria-label="{{ filter_name }} filter">
+                <select id="{{ filter_id }}" name="{{ filter_id }}" data-filter-key="{{ filter_name }}" class="ui-field-input filter-dropdown" aria-label="{{ filter_name }} filter">
                     <option value="">All</option>
                     {% for option in filter_options %}
                     <option value="{{ option }}">{{ option }}</option>
@@ -266,7 +266,7 @@
 <!-- Generate Starter Plan Modal -->
 <div class="modal fade" id="generatePlanModal" tabindex="-1" aria-labelledby="generatePlanModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable ui-modal-dialog ui-modal-dialog--wide">
-        <div class="modal-content ui-modal">
+        <div class="modal-content ui-modal" data-visual-surface>
             <div class="modal-header ui-modal__header">
                 <h5 class="modal-title ui-modal__title" id="generatePlanModalLabel">
                     Generate Starter Plan
@@ -278,7 +278,7 @@
                     <!-- Row 1: All 6 dropdowns/controls -->
                     <div class="row g-2 mb-3">
                         <div class="col-xl-2 col-lg-4 col-md-6">
-                            <label for="gen-training-days" class="form-label small mb-1">Training Days</label>
+                            <label for="gen-training-days" class="ui-modal__caption mb-1">Training Days</label>
                             <select id="gen-training-days" class="ui-field-input plan-generator-select" required>
                                 <option value="1">1 day (Full Body: Workout A)</option>
                                 <option value="2">2 days (2 Days Split: Workout A/B)</option>
@@ -288,14 +288,14 @@
                             </select>
                         </div>
                         <div class="col-xl-2 col-lg-4 col-md-6">
-                            <label for="gen-environment" class="form-label small mb-1">Environment</label>
+                            <label for="gen-environment" class="ui-modal__caption mb-1">Environment</label>
                             <select id="gen-environment" class="ui-field-input plan-generator-select" required>
                                 <option value="gym" selected>Gym</option>
                                 <option value="home">Home</option>
                             </select>
                         </div>
                         <div class="col-xl-2 col-lg-4 col-md-6">
-                            <label for="gen-experience" class="form-label small mb-1">Experience</label>
+                            <label for="gen-experience" class="ui-modal__caption mb-1">Experience</label>
                             <select id="gen-experience" class="ui-field-input plan-generator-select" required>
                                 <option value="novice" selected>Novice (&lt;1yr)</option>
                                 <option value="intermediate">Intermediate</option>
@@ -303,7 +303,7 @@
                             </select>
                         </div>
                         <div class="col-xl-2 col-lg-4 col-md-6">
-                            <label for="gen-goal" class="form-label small mb-1">Goal</label>
+                            <label for="gen-goal" class="ui-modal__caption mb-1">Goal</label>
                             <select id="gen-goal" class="ui-field-input plan-generator-select" required>
                                 <option value="hypertrophy" selected>Hypertrophy</option>
                                 <option value="strength">Strength</option>
@@ -311,11 +311,11 @@
                             </select>
                         </div>
                         <div class="col-xl-2 col-lg-4 col-md-6">
-                            <label for="gen-volume-scale" class="form-label small mb-1">Volume: <span id="volume-scale-value" class="fw-bold">1.0x</span></label>
+                            <label for="gen-volume-scale" class="ui-modal__caption mb-1">Volume: <span id="volume-scale-value" class="fw-bold">1.0x</span></label>
                             <input type="range" class="form-range range-calm" id="gen-volume-scale" min="0.6" max="2.0" step="0.1" value="1.0">
                         </div>
                         <div class="col-xl-2 col-lg-4 col-md-6">
-                            <span class="form-label small mb-1">Options</span>
+                            <span class="ui-modal__caption mb-1">Options</span>
                             <div class="d-flex flex-wrap gap-2">
                                 <div class="form-check form-check-inline mb-0">
                                     <input class="form-check-input" type="checkbox" id="gen-overwrite" checked>
@@ -336,7 +336,7 @@
                     <!-- Row 2: Equipment -->
                     <div class="row g-2 mb-2">
                         <div class="col-12">
-                            <label class="form-label small mb-1"><i class="fas fa-dumbbell me-1"></i>Equipment</label>
+                            <label class="ui-modal__caption mb-1"><i class="fas fa-dumbbell me-1"></i>Equipment</label>
                             <div class="d-flex flex-wrap gap-2">
                                 <div class="form-check form-check-inline mb-0">
                                     <input class="form-check-input equipment-check" type="checkbox" id="gen-eq-barbell" value="Barbell" checked>
@@ -412,9 +412,9 @@
                     <!-- Row 4: Muscle selector full width -->
                     <div class="row">
                         <div class="col-12">
-                            <label class="form-label small mb-1">
+                            <label class="ui-modal__caption mb-1">
                                 <i class="fas fa-star me-1"></i>Priority Muscle Groups
-                                <span class="text-muted">(Optional – select up to 2 muscles to get extra sets on top of the balanced plan)</span>
+                                <span>(Optional – select up to 2 muscles to get extra sets on top of the balanced plan)</span>
                             </label>
                             <div id="muscle-selector-container" class="muscle-selector-container">
                                 <!-- Muscle selector will be rendered here by JavaScript -->
@@ -424,7 +424,7 @@
                 </form>
             </div>
             <div class="modal-footer ui-modal__footer">
-                <div class="plan-disclaimer text-muted me-auto">
+                <div class="plan-disclaimer ui-modal__caption me-auto">
                     <i class="fas fa-info-circle me-1"></i>
                     Plan covers all muscle groups. Priority muscles (if selected) get extra sets.
                 </div>
@@ -458,7 +458,7 @@
 <!-- Clear Plan Confirmation Modal -->
 <div class="modal fade" id="clearPlanModal" tabindex="-1" aria-labelledby="clearPlanModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered ui-modal-dialog ui-modal-dialog--confirm">
-        <div class="modal-content ui-modal">
+        <div class="modal-content ui-modal" data-visual-surface>
             <div class="modal-header ui-modal__header">
                 <h5 class="modal-title ui-modal__title" id="clearPlanModalLabel">
                     Clear Workout Plan
@@ -467,7 +467,7 @@
             </div>
             <div class="modal-body ui-modal__body">
                 <p>Are you sure you want to clear the entire workout plan?</p>
-                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-1"></i>This will remove all exercises and cannot be undone.</p>
+                <p class="ui-modal__caption ui-modal__caption--danger mb-0"><i class="fas fa-exclamation-triangle me-1"></i>This will remove all exercises and cannot be undone.</p>
             </div>
             <div class="modal-footer ui-modal__footer">
                 <button type="button" class="ui-btn" data-bs-dismiss="modal">Cancel</button>

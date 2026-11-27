@@ -59,11 +59,12 @@ const arg = (name, fallback = null) => {
 };
 
 /**
- * The Workout Plan migration's `theme-dark.css` narrows the dark glass rule to
- * `.modal-content.frame-calm-glass`. This digest is the SHA-256 of its
+ * The Workout Plan migration's `theme-dark.css` scopes legacy glass to
+ * `.modal-content.frame-calm-glass` and retires the Plan-only input and
+ * view-toggle rules. This digest is the SHA-256 of its
  * **LF-normalized** text. See "What the digests are digests of".
  */
-const EXPECTED_INPUT = '97c27d99cebfab9ade9e30fcda53df67fb5782cb4a8966e8c47145b6c9c00b78';
+const EXPECTED_INPUT = 'c01149696cddec800cb4453ae8bb45d47630f70535b3ee303da08715c2ae12c1';
 const TOKEN = '--bg-primary';
 /**
  * `--bg-primary` proves the instrument is live, but it only surfaces where no

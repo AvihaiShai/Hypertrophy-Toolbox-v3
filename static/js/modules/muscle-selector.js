@@ -208,8 +208,8 @@ class MuscleSelector {
                 <div class="muscle-selector-controls">
                     <div class="action-buttons">
                         ${this.debugMode ? '<button type="button" class="btn btn-sm btn-outline-info me-1" id="muscle-toggle-debug">Debug</button>' : ''}
-                        <button type="button" class="btn btn-sm btn-outline-success" id="muscle-select-all">Select All</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="muscle-clear-all">Clear</button>
+                        <button type="button" class="ui-btn ui-btn--ghost ui-btn--small" id="muscle-select-all">Select All</button>
+                        <button type="button" class="ui-btn ui-btn--ghost ui-btn--small" id="muscle-clear-all">Clear</button>
                     </div>
                 </div>
 
@@ -218,13 +218,13 @@ class MuscleSelector {
                     <li class="nav-item" role="presentation">
                         <button class="nav-link ${this.bodySide === 'front' ? 'active' : ''}" 
                                 data-side="front" type="button" role="tab">
-                            <i class="fas fa-user me-1"></i>Front
+                            <i class="fas fa-user me-1" aria-hidden="true"></i>Front
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link ${this.bodySide === 'back' ? 'active' : ''}" 
                                 data-side="back" type="button" role="tab">
-                            <i class="fas fa-user me-1"></i>Back
+                            <i class="fas fa-user me-1" aria-hidden="true"></i>Back
                         </button>
                     </li>
                 </ul>

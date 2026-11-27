@@ -56,10 +56,10 @@ def test_the_reduced_motion_block_is_preserved() -> None:
 
 
 def test_value_changed_rules_are_retained() -> None:
-    """C11 names ``.value-changed`` explicitly: it is JS-applied state (M10), so a
-    rest-state sweep sees it as unmatched and would nominate it as dead."""
+    """The shared reduced-motion rule still covers JS-applied feedback after
+    the Plan-specific field highlights were retired."""
     css = _strip_comments(_css())
-    assert css.count(".value-changed") >= 7
+    assert css.count(".value-changed") >= 1
 
 
 def test_the_deferred_superset_tint_was_not_added() -> None:

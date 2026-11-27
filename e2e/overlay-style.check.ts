@@ -122,6 +122,94 @@ function modalProblems(style: ModalStyle, spec: typeof MIGRATED[number], width: 
   return problems;
 }
 
+async function modalTextContrast(modal: Locator, id: string) {
+  if (id === 'generatePlanModal') {
+    await expect(modal.locator('#svg-container svg')).toBeVisible();
+    const back = modal.locator('#muscle-selector-container [data-side="back"]');
+    await expect(back).toBeVisible();
+    await expect(back).toHaveText('Back');
+  }
+  const samples = await modal.evaluate(element => {
+    type RGB = [number, number, number];
+    type Color = { rgb: RGB; alpha: number };
+    const parse = (value: string): Color | null => {
+      const srgb = value.startsWith('color(srgb ');
+      if (!srgb && !/^rgba?\(/.test(value)) return null;
+      const channels = value.match(/-?[\d.]+/g)?.map(Number);
+      if (!channels || channels.length < 3) return null;
+      return { rgb: channels.slice(0, 3).map(channel => channel * (srgb ? 255 : 1)) as RGB, alpha: channels[3] ?? 1 };
+    };
+    const composite = (color: Color, below: RGB) => color.rgb.map((channel, index) =>
+      channel * color.alpha + below[index] * (1 - color.alpha)) as RGB;
+    const luminance = (rgb: RGB) => {
+      const [r, g, b] = rgb.map(channel => {
+        const s = channel / 255;
+        return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const background = (start: Element): RGB | null => {
+      const overlays: Color[] = [];
+      for (let node: Element | null = start; node; node = node.parentElement) {
+        const style = getComputedStyle(node);
+        const color = parse(style.backgroundColor);
+        if (!color || style.backgroundImage !== 'none') return null;
+        if (color.alpha === 1) return overlays.reduceRight((below, above) => composite(above, below), color.rgb);
+        if (color.alpha > 0) overlays.push(color);
+      }
+      return null;
+    };
+    const caption = '.modal-title, .modal-body p, .modal-body label, .modal-body .form-label, .ui-modal__caption, ' +
+      '.preview-label, .preview-badge, #muscle-selector-container [data-side], #muscle-select-all, #muscle-clear-all, ' +
+      '.selection-summary, .plan-disclaimer, .modal-footer :is(button, a[href])';
+    const readings: {
+      text: string; foreground: string; background: RGB | null; ratio: number | null; previewValue?: string;
+    }[] = [];
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parent = node.parentElement;
+      const text = node.textContent?.trim().replace(/\s+/g, ' ');
+      if (!text || !parent?.closest(caption) ||
+          parent.closest(':disabled, [aria-disabled="true"], [hidden], [aria-hidden="true"], .visually-hidden')) continue;
+      if (parent.closest('label')?.control?.matches(':disabled')) continue;
+      range.selectNodeContents(node);
+      if (!range.getClientRects().length || getComputedStyle(parent).visibility !== 'visible') continue;
+      const foreground = getComputedStyle(parent).color;
+      const color = parse(foreground);
+      const backdrop = background(parent);
+      const a = color && backdrop ? luminance(composite(color, backdrop)) : null;
+      const b = backdrop ? luminance(backdrop) : null;
+      const ratio = a === null || b === null ? null : (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      const badge = parent.closest('.badge-value')?.closest('.preview-badge');
+      const previewValue = badge ? [...badge.classList].find(className => className.startsWith('badge-')) : undefined;
+      readings.push({ text, foreground, background: backdrop, ratio, previewValue });
+    }
+    return readings;
+  });
+  const problems: string[] = [];
+  if (id === 'generatePlanModal') {
+    for (const label of ['Training Days', 'Environment', 'Experience', 'Goal', 'Volume:', 'Options', 'Equipment',
+      'Preview', 'Priority Muscle Groups', 'Front', 'Back', 'Priority:', 'Select All', 'Clear']) {
+      if (!samples.some(sample => sample.text === label)) problems.push(`missing contrast sample for ${label}`);
+    }
+    for (const badge of ['badge-routines', 'badge-exercises', 'badge-sets', 'badge-reps']) {
+      if (!samples.some(sample => sample.previewValue === badge)) problems.push(`missing contrast sample for ${badge}`);
+    }
+  }
+  const captions = id === 'generatePlanModal' ? ['balanced volume across all muscles',
+    'select up to 2 muscles to get extra sets on top of the balanced plan', 'Plan covers all muscle groups'] :
+    id === 'clearLogModal' ? ['permanently deleted'] : [];
+  for (const text of captions) {
+    if (!samples.some(sample => sample.text.includes(text))) problems.push(`missing contrast sample for ${text}`);
+  }
+  for (const sample of samples) {
+    if (sample.ratio === null) problems.push(`text contrast for “${sample.text}” has no measurable opaque backdrop`);
+    else if (sample.ratio < 4.5) problems.push(`text contrast for “${sample.text}” is ${sample.ratio.toFixed(2)}:1`);
+  }
+  return { samples, problems };
+}
+
 /** The shell and each rendered descendant that the legacy light and dark drawer rules style. */
 async function drawerStyle(page: Page, width: number) {
   const drawer = page.locator('#vpDrawer');
@@ -215,8 +303,10 @@ test('measure migrated overlays and compare the four legacy modals to the contro
         const entry = { id: spec.id, width, theme, style };
         if ('fill' in spec) {
           const problems = modalProblems({ ...style, expected }, spec, width);
+          const contrast = frame.control ? null : await modalTextContrast(modal, spec.id);
+          if (contrast) problems.push(...contrast.problems);
           failures.push({ id: spec.id, width, theme, problems });
-          metrics.push({ ...entry, problems });
+          metrics.push(contrast ? { ...entry, contrast: contrast.samples, problems } : { ...entry, problems });
         } else {
           reference.push(entry);
         }

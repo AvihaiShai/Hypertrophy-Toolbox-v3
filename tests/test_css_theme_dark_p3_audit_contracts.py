@@ -336,12 +336,7 @@ def _check_budget(figures: dict[str, object], readers: list[dict[str, object]]) 
 
 
 def test_the_block_budget_is_derived_from_the_file_and_the_bound() -> None:
-    """The 24-block arc-wide budget is arithmetic over two measured inputs.
-
-    Neither the 74 nor the 50 is written down here — the first is counted off
-    the file and the second is read out of the assertion — so the budget cannot
-    drift away from either.
-    """
+    """The block budget uses the measured stylesheet and its contract floor."""
     figures = p3_ceiling.measure_theme_dark()
     _check_budget(figures, p3_ceiling.theme_dark_readers())
 
@@ -364,7 +359,9 @@ def test_the_block_budget_is_derived_from_the_file_and_the_bound_red_path(
     )
     figures = p3_ceiling.measure_theme_dark(css)
     stale = p3_ceiling.theme_dark_readers()  # counted against the REAL file
-    assert figures["braceOpeningBlocks"] == 73
+    original_blocks = p3_ceiling.measure_theme_dark()["braceOpeningBlocks"]
+    assert isinstance(original_blocks, int)
+    assert figures["braceOpeningBlocks"] == original_blocks - 1
     with pytest.raises(AssertionError):
         _check_budget(figures, stale)
 
@@ -421,15 +418,14 @@ def _check_zero_headroom(readers: list[dict[str, object]]) -> None:
 
 
 def test_the_value_changed_floor_is_emitted_with_zero_headroom() -> None:
-    """``css.count(".value-changed") >= 7`` against a file containing exactly 7:
-    deleting any one of them reds a WP4.4-j contract."""
+    """The sole shared feedback rule sits exactly at the WP4.4-j floor."""
     _check_zero_headroom(p3_ceiling.theme_dark_readers())
 
 
 def test_the_value_changed_floor_is_emitted_with_zero_headroom_red_path(
     tmp_path: Path,
 ) -> None:
-    """Add an eighth occurrence and the emitted headroom must stop being zero."""
+    """Adding one occurrence creates headroom above the shared feedback floor."""
     css = _synthetic_css(
         tmp_path,
         [
@@ -524,7 +520,22 @@ def test_the_o14_detector_distinguishes_a_sliced_haystack_red_path(
             )
         },
     )
-    readers = p3_ceiling.theme_dark_readers(tests_dir=tests_dir, css_path=THEME_DARK)
+    # The migrated stylesheet has one feedback rule, inside the media block.
+    # Add a second occurrence outside that block to exercise absence detection.
+    css = _synthetic_css(
+        tmp_path,
+        [
+            (
+                "/* Dark mode reduced motion */",
+                ".value-changed { outline: 0; }\n/* Dark mode reduced motion */",
+                1,
+            )
+        ],
+    )
+    _check_haystack_discrimination(
+        p3_ceiling.theme_dark_readers(tests_dir=ROOT / "tests", css_path=css)
+    )
+    readers = p3_ceiling.theme_dark_readers(tests_dir=tests_dir, css_path=css)
     row = _row(readers, "test_css_wp4_4_theme_dark_contracts.py:55")
     assert row["haystackIsWholeFile"] is True
     assert row["satisfiableByAbsence"] is True

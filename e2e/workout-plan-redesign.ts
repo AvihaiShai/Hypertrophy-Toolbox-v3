@@ -68,7 +68,8 @@ export async function setDetails(page: Page, id: number, open: boolean) {
 
 /**
  * WP11 checks document width, containment, and the actual laid-out hit boxes.
- * Text ranges catch a value overflowing its field even if the field itself fits.
+ * In the narrow-phone passes, open Details also needs two numeric fields per
+ * row. Text ranges catch wrapping or overflow even if the field itself fits.
  */
 export function phonePlanProblems(page: Page) {
   return page.locator('#main-content').evaluate(main => {
@@ -85,6 +86,58 @@ export function phonePlanProblems(page: Page) {
     const cards = [...main.querySelectorAll('tr.ui-record-card')].filter(rendered);
     if (!cards.length) problems.push('no exercise cards render');
     if (document.documentElement.scrollWidth > width) problems.push('the page scrolls sideways');
+    const textBoxes = (element: Element | null) => {
+      if (!element) return [];
+      const boxes: DOMRect[] = [];
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!node.textContent?.trim() || !node.parentElement || !rendered(node.parentElement)) continue;
+        range.selectNodeContents(node);
+        boxes.push(...[...range.getClientRects()].filter(rect => rect.width > 0 && rect.height > 0));
+      }
+      return boxes;
+    };
+    for (const card of cards) {
+      const heading = card.querySelector('.exercise-name');
+      const groups = [
+        { label: 'title', boxes: textBoxes(card.querySelector('.plan-exercise-heading')) },
+        { label: 'routine', boxes: textBoxes(card.querySelector('.routine-cell')) },
+        { label: 'prescription', boxes: textBoxes(card.querySelector('.plan-prescription')) },
+        { label: 'actions', boxes: [...card.querySelectorAll('.plan-card-actions button')]
+          .filter(rendered).map(button => button.getBoundingClientRect()) },
+      ];
+      const exercise = heading?.textContent?.trim() || name(card);
+      for (const [index, group] of groups.entries()) {
+        if (!group.boxes.length) problems.push(`${exercise}: ${group.label} has no visible content`);
+        const next = groups[index + 1];
+        if (next && group.boxes.length && next.boxes.length &&
+            Math.max(...group.boxes.map(rect => rect.bottom)) > Math.min(...next.boxes.map(rect => rect.top)) + tolerance) {
+          problems.push(`${exercise}: ${group.label} overlaps or follows ${next.label}`);
+        }
+      }
+      if (card.querySelector('.plan-details-toggle[aria-expanded="true"]')) {
+        const rows: { top: number; fields: { label: string; left: number }[] }[] = [];
+        for (const cell of [...card.querySelectorAll(':scope > [data-field]')].filter(rendered)) {
+          const { top, left } = cell.getBoundingClientRect();
+          const field = { label: name(cell), left };
+          const row = rows.find(row => Math.abs(top - row.top) <= tolerance);
+          if (row) row.fields.push(field);
+          else rows.push({ top, fields: [field] });
+
+          const value = textBoxes(cell);
+          if (!value.length || value.some(box => Math.abs(box.top - value[0].top) > tolerance)) {
+            problems.push(`${exercise}: ${field.label} value must fit on one line`);
+          }
+        }
+        const layout = rows.sort((a, b) => a.top - b.top).map(row =>
+          row.fields.sort((a, b) => a.left - b.left).map(field => field.label).join(', '),
+        ).join(' / ');
+        if (layout !== 'Sets, Min Rep / Max Rep, RIR / RPE, Weight') {
+          problems.push(`${exercise}: Details needs two numeric fields per row (rendered: ${layout || 'none'})`);
+        }
+      }
+    }
     const selectionBar = main.querySelector('#superset-actions');
     const areas = [...cards, ...main.querySelectorAll(
       '.ui-page-actions, #routine-tabs, #superset-actions, .ui-panel:has(#add_exercise_btn), #filter-chips, .ui-chip-list',

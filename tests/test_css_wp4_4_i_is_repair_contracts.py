@@ -100,16 +100,8 @@ def _is_groups(css: str) -> list[str]:
 
 
 def test_the_repair_added_no_lines() -> None:
-    """The `@layer workout` span pin at `openLine 3539` sits below the family.
-
-    WP4.4-h measured this file at 5,207 newlines and WP4.4-i is a selector
-    rewrite, not a deletion, so the count must be identical. A failure here means
-    a split was reflowed onto extra lines, which moves the frozen layer span and
-    reds `tests/test_css_wp4_4_a_baseline_contracts.py` — a file neither packet
-    may edit.
-    """
-    # The Log pilot left 5,091 lines; the Plan components append 334 more.
-    assert _css().count("\n") == 5425
+    """Pin the measured source after the Plan's signed CSS retirement."""
+    assert _css().count("\n") == 4595
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
@@ -207,23 +199,22 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     whole-file totals that partition implies, asserted on the raw text so the two
     files would disagree if either drifted.
 
-    The partition is measured on comment-stripped text and implies `:hover` 112;
-    the raw count is 113 because one `:hover` lives inside a comment. That single
+    The partition is measured on comment-stripped text and implies `:hover` 81;
+    the raw count is 82 because one `:hover` lives inside a comment. That single
     occurrence is asserted here rather than left as an unstated offset.
     """
     css = _css()
-    assert css.count(":is(") == 19
-    assert css.count(":where(") == 77  # Includes the legacy modal shadow exclusion
-    assert css.count(":hover") == 113  # Includes two shared menu item states
+    assert css.count(":is(") == 14
+    assert css.count(":where(") == 65
+    assert css.count(":hover") == 82
     commented_hovers = sum(
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
     )
     assert commented_hovers == 1, (
-        "the raw/stripped :hover offset changed; the 113 above and the 112 in "
+        "the raw/stripped :hover offset changed; the 82 above and the 81 in "
         "test_css_wp4_4_components_contracts.py no longer reconcile"
     )
-    # The pilot removed 36 of the 919 important declarations WP4.4-h shipped.
-    assert len(re.findall(r"!important", css)) == 883
+    assert len(re.findall(r"!important", css)) == 539
 
 
 def test_the_progression_arm_is_id_free_and_the_donor_arm_is_not() -> None:

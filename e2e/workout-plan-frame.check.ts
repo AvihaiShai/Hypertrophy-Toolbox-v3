@@ -142,6 +142,52 @@ async function tableRegion(page: Page) {
   const before = await region.evaluate(element => {
     element.scrollLeft = 0;
     const headings = [...element.querySelectorAll('th')].filter(node => node.getClientRects().length);
+    const textProblems: string[] = [];
+    const visible = (node: Element) => node.getClientRects().length > 0 &&
+      getComputedStyle(node).visibility === 'visible';
+    const textSegments = (node: Element, byWord: boolean) => {
+      const segments: { text: string; boxes: DOMRect[] }[] = [];
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      for (let current = walker.nextNode(); current; current = walker.nextNode()) {
+        const parent = current.parentElement;
+        if (!parent || !visible(parent) || parent.closest('.visually-hidden, [aria-hidden="true"]')) continue;
+        const matches = (current.textContent ?? '').matchAll(byWord ? /\S+/g : /\S(?:[^\r\n]*\S)?/g);
+        for (const match of matches) {
+          range.setStart(current, match.index);
+          range.setEnd(current, match.index + match[0].length);
+          segments.push({ text: match[0], boxes: [...range.getClientRects()].filter(box => box.width > 0) });
+        }
+      }
+      return segments;
+    };
+    const fits = (inner: DOMRect, outer: DOMRect) => inner.left >= outer.left - 0.5 &&
+      inner.right <= outer.right + 0.5 && inner.top >= outer.top - 0.5 && inner.bottom <= outer.bottom + 0.5;
+    for (const heading of headings) {
+      const box = heading.getBoundingClientRect();
+      for (const { text, boxes } of textSegments(heading, true)) {
+        if (boxes.length !== 1 || !boxes.every(part => fits(part, box))) {
+          textProblems.push(`heading ${heading.textContent?.trim()}: ${text} is split or clipped`);
+        }
+      }
+    }
+    const weights: string[] = [];
+    for (const control of element.querySelectorAll('tbody td[data-field] .ui-field, tbody [data-label="Actions"] button')) {
+      if (!visible(control)) continue;
+      const cell = control.closest('td')!;
+      const value = control.textContent?.trim() ?? '';
+      const segments = textSegments(control, false);
+      const boxes = segments.flatMap(segment => segment.boxes);
+      const firstLine = boxes[0]?.top;
+      const controlBox = control.getBoundingClientRect();
+      const cellBox = cell.getBoundingClientRect();
+      if (cell.getAttribute('data-field') === 'weight') weights.push(value);
+      if (!value || firstLine === undefined || segments.some(segment => !segment.boxes.length) || boxes.some(box =>
+        Math.abs(box.top - firstLine) > 0.5 || !fits(box, controlBox) || !fits(box, cellBox))) {
+        const exercise = cell.closest('tr')?.querySelector('.exercise-name')?.textContent?.trim();
+        textProblems.push(`${exercise} ${cell.getAttribute('data-label')}: ${value} is wrapped or clipped`);
+      }
+    }
     return {
       ready: element.getAttribute('tabindex') === '0' &&
         !!(element.getAttribute('aria-label') || element.getAttribute('aria-labelledby')),
@@ -149,6 +195,8 @@ async function tableRegion(page: Page) {
       clippedHeadings: headings.filter(node => node.scrollWidth > node.clientWidth)
         .map(node => node.textContent?.trim()),
       exerciseWidth: headings.find(node => node.textContent?.trim() === 'Exercise')?.getBoundingClientRect().width ?? 0,
+      textProblems,
+      weights,
     };
   });
   let keyboard = before.overflow <= 0;
@@ -405,6 +453,9 @@ test('measure the Workout Plan on its own seeded server', async ({ page, baseURL
                   measured.clippedHeadings.length === 0 && measured.exerciseWidth >= 219.5 &&
                   measured.remove.length === read.rowCount && measured.remove.every(Boolean) &&
                   JSON.stringify(read.headings) === JSON.stringify(mode === 'simple' ? SIMPLE : ADVANCED));
+                record(label + '/' + tab + '/' + mode + ' WP7 text fits',
+                  measured.textProblems.length === 0 &&
+                  [String(squat.weight), String(deadlift.weight)].every(weight => measured.weights.includes(weight)));
               }
               if (populated && width < 1360 && [768, 1359].includes(width)) {
                 record(label + '/' + tab + '/' + mode + ' two-column cards',

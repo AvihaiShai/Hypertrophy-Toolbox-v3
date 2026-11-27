@@ -8,7 +8,6 @@ input.btn,
 .btn.btn-outline-secondary,
 .btn.btn-export-excel,
 .btn.btn-export-log,
-#clear-filters-btn,
 button[type="submit"].btn {
     display: inline-flex !important;
     align-items: center !important;
@@ -96,45 +95,6 @@ button[type="submit"].btn {
     border-color: rgba(179, 157, 219, 0.7) !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(103, 58, 183, 0.15), inset 0 1px 0 rgba(255,255,255,0.5) !important;
-}
-
-/* Clear Filters Button - Glass */
-#clear-filters-btn {
-    background: linear-gradient(135deg, rgba(232, 234, 246, 0.9), rgba(197, 202, 233, 0.85)) !important;
-    color: #283593 !important;
-    border: 1px solid rgba(197, 202, 233, 0.6) !important;
-}
-
-#clear-filters-btn:hover {
-    background-color: #c5cae9 !important;  /* Slightly darker on hover */
-    border-color: #9fa8da !important;
-    transform: translateY(-2px);
-}
-
-/* Backup Center Button - Baby Blue */
-#load-program-btn {
-    background-color: #e0f7fa !important;  /* Light baby blue background */
-    color: #00838f !important;  /* Darker cyan text */
-    border: 1px solid #b2ebf2 !important;  /* Light baby blue border */
-}
-
-#load-program-btn:hover {
-    background-color: #b2ebf2 !important;  /* Slightly darker on hover */
-    border-color: #80deea !important;
-    transform: translateY(-2px);
-}
-
-/* Clear Plan Button - Light Lava */
-#clear-plan-btn.btn {
-    background-color: #ffebee !important;  /* Light lava/red background */
-    color: #c62828 !important;  /* Darker red text */
-    border: 1px solid #ffcdd2 !important;  /* Light lava border */
-}
-
-#clear-plan-btn.btn:hover {
-    background-color: #ffcdd2 !important;  /* Slightly darker on hover */
-    border-color: #ef9a9a !important;
-    transform: translateY(-2px);
 }
 
 /* Active state for all buttons */
@@ -1329,73 +1289,6 @@ input.form-control#sets.value-changed {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* Table Container Enhancement - Glass Style */
-.workout-plan.table-container {
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(248, 250, 252, 0.98) 100%);
-    padding: var(--frame-padding, 1.25rem);
-    border-radius: 14px;
-    border: 1px solid rgba(229, 231, 235, 0.4);
-    box-shadow:
-        0 8px 32px rgba(79, 140, 255, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    overflow: visible;
-}
-
-/* Dark mode for workout plan table container - Glass Style */
-[data-theme='dark'] .workout-plan.table-container {
-    background: linear-gradient(135deg,
-        rgba(26, 32, 44, 0.95) 0%,
-        rgba(20, 25, 35, 0.98) 100%);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        0 2px 8px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    color: #fff;
-}
-
-[data-theme='dark'] .workout-plan.table-container table {
-    color: #e9ecef;
-}
-
-[data-theme='dark'] .workout-plan.table-container th {
-    background: linear-gradient(180deg,
-        rgba(40, 48, 64, 0.98) 0%,
-        rgba(32, 40, 54, 0.95) 50%,
-        rgba(26, 32, 44, 0.92) 100%) !important;
-    color: rgba(255, 255, 255, 0.95) !important;
-    border-color: rgba(79, 140, 255, 0.2) !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        inset 0 -1px 0 rgba(79, 140, 255, 0.15);
-}
-
-[data-theme='dark'] .workout-plan.table-container td {
-    background: linear-gradient(180deg,
-        rgba(26, 32, 44, 0.98) 0%,
-        rgba(22, 27, 38, 0.95) 100%) !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
-    color: #fff;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-[data-theme='dark'] .workout-plan.table-container tr:hover td {
-    background: linear-gradient(180deg,
-        rgba(79, 140, 255, 0.15) 0%,
-        rgba(79, 140, 255, 0.08) 100%) !important;
-    color: #fff;
-}
-
-[data-theme='dark'] .workout-plan.table-container tr:nth-child(even) td {
-    background: linear-gradient(180deg,
-        rgba(32, 40, 52, 0.98) 0%,
-        rgba(28, 35, 46, 0.95) 100%) !important;
-    color: #fff;
-}
-
 /* Table Header Styling */
 .table-header {
     margin-bottom: 1.5rem;
@@ -1576,20 +1469,6 @@ input.form-control#sets.value-changed {
 [data-theme='dark'] .table .btn-danger:hover {
     background-color: #c82333;
     border-color: #bd2130;
-}
-
-/* Dark mode text colors for specific elements */
-[data-theme='dark'] .workout-plan.table-container .form-control,
-[data-theme='dark'] .workout-plan.table-container .form-select,
-[data-theme='dark'] .workout-plan.table-container .input-group-text,
-[data-theme='dark'] .workout-plan.table-container label,
-[data-theme='dark'] .workout-plan.table-container .text-muted {
-    color: #fff !important;
-}
-
-/* Ensure text remains white on hover */
-[data-theme='dark'] .workout-plan.table-container tr:hover td {
-    color: #fff;
 }
 
 /* Consolidated Editable Styles */
@@ -1996,10 +1875,6 @@ tr.sortable-drag {
     .table-workout td {
         padding: 0.4rem 0.5rem;
     }
-
-    .workout-plan.table-container {
-        padding: 0.5rem;
-    }
 }
 
 /* 1366x768 (1281px - 1366px) - Compact */
@@ -2017,10 +1892,6 @@ tr.sortable-drag {
 
     .table-workout td {
         padding: 0.45rem 0.55rem;
-    }
-
-    .workout-plan.table-container {
-        padding: 0.55rem;
     }
 }
 
@@ -2040,10 +1911,6 @@ tr.sortable-drag {
     .table-workout td {
         padding: 0.475rem 0.6rem;
     }
-
-    .workout-plan.table-container {
-        padding: 0.6rem;
-    }
 }
 
 /* 1600x900 (1537px - 1600px) - Medium Compact */
@@ -2061,10 +1928,6 @@ tr.sortable-drag {
 
     .table-workout td {
         padding: 0.5rem 0.65rem;
-    }
-
-    .workout-plan.table-container {
-        padding: 0.65rem;
     }
 }
 
@@ -2084,10 +1947,6 @@ tr.sortable-drag {
     .table-workout td {
         padding: 0.55rem 0.75rem;
     }
-
-    .workout-plan.table-container {
-        padding: 0.75rem;
-    }
 }
 
 /* 1440p (1921px - 2560px) - Standard */
@@ -2106,10 +1965,6 @@ tr.sortable-drag {
     .table-workout td {
         padding: 0.65rem 0.875rem;
     }
-
-    .workout-plan.table-container {
-        padding: 1rem;
-    }
 }
 
 /* 4K (2561px+) - Large */
@@ -2127,10 +1982,6 @@ tr.sortable-drag {
 
     .table-workout td {
         padding: 0.85rem 1.125rem;
-    }
-
-    .workout-plan.table-container {
-        padding: 1.25rem;
     }
 }
 
@@ -2328,42 +2179,7 @@ body.modal-open > .container-fluid.mt-4 {
     max-width: 700px;
 }
 
-/* ============================================
-   GENERATE STARTER PLAN MODAL
-   Optimized layout for 1920x1080 screens
-   ============================================ */
-#generatePlanModal .modal-body {
-    padding: 0.75rem 1.25rem;
-}
-
-#generatePlanModal .modal-header {
-    padding: 0.5rem 1.25rem;
-}
-
-#generatePlanModal .modal-footer {
-    padding: 0.5rem 1.25rem;
-}
-
-/* Fix Generate Starter Plan open flicker by removing nested blur/radius mismatch. */
-#generatePlanModal .modal-content.frame-calm-glass {
-    overflow: hidden;
-}
-
-#generatePlanModal .modal-content.frame-calm-glass .modal-header,
-#generatePlanModal .modal-content.frame-calm-glass .modal-footer {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border-top-left-radius: 0 !important;
-    border-top-right-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-}
-
 /* Compact form controls for the plan generator */
-#generatePlanModal .form-label {
-    margin-bottom: 0.125rem;
-}
-
 #generatePlanModal .row.g-2.mb-3 {
     margin-bottom: 0.5rem !important;
 }
@@ -2378,15 +2194,15 @@ body.modal-open > .container-fluid.mt-4 {
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--surface-1);
+    border: 1px solid var(--ui-hairline);
     border-radius: 8px;
 }
 
 #generatePlanModal .preview-label {
     font-weight: 600;
     font-size: 0.75rem;
-    color: #6c757d;
+    color: var(--ink-2);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
@@ -2406,6 +2222,7 @@ body.modal-open > .container-fluid.mt-4 {
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 500;
+    color: var(--ink-1);
     white-space: nowrap;
 }
 
@@ -2420,22 +2237,18 @@ body.modal-open > .container-fluid.mt-4 {
 
 #generatePlanModal .badge-routines {
     background: rgba(13, 110, 253, 0.12);
-    color: #0d6efd;
 }
 
 #generatePlanModal .badge-exercises {
     background: rgba(111, 66, 193, 0.12);
-    color: #6f42c1;
 }
 
 #generatePlanModal .badge-sets {
     background: rgba(25, 135, 84, 0.12);
-    color: #198754;
 }
 
 #generatePlanModal .badge-reps {
     background: rgba(253, 126, 20, 0.12);
-    color: #e67e22;
 }
 
 /* Compact muscle selector within this modal */
@@ -2479,8 +2292,6 @@ body.modal-open > .container-fluid.mt-4 {
 
 /* Disclaimer in footer */
 #generatePlanModal .plan-disclaimer {
-    font-size: 0.6875rem;
-    line-height: 1.3;
     max-width: 320px;
 }
 
@@ -2550,11 +2361,11 @@ body.modal-open > .container-fluid.mt-4 {
 }
 
 /* Volume value text colors */
-#generatePlanModal .volume-value-blue { color: #3498db; }
-#generatePlanModal .volume-value-green { color: #27ae60; }
-#generatePlanModal .volume-value-yellow { color: #d4a017; }
-#generatePlanModal .volume-value-orange { color: #e67e22; }
-#generatePlanModal .volume-value-red { color: #e74c3c; }
+#generatePlanModal .volume-value-blue { color: color-mix(in srgb, var(--ui-primary) 40%, var(--ink-1)); }
+#generatePlanModal .volume-value-green { color: var(--ui-achieved); }
+#generatePlanModal .volume-value-yellow { color: var(--ui-pending); }
+#generatePlanModal .volume-value-orange { color: color-mix(in srgb, var(--ui-pending) 60%, var(--ui-danger)); }
+#generatePlanModal .volume-value-red { color: var(--ui-danger); }
 
 /* Toast Notification Styles - 2026 Glossy Glass Theme */
 .toast {
@@ -3257,20 +3068,7 @@ body.modal-open > .container-fluid.mt-4 {
   transform: translateY(-1px) !important;
 }
 
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-link,
-#workout[data-page="workout-plan"] .btn.btn-calm-link {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  color: var(--accent, #4c6ef5) !important;
-  font-weight: 600 !important;
-  letter-spacing: 0 !important;
-  min-height: 0 !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass,
-.modal-content.frame-calm-glass,
-.execution-style-picker.frame-calm-glass {
+.modal-content.frame-calm-glass {
   background: var(--calm-glass-bg, rgba(255, 255, 255, 0.55)) !important;
   backdrop-filter: blur(var(--calm-glass-blur, 18px)) saturate(var(--calm-glass-sat, 180%)) !important;
   -webkit-backdrop-filter: blur(var(--calm-glass-blur, 18px)) saturate(var(--calm-glass-sat, 180%)) !important;
@@ -3280,646 +3078,15 @@ body.modal-open > .container-fluid.mt-4 {
   color: var(--ink-1, #0f1220) !important;
 }
 
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-calm-glass,
 .modal-content.frame-calm-glass .frame-calm-glass {
   box-shadow: none !important;
 }
 
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-header,
-.execution-style-picker.frame-calm-glass .execution-picker-header,
-.execution-style-picker.frame-calm-glass .execution-picker-footer,
 .modal-content.frame-calm-glass .modal-header:not(.bg-danger),
 .modal-content.frame-calm-glass .modal-footer {
   background: color-mix(in srgb, var(--surface-2, #ffffff) 78%, transparent) !important;
   border-color: color-mix(in srgb, var(--accent, #4c6ef5) 16%, transparent) !important;
   color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .collapse-toggle {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 70%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 18%, transparent) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
-  color: var(--ink-2, #4a5170) !important;
-}
-
-#workout[data-page="workout-plan"] .routine-tabs-container.frame-calm-glass,
-#workout[data-page="workout-plan"] .superset-actions.frame-calm-glass,
-#workout[data-page="workout-plan"] .plan-preview-box.frame-calm-glass {
-  padding: var(--s-3, 12px) !important;
-}
-
-#workout[data-page="workout-plan"] .tbl-wrap.frame-calm-glass {
-  padding: var(--s-2, 8px) !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .routine-tab-btn {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 68%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 16%, transparent) !important;
-  border-radius: 8px !important;
-  color: var(--ink-2, #4a5170) !important;
-  letter-spacing: 0 !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .routine-tab-btn.active,
-#workout[data-page="workout-plan"] .frame-calm-glass .routine-tab-btn[aria-selected="true"] {
-  background: var(--action-primary, #4c6ef5) !important;
-  border-color: var(--action-primary-border, #7088f7) !important;
-  box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
-  color: var(--accent-ink, #ffffff) !important;
-}
-
-.execution-style-picker.frame-calm-glass {
-  overflow: hidden !important;
-}
-
-.execution-style-picker.frame-calm-glass .execution-picker-content {
-  background: transparent !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-.execution-style-picker.frame-calm-glass .execution-option {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 64%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 16%, transparent) !important;
-  border-radius: 8px !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-.execution-style-picker.frame-calm-glass .execution-option.active {
-  background: color-mix(in srgb, var(--accent, #4c6ef5) 14%, var(--surface-2, #ffffff) 86%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 52%, transparent) !important;
-}
-
-#workout[data-page="workout-plan"] .form-range.range-calm {
-  accent-color: var(--accent, #4c6ef5) !important;
-  filter: drop-shadow(0 1px 2px rgba(15, 18, 32, 0.10)) !important;
-}
-
-@layer workout {
-#workout[data-page="workout-plan"] .btn.btn-calm-primary,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-primary,
-#workout[data-page="workout-plan"] .modal-content.frame-calm-glass .btn.btn-calm-primary {
-  background: var(--action-primary, #4c6ef5) !important;
-  background-image: none !important;
-  border: 1px solid var(--action-primary-border, #7088f7) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
-  color: var(--accent-ink, #ffffff) !important;
-  text-shadow: none !important;
-}
-
-#workout[data-page="workout-plan"] .btn.btn-calm-primary:hover:not(:disabled),
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-primary:hover:not(:disabled),
-#workout[data-page="workout-plan"] .btn.btn-calm-primary:focus-visible,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-primary:focus-visible {
-  background: var(--action-primary-hover, #475fdf) !important;
-  background-image: none !important;
-  border-color: var(--action-primary-hover-border, #687ff6) !important;
-  color: var(--accent-ink, #ffffff) !important;
-}
-
-#workout[data-page="workout-plan"] .btn.btn-calm-ghost,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-ghost,
-#workout[data-page="workout-plan"] .modal-content.frame-calm-glass .btn.btn-calm-ghost,
-#workout[data-page="workout-plan"] .frame-calm-glass .collapse-toggle {
-  background: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 18%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 82%) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-neu-out, 8px 8px 20px rgba(167, 175, 200, 0.35), -8px -8px 20px rgba(255, 255, 255, 0.90)) !important;
-  color: var(--ink-1, #0f1220) !important;
-  text-shadow: none !important;
-}
-
-#workout[data-page="workout-plan"] .btn.btn-calm-ghost:hover:not(:disabled),
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-ghost:hover:not(:disabled),
-#workout[data-page="workout-plan"] .frame-calm-glass .collapse-toggle:hover:not(:disabled),
-#workout[data-page="workout-plan"] .btn.btn-calm-ghost:focus-visible,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-ghost:focus-visible,
-#workout[data-page="workout-plan"] .frame-calm-glass .collapse-toggle:focus-visible {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 88%, var(--accent, #4c6ef5) 12%) !important;
-  background-image: none !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 30%, transparent) !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .btn.btn-calm-danger,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-danger,
-#workout[data-page="workout-plan"] .modal-content.frame-calm-glass .btn.btn-calm-danger {
-  background: var(--action-danger, #e53f3f) !important;
-  background-image: none !important;
-  border: 1px solid var(--action-danger-border, #f16d6d) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
-  color: #ffffff !important;
-  text-shadow: none !important;
-}
-
-#workout[data-page="workout-plan"] .btn.btn-calm-danger:hover:not(:disabled),
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-danger:hover:not(:disabled),
-#workout[data-page="workout-plan"] .btn.btn-calm-danger:focus-visible,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-danger:focus-visible {
-  background: var(--action-danger-hover, #d83a3a) !important;
-  background-image: none !important;
-  border-color: var(--action-danger-hover-border, #ef6868) !important;
-  color: #ffffff !important;
-}
-
-#workout[data-page="workout-plan"] .btn.btn-calm-icon,
-#workout[data-page="workout-plan"] :where(.btn).btn-calm-icon {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 72%, transparent) !important;
-  background-image: none !important;
-  border: 1px solid var(--calm-glass-border, rgba(255, 255, 255, 0.65)) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
-  color: var(--ink-2, #4a5170) !important;
-}
-
-#workout[data-page="workout-plan"] .form-control.input-calm-inset,
-#workout[data-page="workout-plan"] .form-select.input-calm-inset,
-#workout[data-page="workout-plan"] .input-fields-group .input-group .form-control.input-calm-inset,
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"],
-#workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset,
-#workout[data-page="workout-plan"] .exercise-dropdown.input-calm-inset {
-  background: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 18%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 82%) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90)) !important;
-  color: var(--ink-1, #0f1220) !important;
-  text-shadow: none !important;
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range) {
-  background: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 18%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 82%) !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90)) !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .form-control.input-calm-inset:hover:not(:disabled),
-#workout[data-page="workout-plan"] .form-select.input-calm-inset:hover:not(:disabled),
-#workout[data-page="workout-plan"] .input-fields-group .input-group .form-control.input-calm-inset:hover:not(:disabled),
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"]:hover:not(:disabled),
-#workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset:hover:not(:disabled),
-#workout[data-page="workout-plan"] .exercise-dropdown.input-calm-inset:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 88%, var(--accent, #4c6ef5) 12%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #ffffff) 88%, var(--accent, #4c6ef5) 12%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 30%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 70%) !important;
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range):hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 88%, var(--accent, #4c6ef5) 12%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #ffffff) 88%, var(--accent, #4c6ef5) 12%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 30%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 70%) !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90)) !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .form-control.input-calm-inset:focus,
-#workout[data-page="workout-plan"] .form-select.input-calm-inset:focus,
-#workout[data-page="workout-plan"] .input-fields-group .input-group .form-control.input-calm-inset:focus,
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"]:focus,
-#workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset:focus,
-#workout[data-page="workout-plan"] .exercise-dropdown.input-calm-inset:focus {
-  background: var(--surface-2, #ffffff) !important;
-  background-color: var(--surface-2, #ffffff) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 56%, white 44%) !important;
-  box-shadow:
-    var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90)),
-    0 0 0 3px color-mix(in srgb, var(--accent, #4c6ef5) 24%, transparent) !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range):focus {
-  background: var(--surface-2, #ffffff) !important;
-  background-color: var(--surface-2, #ffffff) !important;
-  background-image: none !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 56%, white 44%) !important;
-  box-shadow:
-    var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90)),
-    0 0 0 3px color-mix(in srgb, var(--accent, #4c6ef5) 24%, transparent) !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .form-select.input-calm-inset.filter-active,
-#workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset.filter-active,
-#workout[data-page="workout-plan"] .form-select.filter-dropdown.filter-active,
-#workout[data-page="workout-plan"] select.filter-dropdown.filter-active {
-  background: linear-gradient(135deg, rgba(255, 253, 231, 0.94) 0%, rgba(255, 243, 205, 0.97) 100%) !important;
-  background-color: rgba(255, 248, 225, 0.96) !important;
-  background-image: linear-gradient(135deg, rgba(255, 253, 231, 0.94) 0%, rgba(255, 243, 205, 0.97) 100%) !important;
-  border: 1px solid rgba(255, 193, 7, 0.62) !important;
-  border-color: rgba(255, 193, 7, 0.62) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(212, 165, 43, 0.20),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.88),
-    0 2px 8px rgba(255, 193, 7, 0.14) !important;
-  color: #7a5a00 !important;
-}
-
-#workout[data-page="workout-plan"] .form-select.input-calm-inset.filter-active:hover:not(:disabled),
-#workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset.filter-active:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(255, 248, 210, 0.96) 0%, rgba(255, 236, 179, 0.98) 100%) !important;
-  background-color: rgba(255, 243, 195, 0.98) !important;
-  border-color: rgba(255, 179, 0, 0.72) !important;
-  color: #6a4e00 !important;
-}
-
-#workout[data-page="workout-plan"] .form-select.input-calm-inset.filter-active:focus,
-#workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset.filter-active:focus {
-  background: linear-gradient(135deg, rgba(255, 250, 220, 0.97) 0%, rgba(255, 240, 190, 0.99) 100%) !important;
-  background-color: rgba(255, 245, 205, 0.99) !important;
-  border-color: rgba(255, 160, 0, 0.80) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(212, 165, 43, 0.22),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.90),
-    0 0 0 3px rgba(255, 193, 7, 0.25) !important;
-  color: #6a4e00 !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .btn.btn-calm-ghost,
-[data-theme='dark'] #workout[data-page="workout-plan"] :where(.btn).btn-calm-ghost,
-[data-theme='dark'] #workout[data-page="workout-plan"] .frame-calm-glass .collapse-toggle {
-  background: color-mix(in srgb, var(--surface-1, #161a2d) 88%, transparent) !important;
-  background-image: none !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 24%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 76%) !important;
-  box-shadow: var(--shadow-neu-out, 8px 8px 20px rgba(0, 0, 0, 0.55), -8px -8px 20px rgba(255, 255, 255, 0.04)) !important;
-  color: var(--ink-1, #eef1f6) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .form-control.input-calm-inset,
-[data-theme='dark'] #workout[data-page="workout-plan"] .form-select.input-calm-inset,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group .form-control.input-calm-inset,
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"],
-[data-theme='dark'] #workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset,
-[data-theme='dark'] #workout[data-page="workout-plan"] .exercise-dropdown.input-calm-inset {
-  background: var(--surface-0, #101419) !important;
-  background-color: var(--surface-0, #101419) !important;
-  background-image: none !important;
-  border-color: color-mix(in srgb, var(--ink-3, #96a2b1) 34%, transparent) !important;
-  box-shadow: var(--shadow-neu-in) !important;
-  color: var(--ink-1, #eef1f6) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range),
-[data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range) {
-  background: var(--surface-0, #101419) !important;
-  background-color: var(--surface-0, #101419) !important;
-  background-image: none !important;
-  border-color: color-mix(in srgb, var(--ink-3, #96a2b1) 34%, transparent) !important;
-  box-shadow: var(--shadow-neu-in) !important;
-  color: var(--ink-1, #eef1f6) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .form-select.input-calm-inset.filter-active,
-[data-theme='dark'] #workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset.filter-active,
-[data-theme='dark'] #workout[data-page="workout-plan"] .form-select.filter-dropdown.filter-active,
-[data-theme='dark'] #workout[data-page="workout-plan"] select.filter-dropdown.filter-active {
-  background: linear-gradient(135deg, rgba(90, 70, 20, 0.55) 0%, rgba(110, 85, 25, 0.62) 100%) !important;
-  background-color: rgba(95, 72, 20, 0.60) !important;
-  background-image: linear-gradient(135deg, rgba(90, 70, 20, 0.55) 0%, rgba(110, 85, 25, 0.62) 100%) !important;
-  border: 1px solid rgba(255, 193, 7, 0.50) !important;
-  border-color: rgba(255, 193, 7, 0.50) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(0, 0, 0, 0.45),
-    inset -3px -3px 8px rgba(255, 220, 130, 0.08),
-    0 2px 8px rgba(255, 193, 7, 0.12) !important;
-  color: #ffd77a !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .form-select.input-calm-inset.filter-active:hover:not(:disabled),
-[data-theme='dark'] #workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset.filter-active:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(110, 85, 25, 0.62) 0%, rgba(130, 100, 30, 0.70) 100%) !important;
-  background-color: rgba(115, 88, 25, 0.66) !important;
-  border-color: rgba(255, 193, 7, 0.62) !important;
-  color: #ffe095 !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .form-select.input-calm-inset.filter-active:focus,
-[data-theme='dark'] #workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset.filter-active:focus {
-  background: linear-gradient(135deg, rgba(115, 90, 28, 0.68) 0%, rgba(135, 105, 32, 0.74) 100%) !important;
-  background-color: rgba(120, 92, 28, 0.70) !important;
-  border-color: rgba(255, 193, 7, 0.72) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(0, 0, 0, 0.50),
-    inset -3px -3px 8px rgba(255, 220, 130, 0.10),
-    0 0 0 3px rgba(255, 193, 7, 0.22) !important;
-  color: #ffe095 !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-header.frame-header-2025 {
-  align-items: center !important;
-  display: grid !important;
-  gap: var(--s-3, 12px) !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  padding: var(--s-4, 16px) var(--s-5, 24px) !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-header-left,
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-header-right {
-  align-items: center !important;
-  display: flex !important;
-  min-width: 0 !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-header-right {
-  justify-content: flex-end !important;
-  padding: 0 !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .frame-title,
-#workout[data-page="workout-plan"] .frame-calm-glass .filters-title {
-  align-items: center !important;
-  display: inline-flex !important;
-  line-height: 1.15 !important;
-  max-width: 100% !important;
-  overflow-wrap: anywhere !important;
-  padding-bottom: 7px !important;
-  white-space: normal !important;
-}
-
-#workout[data-page="workout-plan"] .frame-calm-glass .collapse-toggle {
-  flex: 0 0 auto !important;
-  min-height: 40px !important;
-  min-width: 96px !important;
-  padding: var(--s-2, 8px) var(--s-4, 16px) !important;
-}
-
-#workout[data-page="workout-plan"] .wpdd {
-  display: block !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  width: 100% !important;
-}
-@scope (#workout:not([data-plan-state])) {
-#workout[data-page="workout-plan"] .wpdd-button,
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter,
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active,
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-routine,
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-exercise,
-#workout[data-page="workout-plan"] .cascade-dropdown.input-calm-inset {
-  align-items: center !important;
-  background: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-1, #f4f6fa) 88%, transparent) !important;
-  background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 18%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 82%) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90)) !important;
-  color: var(--ink-1, #0f1220) !important;
-  display: inline-flex !important;
-  font-size: 0.9rem !important;
-  justify-content: space-between !important;
-  letter-spacing: 0 !important;
-  min-height: 42px !important;
-  padding: 0 var(--s-4, 16px) !important;
-  text-shadow: none !important;
-  width: 100% !important;
-}
-
-#workout[data-page="workout-plan"] .wpdd-button:hover:not(:disabled),
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter:hover:not(:disabled),
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active:hover:not(:disabled),
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-routine:hover:not(:disabled),
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-exercise:hover:not(:disabled),
-#workout[data-page="workout-plan"] .cascade-dropdown.input-calm-inset:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 88%, var(--accent, #4c6ef5) 12%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 30%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 70%) !important;
-  color: var(--ink-1, #0f1220) !important;
-}
-
-#workout[data-page="workout-plan"] .wpdd-button:disabled,
-#workout[data-page="workout-plan"] .cascade-dropdown.input-calm-inset:disabled {
-  cursor: not-allowed !important;
-  opacity: 0.68 !important;
-}
-
-/* Active filter indicator — accent-blue calm-glass tint when a value is selected */
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active {
-  background: color-mix(in srgb, var(--surface-1, #f4f6fa) 82%, var(--accent, #4c6ef5) 14%) !important;
-  background-color: color-mix(in srgb, var(--surface-1, #f4f6fa) 82%, var(--accent, #4c6ef5) 14%) !important;
-  background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 48%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 52%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 48%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 52%) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(76, 110, 245, 0.14),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.80),
-    0 0 0 2px color-mix(in srgb, var(--accent, #4c6ef5) 18%, transparent) !important;
-  color: color-mix(in srgb, var(--ink-1, #0f1220) 78%, var(--accent, #4c6ef5) 22%) !important;
-}
-
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 80%, var(--accent, #4c6ef5) 18%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #ffffff) 80%, var(--accent, #4c6ef5) 18%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 58%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 42%) !important;
-  color: color-mix(in srgb, var(--ink-1, #0f1220) 70%, var(--accent, #4c6ef5) 30%) !important;
-}
-
-#workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active:focus {
-  background: color-mix(in srgb, var(--surface-2, #ffffff) 78%, var(--accent, #4c6ef5) 20%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #ffffff) 78%, var(--accent, #4c6ef5) 20%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 62%, white 38%) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(76, 110, 245, 0.16),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.85),
-    0 0 0 3px color-mix(in srgb, var(--accent, #4c6ef5) 26%, transparent) !important;
-  color: color-mix(in srgb, var(--ink-1, #0f1220) 70%, var(--accent, #4c6ef5) 30%) !important;
-}
-
-#workout[data-page="workout-plan"] .wpdd-button-text {
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-}
-#workout[data-page="workout-plan"] .input-fields-group {
-  align-items: end !important;
-  display: grid !important;
-  gap: var(--s-5, 24px) !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  justify-content: stretch !important;
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group {
-  flex: none !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  width: 100% !important;
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"] {
-  -moz-appearance: textfield !important;
-  -webkit-appearance: none !important;
-  appearance: textfield !important;
-  padding-left: var(--s-4, 16px) !important;
-  padding-right: var(--s-4, 16px) !important;
-  text-align: center !important;
-}
-
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"]::-webkit-inner-spin-button,
-#workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none !important;
-  display: none !important;
-  height: 0 !important;
-  margin: 0 !important;
-  opacity: 0 !important;
-  width: 0 !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row.selection-actions {
-  align-items: center !important;
-  background: color-mix(in srgb, var(--surface-1, #f4f6fa) 78%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 16%, var(--calm-glass-border, rgba(255, 255, 255, 0.65)) 84%) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.25), inset -4px -4px 10px rgba(255, 255, 255, 0.72)) !important;
-  display: grid !important;
-  gap: var(--s-3, 12px) !important;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
-  justify-content: stretch !important;
-  padding: var(--s-3, 12px) !important;
-  transform: none !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .action-toolbar-group {
-  align-items: center !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: var(--s-2, 8px) !important;
-  min-width: 0 !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .action-toolbar-group-left {
-  justify-content: flex-start !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .action-toolbar-group-center {
-  justify-content: center !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .action-toolbar-group-right {
-  justify-content: flex-end !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .inline-control-item {
-  align-items: stretch !important;
-  display: flex !important;
-  flex: 0 1 auto !important;
-  margin: 0 !important;
-  min-width: 0 !important;
-}
-
-#workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .btn {
-  min-height: 42px !important;
-}
-@scope (#workout:not([data-plan-state])) {
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button,
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-filter,
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active,
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-routine,
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-exercise,
-[data-theme='dark'] #workout[data-page="workout-plan"] .cascade-dropdown.input-calm-inset {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 26%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 74%) !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.04)) !important;
-  color: var(--ink-1, #eef1f6) !important;
-}
-
-/* Active filter indicator (dark mode) — accent-blue calm-glass tint */
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 78%, var(--accent, #4c6ef5) 18%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 78%, var(--accent, #4c6ef5) 18%) !important;
-  background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 52%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 48%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 52%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 48%) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(0, 0, 0, 0.50),
-    inset -3px -3px 8px rgba(76, 110, 245, 0.08),
-    0 0 0 2px color-mix(in srgb, var(--accent, #4c6ef5) 22%, transparent) !important;
-  color: color-mix(in srgb, var(--ink-1, #eef1f6) 72%, var(--accent, #4c6ef5) 28%) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 72%, var(--accent, #4c6ef5) 24%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 72%, var(--accent, #4c6ef5) 24%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 62%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 38%) !important;
-  color: color-mix(in srgb, var(--ink-1, #eef1f6) 62%, var(--accent, #4c6ef5) 38%) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] .wpdd-button.wpdd-filter.filter-active:focus {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 70%, var(--accent, #4c6ef5) 26%) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 70%, var(--accent, #4c6ef5) 26%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 68%, white 32%) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(0, 0, 0, 0.55),
-    inset -3px -3px 8px rgba(76, 110, 245, 0.10),
-    0 0 0 3px color-mix(in srgb, var(--accent, #4c6ef5) 30%, transparent) !important;
-  color: color-mix(in srgb, var(--ink-1, #eef1f6) 62%, var(--accent, #4c6ef5) 38%) !important;
-}
-}
-@media (max-width: 991.98px) {
-  #workout[data-page="workout-plan"] .input-fields-group {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row.selection-actions {
-    display: grid !important;
-    gap: var(--s-2, 8px) !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    justify-content: stretch !important;
-    overflow: visible !important;
-  }
-
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .action-toolbar-group {
-    display: grid !important;
-    gap: var(--s-2, 8px) !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    justify-content: stretch !important;
-    width: 100% !important;
-  }
-
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .inline-control-item {
-    align-items: stretch !important;
-    flex: 1 1 auto !important;
-    margin: 0 !important;
-    min-width: 0 !important;
-    width: 100% !important;
-  }
-
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .btn.btn-calm-primary,
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .btn.btn-calm-ghost,
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .btn.btn-calm-danger {
-    height: auto !important;
-    max-width: 100% !important;
-    min-height: 40px !important;
-    min-width: 0 !important;
-    padding: var(--s-2, 8px) var(--s-3, 12px) !important;
-    white-space: normal !important;
-    width: 100% !important;
-  }
-}
-
-@media (max-width: 575.98px) {
-  #workout[data-page="workout-plan"] .frame-calm-glass .frame-header.frame-header-2025 {
-    padding: var(--s-3, 12px) var(--s-4, 16px) !important;
-  }
-
-  #workout[data-page="workout-plan"] .input-fields-group {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row.selection-actions {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  #workout[data-page="workout-plan"] #exercise-selection-frame #action-buttons-row .action-toolbar-group {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-}
 }
 
 [data-theme='dark'] .summary-tables .glass-neumorph-card {
@@ -4402,10 +3569,6 @@ h1, h2, h3 {
 
 .action-frame .frame-header {
     z-index: 10;
-}
-
-.action-frame.collapsed + .workout-plan.table-container {
-    margin-top: 2rem;
 }
 
 .action-frame .d-flex {
@@ -5323,6 +4486,13 @@ h1, h2, h3 {
   padding: var(--s-4);
   background: transparent;
 }
+
+.ui-modal__caption {
+  color: var(--ink-2);
+  font: 400 12px/16px var(--font-sans);
+}
+
+.ui-modal__caption--danger { color: var(--ui-danger); }
 
 .ui-modal__footer {
   --bs-modal-footer-gap: 0;
