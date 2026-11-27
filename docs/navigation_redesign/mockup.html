@@ -13,7 +13,8 @@ body { margin:0; color:var(--ink-1); background:var(--surface-0); font:400 14px/
 [data-theme="dark"] { --nav-current:color-mix(in srgb, var(--accent) 45%, var(--ink-1)); color-scheme:dark }
 button, select { font:inherit; color:inherit }
 button, .bar a { cursor:pointer }
-.bar { position:sticky; top:0; z-index:2; background:var(--surface-2); border-bottom:1px solid var(--ui-hairline); color:var(--ink-2); }
+.bar { position:fixed; inset:0 0 auto; z-index:2; background:var(--surface-2); border-bottom:1px solid var(--ui-hairline); color:var(--ink-2); }
+@supports (zoom:1) { .bar { zoom:var(--nav-inverse,1) } }
 .frame { display:flex; align-items:center; gap:8px; min-height:63px; padding:0 var(--ui-gutter) }
 .bar a,.bar button { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 7px; text-decoration:none; background:transparent; color:inherit; border:0; font-weight:500; position:relative; white-space:nowrap }
 .bar i { font-size:1em; color:inherit }
@@ -23,7 +24,7 @@ button, .bar a { cursor:pointer }
 .active::after { content:""; position:absolute; inset:auto 7px 0; height:2px; background:currentColor }
 nav,.links,.tools,.scale { display:flex; align-items:center }
 nav { flex:1; justify-content:space-between; gap:4px }
-.tools { flex-wrap:wrap }
+.tools { flex-wrap:nowrap }
 .scale { border-inline:1px solid var(--ui-hairline); padding-inline:3px }
 .group { position:relative }
 .children { position:absolute; left:0; top:100%; min-width:170px; padding:4px; background:var(--surface-2); border:1px solid var(--ui-hairline); border-radius:var(--ui-control-radius) }
@@ -31,7 +32,7 @@ nav { flex:1; justify-content:space-between; gap:4px }
 #menu,.children[hidden] { display:none }
 #analyze[aria-expanded="true"] .fa-chevron-down { transform:rotate(180deg) }
 :focus-visible { outline:2px solid var(--nav-current); outline-offset:-2px }
-main { padding:24px var(--ui-gutter); }
+main { padding:calc(var(--header-space,64px) + 24px) var(--ui-gutter) 24px; }
 h1 { font-size:24px; line-height:32px; margin:0 0 4px }
 p { color:var(--ink-2); margin:0 0 16px }
 select { background:var(--surface-2); border:1px solid var(--ink-3); border-radius:var(--ui-control-radius); padding:6px; max-width:100% }
@@ -39,21 +40,21 @@ label { margin-right:8px }
 @media(max-width:1359.98px) {
  .frame { justify-content:space-between; min-height:55px }
  .bar .brand { min-width:0; white-space:normal }
- #menu { flex:none; display:inline-flex; justify-content:center; min-width:44px }
- .frame nav { position:absolute; top:100%; inset-inline:0; padding:4px var(--ui-gutter) 12px; background:var(--surface-2); border-bottom:1px solid var(--ui-hairline); max-height:calc(100dvh / var(--zoom,1) - 56px); overflow:auto; display:block }
+ #menu { flex:none; display:inline-flex; justify-content:center; min-width:45px; min-height:45px }
+ .frame nav { position:absolute; top:100%; inset-inline:0; padding:4px var(--ui-gutter) 12px; background:var(--surface-2); border-bottom:1px solid var(--ui-hairline); max-height:calc(100dvh - 100%); overflow:auto; display:block }
  #menu[aria-expanded="false"] + nav { display:none }
  .links,.children { display:block }
  .links a,#analyze { display:flex; width:100%; padding-inline:12px }
  .children { position:static; border:0; padding:0 0 0 16px }
  .active::after { inset:8px auto 8px 0; width:2px; height:auto }
- .tools { border-top:1px solid var(--ui-hairline); margin-top:4px; padding-top:4px }
+ .tools { flex-wrap:wrap; border-top:1px solid var(--ui-hairline); margin-top:4px; padding-top:4px }
  .tools button { min-width:44px; justify-content:center }
 }
 </style></head>
 <body>
 <header class="bar"><div class="frame">
 <a class="brand" href="/"><i class="fas fa-dumbbell" aria-hidden="true"></i>Hypertrophy Toolbox</a>
-<button id="menu" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navigation"><i class="fas fa-bars" aria-hidden="true"></i></button>
+<button id="menu" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navigation"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"><path d="M4 7h22M4 15h22M4 23h22"/></svg></button>
 <nav id="navigation" aria-label="Primary navigation"><div class="links">
 <a href="/workout_plan" id="nav-workout-plan"><i aria-hidden="true" class="fas fa-tasks"></i>Plan</a>
 <a href="/workout_log" id="nav-workout-log"><i aria-hidden="true" class="fas fa-book-open"></i>Log</a>
@@ -95,14 +96,19 @@ function setTheme(dark) {
   theme.querySelector('span').textContent = dark ? 'Light Mode' : 'Dark Mode';
   theme.querySelector('i').className = dark ? 'fas fa-sun' : 'fas fa-moon';
 }
+function syncHeaderClearance() {
+  const height = document.querySelector('.bar').getBoundingClientRect().height;
+  root.style.setProperty('--header-space', height / Number(root.style.zoom || 1) + 'px');
+}
 function setScale(level) {
   const zoom = [0,.75,.8,.85,.9,.95,1,1.1,1.2][level];
   root.style.zoom = zoom;
-  root.style.setProperty('--zoom',zoom);
+  root.style.setProperty('--nav-inverse',[0,1.333,1.25,1.176,1.111,1.053,1,.909,.833][level]);
   root.dataset.scale = level;
   byId('level').value = level;
   byId('smaller').disabled = level === 1;
   byId('larger').disabled = level === 8;
+  syncHeaderClearance();
 }
 menu.onclick = () => setMenu(!expanded(menu));
 analyze.onclick = () => setAnalyze(!expanded(analyze));
@@ -122,4 +128,5 @@ setMenu(params.get('menu') === 'open');
 setAnalyze(params.get('analyze') === 'open');
 setTheme(params.get('theme') === 'dark');
 setScale(/^[1-8]$/.test(params.get('scale')) ? Number(params.get('scale')) : 6);
+new ResizeObserver(syncHeaderClearance).observe(document.querySelector('.bar'));
 </script></body></html>
