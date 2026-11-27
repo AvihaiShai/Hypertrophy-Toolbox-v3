@@ -36,6 +36,8 @@ const COUNT_FIELD_LABELS = {
     min_rep_range: 'Minimum reps',
     max_rep_range: 'Maximum reps',
 };
+// A tab change can replace a saving cell before its request settles.
+const savingCells = new Map();
 
 // Feature callbacks injected by workout-plan.js so the table module never
 // imports back into the monolith (no circular import). Defaults are no-ops so a
@@ -457,8 +459,13 @@ export function updateWorkoutPlanTable(exercises) {
 
         // Add click handlers for editable cells
         row.querySelectorAll('.editable').forEach(cell => {
+            const fieldKey = `${exercise.id}:${cell.dataset.field}`;
+            if (savingCells.has(fieldKey)) {
+                savingCells.set(fieldKey, cell);
+                cell.setAttribute('aria-busy', 'true');
+            }
             cell.addEventListener('click', () => {
-                makeTableCellEditable(cell, exercise);
+                makeTableCellEditable(cell, exercise, fieldKey);
             });
         });
 
@@ -540,11 +547,12 @@ export function updateCachedExercise(exerciseId, updatedData) {
             ...workoutPlanState.allExercisesCache[cacheIndex],
             ...updatedData
         };
+        return workoutPlanState.allExercisesCache[cacheIndex];
     }
 }
 
 
-function makeTableCellEditable(cell, exercise) {
+function makeTableCellEditable(cell, exercise, fieldKey) {
     // Prevent creating multiple inputs if already editing or saving
     const button = cell.querySelector('.ui-field');
     if (!button || cell.getAttribute('aria-busy') === 'true') return;
@@ -606,30 +614,34 @@ function makeTableCellEditable(cell, exercise) {
         // A blank draft reverts without a write, for counts as for other fields.
         if (!save || !newValue || newValue === originalValue) return;
 
+        savingCells.set(fieldKey, cell);
         cell.setAttribute('aria-busy', 'true');
         try {
             const response = await updateExerciseField(exercise.id, fieldName, newValue);
             if (!response.ok) throw new Error('Update failed');
 
             const value = countLabel ? storedCountText(newValue) : newValue;
-            button.textContent = value;
-            button.setAttribute('aria-label', `Edit ${cell.dataset.label}: ${value}`);
+            const savedCell = savingCells.get(fieldKey);
+            const savedButton = savedCell.querySelector('.ui-field');
+            savedButton.textContent = value;
+            savedButton.setAttribute('aria-label', `Edit ${savedCell.dataset.label}: ${value}`);
             exercise[fieldName] = Number(value);
-            updateCachedExercise(exercise.id, { [fieldName]: exercise[fieldName] });
-            cell.closest('tr').querySelector('.plan-prescription').textContent = formatPrescription(exercise);
+            const updatedExercise = updateCachedExercise(exercise.id, { [fieldName]: exercise[fieldName] });
+            savedCell.closest('tr').querySelector('.plan-prescription').textContent = formatPrescription(updatedExercise ?? exercise);
             showToast('Exercise updated successfully');
             if (fieldName === 'sets') {
                 notifyVolumeAffectingPlanChange('sets-edit');
             }
         } catch (error) {
-            if (countLabel && error.code === 'VALIDATION_ERROR') {
+            if (error.code === 'VALIDATION_ERROR') {
                 showToast('warning', error.message);
             } else {
                 console.error('Error updating exercise:', error);
                 showToast('Failed to update exercise', true);
             }
         } finally {
-            cell.removeAttribute('aria-busy');
+            savingCells.get(fieldKey).removeAttribute('aria-busy');
+            savingCells.delete(fieldKey);
         }
     };
 

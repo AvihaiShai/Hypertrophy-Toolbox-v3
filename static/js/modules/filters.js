@@ -10,6 +10,14 @@ const filtersDebugLog = (...args) => {
 
 // Debounce timer for filtering
 let filterDebounceTimer = null;
+let pickerRevision = 0;
+
+// Claim the picker when the user's intent changes, including the debounce window.
+export function beginExercisePickerUpdate() {
+    clearTimeout(filterDebounceTimer);
+    const revision = ++pickerRevision;
+    return () => revision === pickerRevision;
+}
 
 /**
  * Update the visual active state of a filter dropdown
@@ -62,7 +70,7 @@ function renderFilterChips() {
         active.length ? `Filters · ${active.length} active` : 'Filters';
 }
 
-export async function filterExercises(preserveSelection = false) {
+export async function filterExercises(preserveSelection = false, isCurrent = beginExercisePickerUpdate()) {
     try {
         const filters = {};
         const filterElements = document.querySelectorAll('#filters-form select');
@@ -77,32 +85,35 @@ export async function filterExercises(preserveSelection = false) {
             }
         });
 
-    filtersDebugLog('DEBUG: Collected filters:', filters);
+        filtersDebugLog('DEBUG: Collected filters:', filters);
 
         // If no filters are selected, reload all exercises
         if (Object.keys(filters).length === 0) {
             try {
                 const response = await api.get("/get_all_exercises", { showLoading: false, showErrorToast: false });
+                if (!isCurrent()) return;
                 const exercises = response.data !== undefined ? response.data : response;
                 if (exerciseDropdown && Array.isArray(exercises)) {
                     updateExerciseDropdown(exercises, preserveSelection);
                 }
             } catch (e) {
+                if (!isCurrent()) return;
                 console.error("Error fetching all exercises:", e);
             }
             return;
         }
 
         const response = await api.post("/filter_exercises", filters, { showLoading: false, showErrorToast: false });
+        if (!isCurrent()) return;
 
         const exercises = response.data !== undefined ? response.data : response;
         updateExerciseDropdown(exercises, preserveSelection);
         
         // Show message about filtered results
-        const filterCount = Object.keys(filters).length;
         const filterNames = Object.keys(filters).map(k => k.replace(/_/g, ' ')).join(', ');
         showToast(`Found ${exercises.length} exercise${exercises.length !== 1 ? 's' : ''} matching ${filterNames}`);
     } catch (error) {
+        if (!isCurrent()) return;
         console.error("Error filtering exercises:", error);
         showToast("Failed to filter exercises", true);
     }
@@ -110,14 +121,9 @@ export async function filterExercises(preserveSelection = false) {
 
 // Debounced version of filterExercises to avoid too many API calls
 function debouncedFilterExercises() {
-    // Clear existing timer
-    if (filterDebounceTimer) {
-        clearTimeout(filterDebounceTimer);
-    }
-    
-    // Set new timer (300ms debounce)
+    const isCurrent = beginExercisePickerUpdate();
     filterDebounceTimer = setTimeout(() => {
-        filterExercises();
+        filterExercises(false, isCurrent);
     }, 300);
 }
 
@@ -178,10 +184,6 @@ export function initializeFilters() {
 
         filterForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // Clear debounce and filter immediately
-            if (filterDebounceTimer) {
-                clearTimeout(filterDebounceTimer);
-            }
             filterExercises();
         });
     }
@@ -201,7 +203,7 @@ export function initializeFilters() {
     }
 }
 
-function updateExerciseMatchCount(count) {
+export function updateExerciseMatchCount(count) {
     const badge = document.getElementById('exercise-match-count');
     if (!badge) return;
     badge.textContent = `${count} matching`;
@@ -266,7 +268,8 @@ async function clearFilters() {
         exerciseDropdown.dispatchEvent(new Event('change', { bubbles: true }));
     }
     
-    // Reload all exercises in the exercise dropdown
+    // The reset change events above can start their own picker requests.
+    const isCurrent = beginExercisePickerUpdate();
     try {
         const response = await api.get("/get_all_exercises", {
             showLoading: false,
@@ -274,6 +277,7 @@ async function clearFilters() {
             useDefaultHeaders: false,
             retries: 0
         });
+        if (!isCurrent()) return;
         const exercises = response.data;
         if (exerciseDropdown && Array.isArray(exercises)) {
             // Clear existing options
@@ -291,11 +295,13 @@ async function clearFilters() {
 
             // Remove filter-applied class if it exists
             exerciseDropdown.classList.remove('filter-applied', 'filtered');
+            updateExerciseMatchCount(exerciseDropdown.options.length - 1);
 
             // Trigger rebuild event for enhanced dropdown
             exerciseDropdown.dispatchEvent(new CustomEvent('wpdd-rebuild', { bubbles: true }));
         }
     } catch (error) {
+        if (!isCurrent()) return;
         console.error("Error reloading exercises:", error);
         showToast(error.message || "Failed to reload exercises", true);
     }

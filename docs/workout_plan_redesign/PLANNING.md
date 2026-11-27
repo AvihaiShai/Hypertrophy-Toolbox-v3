@@ -2355,6 +2355,22 @@ Architecture and test strategy voted for a separate test-only prerequisite PR. P
 
 PR #753 implements the prerequisite. Its independent reviewers passed the final test module. All 20 tests passed in order. A separate run verified that all five cached configuration values and the four outer environment overrides survived the four probes. Test inventory and the zero-diagnostic Pyright check passed.
 
+Gate 2 for the config prerequisite was approved by Astra under the owner's delegation of 2026-11-27. All 12 required checks passed on `03203924` and the branch contained the freshly fetched main. The owner-authorized squash merge produced `a28a9394`. The Workout Plan branch integrated it at `a1811035`. [Prerequisite PR](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/753) · [Issue checkpoint](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/736#issuecomment-7227954923)
+
 ### Named visual baselines
 
 The full browser rerun also passed all 37 isolated backup tests (`resume-final-backup-6e5c03c4/`). The two name-filtered Windows updates selected four full pages and nine thumbnails. A fresh Windows comparison then passed all 100 visual and desktop-contract cases without retries (`final-windows-compare-c76787a9/`). The Linux generator ran on `eb552666` and produced the normal artifact. Only the same 13 named Linux files were copied. The diff matched the 26 approved PNG paths exactly, and the four manifest entries retained their original file lists and counts. [Linux generation run](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46065138183)
+
+### Integrated validation
+
+The full local Python suite on `a1811035` passed 7,008 tests with three skips in 19 minutes and 17 seconds. Eight workers ran with file-level distribution and private runtime, database, cache and temporary paths. The run used the installed Git Bash and PowerShell executables. Output is in `artifacts/p736-check-704b537/full-pytest.log`.
+
+Both the snapshot commit and the integration commit passed all 100 Linux visual and desktop-contract cases on the first attempt. Windows CI also passed the visual comparison on the integration commit. All 12 required checks passed on that head. [Snapshot comparison](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46065780475) · [Integration comparison](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46066805786) · [Windows visual check](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46066788986/job/140734537491)
+
+### Independent review corrections
+
+The code reviewer found that saving Sets by clicking All could leave the newly mounted row one save behind, and an older catalog response could overwrite a newer filter choice. A browser history restoration kept the previous tab. Rejected Weight and RIR values displayed a generic error. In dark mode Swap still inherited the old blue paint, and hovering an editable number painted a pencil over it.
+
+All eight targeted controls failed on the previous code (`review-red-84fa88d7/`). The revised implementation passed those cases and the related catalog controls, 11 in total (`review-green-803ce1fb/`). Tests delivered real successful responses in reverse order for filtered, routine and unfiltered catalogs. A genuine Back navigation from Backup Center restored the document from Chromium's back-forward cache in both probes. On the control All remained selected. After the fix the first routine was selected. The browser recorded transparent Swap fill and border in both idle and hover, and no pencil over the hovered value. The native browser evidence is in `artifacts/p736-check-10f4edd/` and `artifacts/p736-check-dae505a/`.
+
+All 271 Vitest cases passed. The generated inventory contains 780 Chromium cases and 77 hard waits. The Stylelint report matched the previous report byte for byte. The two exact CSS contract files passed all 17 cases. The only new rule separates legacy Swap colors from the layout of the control. The shared stylesheet has 4,599 lines, 132,438 normalized bytes and 539 important declarations. A fresh round of 88 ordinary captures is in `artifacts/design-736/step3/ordinary-after-d5jvy3p3/`.

@@ -1,5 +1,6 @@
 import { showToast } from './toast.js';
 import { api } from './fetch-wrapper.js';
+import { beginExercisePickerUpdate, filterExercises, updateExerciseMatchCount } from './filters.js';
 import { workoutPlanState } from './workout-plan-state.js';
 import {
     configureWorkoutPlanTable,
@@ -282,6 +283,7 @@ export function handleRoutineSelection() {
             clearSupersetSelection();
         }
 
+        const isCurrent = beginExercisePickerUpdate();
         try {
             const selectedRoutine = e.target.value;
             
@@ -292,8 +294,7 @@ export function handleRoutineSelection() {
             
             if (!selectedRoutine) {
                 // If routine is cleared, reapply filters (if any) or show all exercises
-                const { filterExercises } = await import('./filters.js');
-                await filterExercises(true); // Preserve selection when clearing routine
+                await filterExercises(true, isCurrent); // Preserve selection when clearing routine
                 return;
             }
 
@@ -312,12 +313,12 @@ export function handleRoutineSelection() {
 
             // If there are active filters, apply them to get filtered exercises
             if (Object.keys(filters).length > 0) {
-                const { filterExercises } = await import('./filters.js');
                 // Preserve the currently selected exercise when reapplying filters
-                await filterExercises(true);
+                await filterExercises(true, isCurrent);
             } else {
                 // No active filters, fetch exercises for the selected routine
                 const data = await api.get(`/get_routine_exercises/${encodeURIComponent(selectedRoutine)}`, { showLoading: false, showErrorToast: false });
+                if (!isCurrent()) return;
                 const exercises = data.data || data;
                 
                 // Update exercise dropdown and maintain selection if possible
@@ -326,6 +327,7 @@ export function handleRoutineSelection() {
             }
 
         } catch (error) {
+            if (!isCurrent()) return;
             console.error('Error fetching routine exercises:', error);
             showToast('Failed to load exercises for routine', true);
         }
@@ -354,6 +356,8 @@ function updateExerciseDropdown(exercises, currentExercise = '') {
             exerciseDropdown.appendChild(option);
         });
     }
+
+    updateExerciseMatchCount(exerciseDropdown.options.length - 1);
 
     // Trigger change event if the value changed
     if (exerciseDropdown.value !== previousValue) {
@@ -480,4 +484,10 @@ export function initializeWorkoutPlanHandlers() {
 
     // Initial fetch of workout plan
     fetchWorkoutPlan();
+    window.addEventListener('pageshow', event => {
+        if (event.persisted) {
+            openingRoutineSelected = false;
+            fetchWorkoutPlan();
+        }
+    });
 }

@@ -1542,7 +1542,7 @@ input.form-control#sets.value-changed {
 }
 
 /* Pencil Icon */
-.editable:where(:not([data-key])):hover::after {
+.editable:where(:not([data-key], .workout-plan-table [data-field])):hover::after {
     content: '✎';
     position: absolute;
     right: 5px;
@@ -1553,7 +1553,7 @@ input.form-control#sets.value-changed {
     color: #0d6efd;  /* Light mode pencil color */
 }
 
-[data-theme='dark'] .editable:where(:not([data-key])):hover::after {
+[data-theme='dark'] .editable:where(:not([data-key], .workout-plan-table [data-field])):hover::after {
     color: #3498db;  /* Dark mode pencil color */
 }
 
@@ -1754,16 +1754,19 @@ tr.sortable-drag {
     width: 24px;
     height: 24px;
     padding: 0;
-    border: 1px solid rgba(79, 140, 255, 0.3);
     border-radius: 4px;
-    background-color: rgba(79, 140, 255, 0.1);
-    color: #4f8cff;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     flex-shrink: 0;
 }
 
-.btn-swap:hover:not(:disabled) {
+.btn-swap:where(:not(.ui-btn--ghost)) {
+    border: 1px solid rgba(79, 140, 255, 0.3);
+    background-color: rgba(79, 140, 255, 0.1);
+    color: #4f8cff;
+}
+
+.btn-swap:where(:not(.ui-btn--ghost)):hover:not(:disabled) {
     background-color: rgba(79, 140, 255, 0.2);
     border-color: rgba(79, 140, 255, 0.5);
 }
@@ -1831,13 +1834,13 @@ tr.sortable-drag {
 }
 
 /* Dark mode swap button */
-[data-theme='dark'] .btn-swap {
+[data-theme='dark'] .btn-swap:where(:not(.ui-btn--ghost)) {
     background-color: rgba(79, 140, 255, 0.15);
     border-color: rgba(79, 140, 255, 0.25);
     color: #6ba3ff;
 }
 
-[data-theme='dark'] .btn-swap:hover:not(:disabled) {
+[data-theme='dark'] .btn-swap:where(:not(.ui-btn--ghost)):hover:not(:disabled) {
     background-color: rgba(79, 140, 255, 0.25);
     border-color: rgba(79, 140, 255, 0.4);
 }

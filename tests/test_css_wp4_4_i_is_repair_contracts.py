@@ -100,8 +100,8 @@ def _is_groups(css: str) -> list[str]:
 
 
 def test_the_repair_added_no_lines() -> None:
-    """Pin the measured source after the Plan's preview badge wrapping fix."""
-    assert _css().count("\n") == 4596
+    """Pin the measured source after the three-line ghost Swap paint split."""
+    assert _css().count("\n") == 4599
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
@@ -205,7 +205,7 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     """
     css = _css()
     assert css.count(":is(") == 14
-    assert css.count(":where(") == 65
+    assert css.count(":where(") == 69
     assert css.count(":hover") == 82
     commented_hovers = sum(
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)

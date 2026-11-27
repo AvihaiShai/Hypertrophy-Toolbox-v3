@@ -752,15 +752,15 @@ guardedTest.describe('Plan redesign acceptance', () => {
       consoleAllowlist: { expected: [
         {
           match: 'Failed to load resource: the server responded with a status of 400 (BAD REQUEST)',
-          reason: 'Chromium reports the deliberate invalid Sets update',
+          reason: 'Chromium reports the deliberate invalid inline updates',
         },
         {
           match: /^\[req_[0-9a-z_]+\] API Error: \{url: \/update_exercise, method: POST, status: 400, error: Object\}$/,
-          reason: 'fetch-wrapper.js logs the deliberate Sets validation rejection',
+          reason: 'fetch-wrapper.js logs the deliberate inline validation rejection',
         },
         {
           match: /^\[req_[0-9a-z_]+\] API Error \(final\): \{url: \/update_exercise, method: POST, error: Object\}$/,
-          reason: 'fetch-wrapper.js reports the final Sets validation rejection',
+          reason: 'fetch-wrapper.js reports the final inline validation rejection',
         },
       ] },
     });
@@ -814,15 +814,27 @@ guardedTest.describe('Plan redesign acceptance', () => {
         await expect(field).toHaveText('5');
         expect(posts, 'Escape and a blank count do not write').toHaveLength(2);
 
-        await edit('3.5');
-        const rejected = page.waitForResponse(response => isUpdate(response.url()));
-        await input.press('Enter');
-        expect((await rejected).status()).toBe(400);
-        await expect(page.locator('#liveToast')).toHaveClass(/bg-warning/);
-        await expectToast(page, 'Sets must be a whole number.');
-        await expect(field).toHaveText('5');
-        expect(posts).toHaveLength(3);
-        expect((await planData(page.request))[0].sets).toBe(5);
+        for (const [key, invalid, saved, message] of [
+          ['sets', '3.5', '5', 'Sets must be a whole number.'],
+          ['weight', '-1', '50', 'Weight must be between 0 and 1000 kg.'],
+          ['rir', '11', '2', 'RIR must be between 0 and 10.'],
+        ] as const) {
+          const cell = planRow(page, record.id).locator(`[data-field="${key}"]`);
+          await cell.getByRole('button').press('Enter');
+          const editor = cell.getByRole('spinbutton');
+          await editor.fill(invalid);
+          const rejected = page.waitForResponse(response => isUpdate(response.url()) && response.request().method() === 'POST');
+          await editor.press('Enter');
+          const response = await rejected;
+          expect(response.status()).toBe(400);
+          expect(response.request().postDataJSON()).toEqual({ id: record.id, updates: { [key]: invalid } });
+          expect((await response.json()).error).toMatchObject({ code: 'VALIDATION_ERROR', message });
+          await expectToast(page, message);
+          await expect(page.locator('#liveToast')).toHaveClass(/bg-warning/);
+          await expect(cell).toHaveText(saved);
+        }
+        expect(posts).toHaveLength(5);
+        expect((await planData(page.request))[0]).toMatchObject({ sets: 5, weight: 50, rir: 2 });
 
         await loadPlan(page, true);
         if (width < 1360) await setDetails(page, record.id, true);

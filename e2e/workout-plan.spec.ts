@@ -7,7 +7,7 @@
  * - Add exercise flow
  * - Export actions
  */
-import type { Page } from '@playwright/test';
+import type { Locator, Page, Route } from '@playwright/test';
 import { test, expect } from './console-guard';
 import {
   API_ENDPOINTS,
@@ -1326,6 +1326,14 @@ test.describe('Workout Plan drag-and-drop library', () => {
 });
 
 test.describe('Plan redesign acceptance', () => {
+  // Hold one browser request until the test delivers the real Flask response.
+  async function holdNextRoute(page: Page, pattern: string) {
+    let capture!: (route: Route) => void;
+    const next = new Promise<Route>(resolve => { capture = resolve; });
+    await page.route(pattern, capture, { times: 1 });
+    return { next };
+  }
+
   test('opens on the first routine, exposes All by pointer and keyboard, and never remembers the choice', async ({ page }) => {
     await addPlanRow(page.request, ROUTINE_B, DEADLIFT);
     await addPlanRow(page.request, ROUTINE_A, SQUAT);
@@ -1357,7 +1365,92 @@ test.describe('Plan redesign acceptance', () => {
     await expect(all).toHaveAttribute('aria-selected', 'true');
     await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT, DEADLIFT]);
     expect(await storage()).toEqual(before);
+
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+    await expect(first).toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT]);
+    expect(await storage()).toEqual(before);
   });
+
+  test('a delayed Sets save updates the mounted row after clicking All', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await addPlanRow(page.request, ROUTINE_A, SQUAT);
+    await addPlanRow(page.request, ROUTINE_B, DEADLIFT);
+    const [squat] = await planData(page.request);
+    await loadPlan(page);
+    await setDetails(page, squat.id, true);
+    const row = planRow(page, squat.id);
+    const field = row.locator('[data-field="sets"]');
+    await field.getByRole('button').click();
+    await field.getByRole('spinbutton').fill('5');
+    const held = await holdNextRoute(page, '**/update_exercise');
+    const all = routineTab(page, 'all');
+    await all.click();
+    const route = await held.next;
+    expect(route.request().method()).toBe('POST');
+    expect(route.request().postDataJSON()).toEqual({ id: squat.id, updates: { sets: '5' } });
+    await expect(all).toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT, DEADLIFT]);
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    expect((await response.json()).ok).toBe(true);
+    await route.fulfill({ response });
+    await expect(row.locator('.plan-prescription')).toHaveText('5 sets × 6–10 · 50 kg · RIR 2');
+    await expect(field).toHaveText('5');
+    await expect(all).toHaveAttribute('aria-selected', 'true');
+  });
+
+  for (const older of ['combined filters', 'routine catalog', 'all catalog'] as const) {
+    test(`keeps the latest filter results after a delayed ${older} response`, async ({ page }) => {
+      await loadPlan(page);
+      await waitForPageReady(page);
+      await filterToggle(page).click();
+      const chest = page.locator('#filters-form select[data-filter-key="Primary Muscle Group"]');
+      const equipment = page.locator('#filters-form select[data-filter-key="Equipment"]');
+      const muscleChip = page.getByRole('button', { name: /Primary Muscle Group.*Chest/i });
+      const filterPath = '**/filter_exercises';
+      if (older !== 'routine catalog') {
+        const initial = page.waitForResponse(filterPath);
+        await chest.selectOption({ label: 'Chest' }, { force: true });
+        expect((await initial).status()).toBe(200);
+      } else {
+        await page.locator('#routine-env').selectOption('GYM');
+        await page.locator('#routine-program').selectOption('Full Body');
+      }
+      const path = older === 'combined filters' ? filterPath :
+        older === 'routine catalog' ? '**/get_routine_exercises/*' : '**/get_all_exercises';
+      const held = await holdNextRoute(page, path);
+      if (older === 'combined filters') await equipment.selectOption({ label: 'Barbell' }, { force: true });
+      else if (older === 'routine catalog') await page.locator('#routine-day').selectOption('Workout A');
+      else await muscleChip.click();
+      const route = await held.next;
+      const stale = await route.fetch();
+      expect(stale.status()).toBe(200);
+      const latest = page.waitForResponse(filterPath);
+      if (older === 'combined filters') await muscleChip.click();
+      else await equipment.selectOption({ label: 'Barbell' }, { force: true });
+      const response = await latest;
+      expect(response.request().method()).toBe('POST');
+      expect(response.request().postDataJSON()).toEqual({ Equipment: 'Barbell' });
+      expect(response.status()).toBe(200);
+      const { ok, data: names } = await response.json();
+      expect(ok).toBe(true);
+      expect(names).toContain(SQUAT);
+      expect((await stale.json()).data).not.toEqual(names);
+      const badge = page.locator('#exercise-match-count');
+      await expect(badge).toHaveText(`${names.length} matching`);
+      const delivered = page.waitForResponse(path);
+      await route.fulfill({ response: stale });
+      expect(await (await delivered).finished()).toBeNull();
+      // Drain the older response's browser-side consumers before inspecting stable state.
+      await page.waitForLoadState('networkidle');
+      await expect(page.locator('#filter-chips button')).toHaveCount(1);
+      await expect(page.getByRole('button', { name: /Equipment.*Barbell/i })).toBeVisible();
+      await expect(page.locator('#exercise option:not([value=""])')).toHaveText(names);
+      await expect(badge).toHaveText(`${names.length} matching`);
+      await expect(page.locator('#toast-body .toast-message')).toHaveText(`Found ${names.length} exercises matching Equipment`);
+    });
+  }
 
   for (const width of [390, 1440]) {
     test(`shows only Add Exercise as filled primary and puts volume above the tabs at ${width} px`, async ({ page }) => {
@@ -1501,6 +1594,35 @@ test.describe('Plan redesign acceptance', () => {
       await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
       for (const cell of await common.all()) await expect(cell).toBeHidden();
     });
+  });
+
+  test('dark card Swap uses shared ghost colors and hovered numbers stay unobscured', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => localStorage.setItem('darkMode', 'true'));
+    await addPlanRow(page.request, ROUTINE_A, SQUAT);
+    const [record] = await planData(page.request);
+    await loadPlan(page);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    const swap = planRow(page, record.id).getByRole('button', { name: 'Swap exercise' });
+    const reference = details(page, record.id);
+    const colors = (control: Locator) => control.evaluate(async node => {
+      await Promise.all(node.getAnimations().map(animation => animation.finished));
+      const style = getComputedStyle(node);
+      return [style.color, style.backgroundColor, style.borderTopColor];
+    });
+    expect.soft(await colors(swap), 'idle ghost').toEqual(await colors(reference));
+    await reference.hover();
+    const hovered = await colors(reference);
+    await swap.hover();
+    expect.soft(await colors(swap), 'hovered ghost').toEqual(hovered);
+
+    await setDetails(page, record.id, true);
+    const cell = planRow(page, record.id).locator('[data-field="sets"]');
+    await cell.getByRole('button').hover();
+    expect(await cell.evaluate(node => {
+      const pseudo = getComputedStyle(node, '::after');
+      return pseudo.display !== 'none' && pseudo.visibility !== 'hidden' && pseudo.content.includes('✎');
+    }), 'the legacy pencil must not cover the Sets value').toBe(false);
   });
 
   for (const width of [320, 360, 390]) {

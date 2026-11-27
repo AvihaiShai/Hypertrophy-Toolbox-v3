@@ -83,7 +83,7 @@ is how reduced-motion overrides and dark theming win over page-specific rules wi
 | `tokens.css` | 514 | Design tokens and responsive bands |
 | `base.css` | 79 | Body background and base typography |
 | `layout.css` | 1,800 | Containers, grids, page scaffolding |
-| `components.css` | 4,596 | Buttons, cards, tables, badges, fields and overlays |
+| `components.css` | 4,599 | Buttons, cards, tables, badges, fields and overlays |
 | `navbar.css` | 1,532 | Navigation bar and its dropdowns |
 | `a11y.css` | 636 | Focus, contrast, screen-reader affordances |
 | `motion.css` | 91 | Transitions and the reduced-motion override |
