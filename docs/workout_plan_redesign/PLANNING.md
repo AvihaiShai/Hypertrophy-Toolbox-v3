@@ -7,7 +7,8 @@ covered by that reply and carry no owner sign-off. The plan council reviewed Pla
 2026-11-27: three verdicts of "sound with changes", no blocking finding, and every finding has a
 disposition. It settled P1–P13 without the owner, and an owner answer overrides any of them.
 Plan v2 is written. Gate 1 is recorded as approved by Claude under the owner's delegation of
-2026-11-20 (see [Sign-off](#sign-off)). Implementation has not started.
+2026-11-20 (see [Sign-off](#sign-off)). Implementation and independent review are complete.
+The [Step 3 release evidence](#step-3-release-evidence) records Gate 2.
 
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
@@ -2398,3 +2399,15 @@ The subsequent complete Python run passed 7,008 tests with three skips on `d712e
 The independent code reviewer verified the mounted inline save, picker response ordering, Weight/RIR warnings, Swap colors and hover pencil. Holding the Plan refresh exposed a remaining issue with browser Back. Chrome restored a persisted document with All selected and six rows actionable. On a 503 it kept that view indefinitely. The existing acceptance case now holds the request and reads the visible selection and rows before allowing the response to arrive. It failed on the control and passed after the fix (`history-held-red-8d213ffe/` and `history-held-green-4023276c/`).
 
 A persisted page hide conceals the outgoing selection. On Back, the Plan selects the first sorted routine from its cached rows before refreshing. On a real return from Backup Center the first routine and its five rows were visible while the request was held, and remained usable after a forced 503. A user selecting the second routine during refresh kept that selection. With no intervening choice, replacing the server routines during refresh selected the new first routine. All four cases used a genuine persisted document, a fresh runtime and a two-routine fixture. The normal browser observations are in `artifacts/p736-check-2c0e653/history-held.json`, `artifacts/p736-check-8fcbba9/history-held.json` and `artifacts/p736-check-27aa46d/history-held.json`.
+
+## Step 3 release evidence
+
+On the browser Back correction, the complete local run passed 7,008 Python tests with three skips, 643 functional Chromium cases, 37 isolated backup cases and 100 Windows visual and desktop-contract cases. TypeScript, test inventory, all 271 JavaScript unit cases and Pyright with zero diagnostics passed. The Python log is `artifacts/p736-check-91f0935/full-pytest.log`. The browser outputs are under `artifacts/design-736/step3/` in `history-final-functional-1febba02/`, `history-final-backup-fdd4afd5/` and `history-final-visual-ed814204/`. Plan, overlay and Log frame checks each passed twice with identical measurements on both runs in `history-final-frames-ed9b5f8/`.
+
+All 12 required checks passed on `705ea2da`. Both independent Linux comparison jobs passed all 100 cases on their first attempt. The Windows comparison also passed. [Linux run A](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46077898763) · [Linux run B](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46078265218) · [Windows comparison](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/46077872285/job/140769754193)
+
+The independent code reviewer verified the inline save, catalog ordering, six validation fields, dark Swap, pencil hover and actual persisted browser Back behavior, and signed off. The maintainability reviewer requested four cleanups. Commit `09475406` removed an unused editor attribute, an unmatched filter-chip selector and two redundant test comments. The editor still compares against the saved value and the real filter-chip container remains covered. The reviewer inspected the four changes and returned a clean verdict. All six focused browser cases and all nine component-contract cases passed after the cleanup, along with TypeScript and the inventory check.
+
+Gate 2 approved by Astra under the owner's delegation of 2026-11-27. The manual visual comparison approved four full pages and nine thumbnails per platform. The named screenshots, out-of-scope summary export, reviewer decisions and migration notes are recorded on [PR #752](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/752). That PR records the required checks and two Linux comparisons for its exact merge head. The owner retains final approval and closure of [issue #736](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/736).
+
+Docs retention at closeout: keep active — `docs/workout_plan_redesign/PLANNING.md` and `mockup.html` remain the source for the Workout Plan acceptance criteria, visual scope and delegated approvals during steps 4 and 5.
