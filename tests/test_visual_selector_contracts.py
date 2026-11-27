@@ -206,8 +206,9 @@ class NavbarParser(HTMLParser):
         attrs = dict(attrs)
         if tag == "header" and attrs.get("id") == "navbar":
             self.in_header = True
-        if self.in_header and tag in ("a", "button") and attrs.get("id", "").startswith("nav-"):
-            self.current = attrs["id"]
+        element_id = attrs.get("id") or ""
+        if self.in_header and tag in ("a", "button") and element_id.startswith("nav-"):
+            self.current = element_id
             assert self.current not in self.links
             self.links[self.current] = (attrs, [])
 
