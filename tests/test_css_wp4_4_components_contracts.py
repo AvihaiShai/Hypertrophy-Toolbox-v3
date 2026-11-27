@@ -155,38 +155,38 @@ WHOLE_RULE_DELETIONS = {
 # The assertion is per-property inside that rule's own body, so a resurrection
 # cannot hide in a different rule that happens to set the same property.
 # ---------------------------------------------------------------------------
-# The ghost Swap paint split above these rules added three lines.
-COLLAPSE_TOGGLE_LINE = 3736
+# Removing the four legacy Swap paint blocks moved these anchors up 23 lines.
+COLLAPSE_TOGGLE_LINE = 3713
 
 PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
-    (".frame-title", 3487): (
+    (".frame-title", 3464): (
         "background", "color", "font-size", "font-weight", "letter-spacing",
         "padding", "position", "text-transform",
     ),
-    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3496): (
+    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3473): (
         "backdrop-filter", "background", "color",
     ),
     (
         "[data-theme='dark'] & .action-frame .frame-title, "
         "[data-theme='dark'] & .filters-section .filters-title",
-        3501,
+        3478,
     ): ("background", "color"),
-    (".filters-section", 3509): (
+    (".filters-section", 3486): (
         "backdrop-filter", "background", "border", "border-radius", "box-shadow",
         "contain", "isolation", "position",
     ),
-    (".filters-title", 3516): (
+    (".filters-title", 3493): (
         "backdrop-filter", "background", "color", "font-size", "font-weight",
         "letter-spacing", "padding", "position", "text-transform",
     ),
-    (".action-frame", 3569): ("background-color", "display", "flex-direction", "margin-bottom"),
-    (".collapsible-frame", 3633): ("background", "border", "border-radius", "box-shadow"),
-    (".frame-header", 3657): (
+    (".action-frame", 3546): ("background-color", "display", "flex-direction", "margin-bottom"),
+    (".collapsible-frame", 3610): ("background", "border", "border-radius", "box-shadow"),
+    (".frame-header", 3634): (
         "align-items", "background", "display", "padding", "position", "z-index",
     ),
-    (".frame-title, .filters-title", 3682): ("font-size", "padding-bottom", "position"),
-    ("[data-theme='dark'] & .frame-header", 3716): ("background", "border-bottom"),
-    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3730): ("color",),
+    (".frame-title, .filters-title", 3659): ("font-size", "padding-bottom", "position"),
+    ("[data-theme='dark'] & .frame-header", 3693): ("background", "border-bottom"),
+    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 3707): ("color",),
     # `background` and `color` are absent from this tuple on purpose: the
     # removal oracle withdrew both from the deletion set (see the module
     # docstring), so they must still be present in the rule. They are asserted
@@ -197,13 +197,13 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
         "gap", "height", "letter-spacing", "margin", "min-width", "padding",
         "transition",
     ),
-    (".collapse-toggle i", 3755): ("transition",),
-    (".frame-content", 3793): ("overflow", "transition"),
-    (".filters-section .frame-header", 3855): ("padding",),
-    ("[data-theme='dark'] & .collapsible-frame .frame-header", 3903): ("background-color",),
-    (".frame-header-2025", 3929): ("display", "align-items"),
-    (".collapse-toggle .toggle-icon", 3963): ("transition",),
-    (".frame-content", 3978): ("overflow",),
+    (".collapse-toggle i", 3732): ("transition",),
+    (".frame-content", 3770): ("overflow", "transition"),
+    (".filters-section .frame-header", 3832): ("padding",),
+    ("[data-theme='dark'] & .collapsible-frame .frame-header", 3880): ("background-color",),
+    (".frame-header-2025", 3906): ("display", "align-items"),
+    (".collapse-toggle .toggle-icon", 3940): ("transition",),
+    (".frame-content", 3955): ("overflow",),
 }
 
 # ---------------------------------------------------------------------------
@@ -230,8 +230,8 @@ FROZEN_FAMILY_COUNTS = {
     # The global totals stay in this dict as well. Holding the invariant only as
     # the sum of two separate test functions means deleting either one silently
     # halves the lock, and nothing would red.
-    r":where\(": 69,
-    r":hover": 81,
+    r":where\(": 65,
+    r":hover": 79,
     # M10 / PR#3: reachable only through a JS-applied class.
     r"\.value-changed": 20,
     # M12 / PR#10: hover, focus and active are out of scope, declared up front.
@@ -283,8 +283,8 @@ PROGRESSION_BRANCH = ".progression-plan-container"
 I_OWNED_SELECTOR_LINES = 14
 
 # The #736 Plan deltas are all outside the 14 lines owned by WP4.4-i.
-WHERE_OUTSIDE_FAMILY = 67
-HOVER_OUTSIDE_FAMILY = 77
+WHERE_OUTSIDE_FAMILY = 63
+HOVER_OUTSIDE_FAMILY = 75
 
 # The exact attributable delta. R1's first arm is the only family line carrying
 # `:where(`; R6 and R12 are the only two carrying `:hover`. Each gains exactly
@@ -370,7 +370,7 @@ def test_where_and_hover_are_frozen_outside_the_i_owned_family() -> None:
 
     This pins the exact counts outside WP4.4-i's fourteen selector lines, with
     the #736 modal, menu, Swap and editable-cell selectors accounted for.
-    The four Swap paint rules each add a zero-specificity exclusion. The two
+    Removing four legacy Swap paint rules removed four exclusions and two hovers. The two
     pencil rules extend their existing exclusion without adding a token.
     """
     css = _strip_comments(_css())
@@ -383,11 +383,39 @@ def test_where_and_hover_are_frozen_outside_the_i_owned_family() -> None:
     assert _rule_heads(rest, ".modal-content:where(:not(.ui-modal))") == 1
     outside_heads = {line.strip() for line in outside}
     for theme in ("", "[data-theme='dark'] "):
-        swap = f"{theme}.btn-swap:where(:not(.ui-btn--ghost))"
-        assert f"{swap} {{" in outside_heads
-        assert f"{swap}:hover:not(:disabled) {{" in outside_heads
         pencil = ".editable:where(:not([data-key], .workout-plan-table [data-field])):hover::after"
         assert f"{theme}{pencil} {{" in outside_heads
+    # The sole Swap renderer uses the shared ghost paint. Account for every
+    # surviving Swap selector so legacy idle or hover paint cannot return.
+    swap_rules = [
+        (head.strip(), body)
+        for head, body in re.findall(r"([^{}]+)\{([^{}]*)\}", rest)
+        if ".btn-swap" in head
+    ]
+    functional_styles = {
+        ".btn-swap": ("width: 24px;", "height: 24px;"),
+        ".btn-swap:hover:not(:disabled) .btn-swap-icon": ("transform: rotate(180deg);",),
+        ".btn-swap:focus": ("box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.25);",),
+        ".btn-swap:disabled": ("opacity: 0.5;", "cursor: not-allowed;"),
+        ".btn-swap.loading": ("background-color: rgba(79, 140, 255, 0.15);",),
+        ".btn-swap .btn-swap-icon": ("width: 14px;", "height: 14px;"),
+        ".btn-swap .btn-swap-icon svg": ("width: 100%;", "height: 100%;"),
+        ".btn-swap.loading .btn-swap-icon": ("transform: none;",),
+        ".btn-swap .btn-swap-icon--spinner": ("animation: swapButtonSpin 0.7s linear infinite;",),
+    }
+    assert sorted(head for head, _ in swap_rules) == sorted(functional_styles)
+    for head, body in swap_rules:
+        for declaration in functional_styles[head]:
+            assert declaration in body, head
+        if head == ".btn-swap" or ":hover" in head:
+            properties = re.findall(r"(?:^|;)\s*([\w-]+)\s*:", body)
+            if head == ".btn-swap":
+                assert set(properties) == {
+                    "display", "align-items", "justify-content", "width", "height", "padding",
+                    "border-radius", "cursor", "transition", "flex-shrink",
+                }
+            else:
+                assert properties == ["transform"]
     assert rest.count(":where(") == WHERE_OUTSIDE_FAMILY
     assert rest.count(":hover") == HOVER_OUTSIDE_FAMILY
     assert ":is(" not in rest
@@ -438,7 +466,7 @@ def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
 def test_the_deletion_was_pure_removal() -> None:
     """Pin the original h deletion and the current post-migration totals."""
     raw = _css()
-    assert raw.count("\n") == 4599
+    assert raw.count("\n") == 4576
     assert len(re.findall(r"!important", _strip_comments(raw))) == 539
     assert BEFORE_IMPORTANT - AFTER_IMPORTANT == 20
     assert BEFORE_LINES - AFTER_LINES == 138

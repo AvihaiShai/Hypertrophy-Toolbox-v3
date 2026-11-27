@@ -1760,17 +1760,6 @@ tr.sortable-drag {
     flex-shrink: 0;
 }
 
-.btn-swap:where(:not(.ui-btn--ghost)) {
-    border: 1px solid rgba(79, 140, 255, 0.3);
-    background-color: rgba(79, 140, 255, 0.1);
-    color: #4f8cff;
-}
-
-.btn-swap:where(:not(.ui-btn--ghost)):hover:not(:disabled) {
-    background-color: rgba(79, 140, 255, 0.2);
-    border-color: rgba(79, 140, 255, 0.5);
-}
-
 /* Rotate only the icon on hover, not the button itself */
 .btn-swap:hover:not(:disabled) .btn-swap-icon {
     transform: rotate(180deg);
@@ -1831,18 +1820,6 @@ tr.sortable-drag {
     100% {
         background-color: transparent;
     }
-}
-
-/* Dark mode swap button */
-[data-theme='dark'] .btn-swap:where(:not(.ui-btn--ghost)) {
-    background-color: rgba(79, 140, 255, 0.15);
-    border-color: rgba(79, 140, 255, 0.25);
-    color: #6ba3ff;
-}
-
-[data-theme='dark'] .btn-swap:where(:not(.ui-btn--ghost)):hover:not(:disabled) {
-    background-color: rgba(79, 140, 255, 0.25);
-    border-color: rgba(79, 140, 255, 0.4);
 }
 
 [data-theme='dark'] .row-swapped {

@@ -100,8 +100,8 @@ def _is_groups(css: str) -> list[str]:
 
 
 def test_the_repair_added_no_lines() -> None:
-    """Pin the measured source after the three-line ghost Swap paint split."""
-    assert _css().count("\n") == 4599
+    """Pin the measured source after retiring the four legacy Swap paint rules."""
+    assert _css().count("\n") == 4576
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
@@ -199,19 +199,19 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     whole-file totals that partition implies, asserted on the raw text so the two
     files would disagree if either drifted.
 
-    The partition is measured on comment-stripped text and implies `:hover` 81;
-    the raw count is 82 because one `:hover` lives inside a comment. That single
+    The partition is measured on comment-stripped text and implies `:hover` 79;
+    the raw count is 80 because one `:hover` lives inside a comment. That single
     occurrence is asserted here rather than left as an unstated offset.
     """
     css = _css()
     assert css.count(":is(") == 14
-    assert css.count(":where(") == 69
-    assert css.count(":hover") == 82
+    assert css.count(":where(") == 65
+    assert css.count(":hover") == 80
     commented_hovers = sum(
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
     )
     assert commented_hovers == 1, (
-        "the raw/stripped :hover offset changed; the 82 above and the 81 in "
+        "the raw/stripped :hover offset changed; the 80 above and the 79 in "
         "test_css_wp4_4_components_contracts.py no longer reconcile"
     )
     assert len(re.findall(r"!important", css)) == 539
