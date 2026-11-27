@@ -67,6 +67,7 @@ export { handleAddExercise };
 // module load so the public renderer works before page handlers initialize.
 configureWorkoutPlanTable({
     onSwap: handleSwapExercise,
+    onRoutineTabSelect: () => { openingRoutineSelected = true; },
     onSupersetToggle: handleSupersetCheckboxChange,
     onExecutionStyleClick: showExecutionStylePicker,
     updateSupersetActionButtons,
@@ -89,34 +90,27 @@ configureSupersets({ refreshPlan: fetchWorkoutPlan });
 // Workout plan functionality
 let openingRoutineSelected = false;
 
+function renderWorkoutPlan(exercises) {
+    if (!openingRoutineSelected) {
+        const routines = exercises.map(exercise => exercise.routine).filter(Boolean);
+        workoutPlanState.currentRoutineTabFilter = routines.sort(compareRoutines)[0] || 'all';
+    }
+
+    updateRoutineTabs(exercises);
+    const filtered = applyRoutineTabFilter(exercises, workoutPlanState.currentRoutineTabFilter);
+    updateWorkoutPlanTable(filtered);
+    updateWorkoutPlanUI(exercises);
+    const page = document.getElementById('workout');
+    if (page) page.dataset.planState = exercises.length ? 'populated' : 'empty';
+}
+
 export async function fetchWorkoutPlan() {
     try {
         const data = await api.get('/get_workout_plan');
-        
-        // api wrapper returns the response data directly (from data.data if standardized)
         const exercises = data.data !== undefined ? data.data : data;
-        
-        if (!openingRoutineSelected) {
-            const routines = exercises.map(exercise => exercise.routine).filter(Boolean);
-            workoutPlanState.currentRoutineTabFilter = routines.sort(compareRoutines)[0] || 'all';
-            openingRoutineSelected = true;
-        }
-
-        // Cache all exercises for tab filtering
         workoutPlanState.allExercisesCache = exercises;
-        
-        // Update routine tabs based on available routines
-        updateRoutineTabs(exercises);
-        
-        // Apply current tab filter and render
-        const filteredExercises = applyRoutineTabFilter(exercises, workoutPlanState.currentRoutineTabFilter);
-        updateWorkoutPlanTable(filteredExercises);
-        updateWorkoutPlanUI(exercises); // Always show totals for all exercises
-        const page = document.getElementById('workout');
-        if (page) page.dataset.planState = exercises.length ? 'populated' : 'empty';
-        
-        // Table responsiveness is already initialized by table-responsiveness.js autoInit
-        // No need to reinitialize here
+        renderWorkoutPlan(exercises);
+        openingRoutineSelected = true;
     } catch (error) {
         console.error('Error loading workout plan:', error);
         // api wrapper already shows error toast, but we can show a fallback
@@ -484,10 +478,25 @@ export function initializeWorkoutPlanHandlers() {
 
     // Initial fetch of workout plan
     fetchWorkoutPlan();
-    window.addEventListener('pageshow', event => {
-        if (event.persisted) {
-            openingRoutineSelected = false;
-            fetchWorkoutPlan();
+    const page = document.getElementById('workout');
+    window.addEventListener('pagehide', event => {
+        if (event.persisted) page.dataset.planState = 'loading';
+    });
+    window.addEventListener('pageshow', async event => {
+        if (!event.persisted) return;
+
+        const hadPlan = openingRoutineSelected;
+        openingRoutineSelected = false;
+        const cached = workoutPlanState.allExercisesCache;
+        if (cached.length) renderWorkoutPlan(cached);
+        else page.dataset.planState = 'loading';
+
+        // Fresh data chooses the opening routine unless the user picked a tab
+        // while the cached rows were visible. A failed refresh retains that view.
+        await fetchWorkoutPlan();
+        if (!openingRoutineSelected && hadPlan) {
+            if (!cached.length) page.dataset.planState = 'empty';
+            openingRoutineSelected = true;
         }
     });
 }

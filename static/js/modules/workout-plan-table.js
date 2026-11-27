@@ -45,6 +45,7 @@ const savingCells = new Map();
 // real path workout-plan.js runs configureWorkoutPlanTable() at import time.
 const tableDeps = {
     onSwap: () => {},                       // swap/replace an exercise (WP3.4e)
+    onRoutineTabSelect: () => {},
     onSupersetToggle: () => {},             // superset checkbox change (WP3.4g)
     onExecutionStyleClick: () => {},        // open execution-style picker (WP3.4d)
     updateSupersetActionButtons: () => {},  // superset action bar sync (WP3.4g)
@@ -239,6 +240,7 @@ function handleRoutineTabClick(routine) {
 
     // Update current filter
     workoutPlanState.currentRoutineTabFilter = routine;
+    tableDeps.onRoutineTabSelect();
 
     // Apply filter and re-render table
     const filteredExercises = applyRoutineTabFilter(workoutPlanState.allExercisesCache, routine);

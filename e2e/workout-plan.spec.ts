@@ -1366,7 +1366,22 @@ test.describe('Plan redesign acceptance', () => {
     await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT, DEADLIFT]);
     expect(await storage()).toEqual(before);
 
+    const planPath = '**' + API_ENDPOINTS.GET_WORKOUT_PLAN;
+    const refresh = await holdNextRoute(page, planPath);
     await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+    const route = await refresh.next;
+    expect(route.request().method()).toBe('GET');
+    const selectedAll = all.and(page.locator('[aria-selected="true"]'));
+    expect(await selectedAll.isVisible(), 'restoring the page must not paint the previous All selection').toBe(false);
+    const otherRoutineRow = planRows(page).filter({ hasText: DEADLIFT });
+    expect(await otherRoutineRow.isVisible(), 'the previous All view must not expose another routine’s actions').toBe(false);
+    await expect(page.getByRole('region', { name: 'Empty plan' })).toBeHidden();
+
+    const refreshed = page.waitForResponse(planPath);
+    await route.continue();
+    const response = await refreshed;
+    expect(response.status()).toBe(200);
+    expect((await response.json()).ok).toBe(true);
     await expect(first).toHaveAttribute('aria-selected', 'true');
     await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT]);
     expect(await storage()).toEqual(before);
