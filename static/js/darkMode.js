@@ -46,12 +46,10 @@ DarkMode.prototype.updateToggleAppearance = function(isDark) {
         iconElement.classList.remove('fa-moon');
         iconElement.classList.add('fa-sun');
         textElement.textContent = 'Light Mode';
-        this.darkModeToggle.classList.remove('active');
     } else {
         iconElement.classList.remove('fa-sun');
         iconElement.classList.add('fa-moon');
         textElement.textContent = 'Dark Mode';
-        this.darkModeToggle.classList.add('active');
     }
 };
 

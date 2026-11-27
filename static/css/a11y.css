@@ -128,91 +128,6 @@ html[data-scale="8"] {
 
 
 /* ========================================================================
-   Compact Scale Control (for navbar inline)
-   ======================================================================== */
-.scale-control-compact {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.scale-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 4px;
-    background: rgba(20, 26, 35, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(79, 140, 255, 0.2);
-    border-radius: 50%;
-    color: var(--nav-accent, #4f8cff);
-    font-size: 0.7rem;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.scale-btn-compact {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    background: rgba(20, 26, 35, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(168, 178, 193, 0.2);
-    color: var(--nav-text-muted, #a8b2c1);
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all var(--nav-transition-fast, 150ms) ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.scale-btn-compact:hover {
-    background: rgba(26, 32, 44, 0.75);
-    color: var(--nav-text, #e9eef7);
-    border-color: rgba(79, 140, 255, 0.4);
-    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.15);
-}
-
-.scale-btn-compact:focus {
-    outline: 2px solid var(--nav-accent, #4f8cff);
-    outline-offset: 1px;
-}
-
-.scale-btn-compact:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* Light mode styles for scale controls */
-[data-theme="light"] .scale-indicator {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(79, 140, 255, 0.3);
-    color: #2563eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .scale-btn-compact {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(100, 116, 139, 0.25);
-    color: #475569;
-}
-
-[data-theme="light"] .scale-btn-compact:hover {
-    background: rgba(255, 255, 255, 0.9);
-    color: #1e293b;
-    border-color: rgba(79, 140, 255, 0.5);
-    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.12);
-}
-
-/* ========================================================================
    Responsive Adjustments
    ======================================================================== */
 @media (max-width: 991.98px) {
@@ -317,8 +232,8 @@ select:focus-visible,
 button:focus-visible,
 a:focus-visible,
 [tabindex]:focus-visible {
-    outline: 2px solid rgba(13, 110, 253, 0.5) !important;
-    outline-offset: 2px !important;
+    outline: 2px solid var(--focus-ring-color, rgba(13, 110, 253, 0.5)) !important;
+    outline-offset: var(--focus-ring-offset, 2px) !important;
     box-shadow: none !important;
 }
 
@@ -397,8 +312,8 @@ html[data-scale="2"] *:focus-visible,
 html[data-scale="3"] *:focus-visible,
 html[data-scale="4"] *:focus-visible,
 html[data-scale="5"] *:focus-visible {
-    outline: 2px solid rgba(13, 110, 253, 0.5) !important;
-    outline-offset: 2px !important;
+    outline: 2px solid var(--focus-ring-color, rgba(13, 110, 253, 0.5)) !important;
+    outline-offset: var(--focus-ring-offset, 2px) !important;
     box-shadow: none !important;
     -webkit-box-shadow: none !important;
     -moz-box-shadow: none !important;
