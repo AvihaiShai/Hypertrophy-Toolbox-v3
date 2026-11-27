@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+import utils.config
+from utils import runtime_paths
 from utils.runtime_migration import (
     MigrationError,
     _verify_copy,
@@ -66,7 +68,13 @@ def target(tmp_path: Path) -> Path:
 
 
 @pytest.fixture(autouse=True)
-def no_ambient_override(monkeypatch):
+def isolated_migration_paths(monkeypatch, tmp_path):
+    """Cover the defaults used by the parameterless legacy backup copy."""
+    installation = tmp_path / "install"
+    runtime = tmp_path / "userdata"
+    monkeypatch.setattr(runtime_paths, "installation_root", lambda: installation)
+    monkeypatch.setattr(utils.config, "DB_FILE", str(tmp_path / "unused.db"))
+    monkeypatch.setenv("HT_RUNTIME_DIR", str(runtime))
     monkeypatch.delenv("DB_FILE", raising=False)
 
 
@@ -323,21 +331,30 @@ class TestBackupCopying:
 
         assert copy_legacy_backups(source, tmp_path / "target") == 0
 
-    def test_migration_carries_backups_across(self, tmp_path, monkeypatch):
-        legacy = tmp_path / "install" / "data" / "database.db"
-        _write_database(legacy)
-        backups = legacy.parent / "auto_backup"
-        backups.mkdir()
-        _write_database(backups / "database_20260101_010101.db")
-        target = tmp_path / "userdata" / "data" / "database.db"
-        monkeypatch.setattr(
-            "utils.runtime_migration.legacy_data_dir", lambda: legacy.parent
-        )
-        monkeypatch.setattr(
-            "utils.runtime_migration.runtime_data_dir", lambda: target.parent
-        )
+    def test_migration_carries_backups_across(self, tmp_path, legacy, target):
+        source_backups = legacy.parent / "auto_backup"
+        target_backups = target.parent / "auto_backup"
+        name = "database_20260101_010101.db"
+        _write_database(source_backups / name, exercises=5)
+        backup_bytes = (source_backups / name).read_bytes()
+        legacy_bytes = legacy.read_bytes()
 
-        outcome = prepare_runtime_database(target=target, legacy=legacy)
+        assert runtime_paths.legacy_database_path() == legacy
+        assert runtime_paths.runtime_database_path() == target
+        assert not target.parent.exists()
+        outcome = prepare_runtime_database()
 
+        assert outcome.action == "migrated"
+        assert outcome.legacy_path == legacy
+        assert outcome.database_path == target
         assert outcome.backups_copied == 1
-        assert (target.parent / "auto_backup").is_dir()
+        assert legacy.read_bytes() == legacy_bytes
+        assert _row_count(target, "exercises") == 3
+        assert _row_count(target, "user_selection") == 2
+        for directory in (source_backups, target_backups):
+            assert {path.name: path.read_bytes() for path in directory.iterdir()} == {
+                name: backup_bytes,
+            }
+        assert {path.name for path in tmp_path.iterdir()} == {"install", "userdata"}
+        for directory in (legacy.parent, target.parent):
+            assert {path.name for path in directory.iterdir()} == {"database.db", "auto_backup"}
