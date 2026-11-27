@@ -339,7 +339,7 @@ class TestPatternCoverageEndpoint:
 class TestPlanGeneratorIntegrationE2E:
     """End-to-end integration tests for the plan generator workflow."""
     
-    def test_generate_plan_with_priority_muscles(self):
+    def test_generate_plan_with_priority_muscles(self, clean_db):
         """Generate a plan with priority muscles and verify boost applied."""
         from utils.plan_generator import generate_starter_plan
         
@@ -362,12 +362,10 @@ class TestPlanGeneratorIntegrationE2E:
         assert "routines" in plan_normal
         assert "routines" in plan_priority
     
-    def test_pattern_coverage_reflects_plan(self):
-        """Pattern coverage should reflect generated plan."""
+    def test_pattern_coverage_reflects_plan(self, clean_db):
+        """Pattern coverage should return its expected fields for an empty plan."""
         from utils.weekly_summary import calculate_pattern_coverage
 
-        # Generate a plan with persistence (but clean DB means nothing to count)
-        # This tests the flow works without errors
         coverage = calculate_pattern_coverage()
         
         # Should have the expected structure
