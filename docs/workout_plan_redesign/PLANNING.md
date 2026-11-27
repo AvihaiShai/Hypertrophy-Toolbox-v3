@@ -3,8 +3,11 @@
 **Status** — Section 0 drafted on 2026-11-27. The owner's "Decisions" reply of 2026-11-26 is
 the Gate 0 answer for the decisions it names (see
 [Section 0 sign-off](#section-0-sign-off--gate-0)). Thirteen assumptions (P1–P13) are not
-covered by that reply and carry no sign-off. Plan v1 was drafted on 2026-11-27 and has not been
-reviewed by the council.
+covered by that reply and carry no owner sign-off. The plan council reviewed Plan v1 on
+2026-11-27: three verdicts of "sound with changes", no blocking finding, and every finding has a
+disposition. It settled P1–P13 without the owner, and an owner answer overrides any of them.
+Plan v2 is written. Gate 1 is recorded as approved by Claude under the owner's delegation of
+2026-11-20 (see [Sign-off](#sign-off)). Implementation has not started.
 
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
@@ -137,7 +140,8 @@ under `artifacts/design-736/step3/mockups/` (not committed), built on 2026-11-27
   The smallest tap target at 320, 360 and 390 px is 44 × 44 px.
 - At 1360 px the Simple table scrolls 74 px inside its region. It fits at 1440 px.
 
-**Where the mockup departs from the text of this brief.** The plan council rules on each:
+**Where the mockup departs from the text of this brief.** The plan council rules on each. It
+accepted all four on 2026-11-27 (response matrix, M1–M4):
 
 - P5 says three fields to a row behind Details. On the narrowest cards (320 to 390 px at scale 8)
   `102.5` does not fit a third of the row, so the mockup shows two to a row there and three
@@ -246,7 +250,7 @@ styled from the page bundle.
 | **Modal** ⚠️ (P7) | Generate Starter Plan, Clear Plan, Clear Log, the reference-video modal | Opt-in by class, so a modal that has not migrated keeps today's look. Surface `--surface-2`, opaque, 1 px hairline, radius 16 px (new token `--ui-modal-radius`), shadow `--shadow-elev-2`, no `backdrop-filter`. Header: plain, on the modal surface, title 18 / 24 px at weight 600, close control 40 px square (44 px below 768 px). Body and footer padding 16 px, footer buttons 8 px apart. Width: at most 480 px for a confirmation, at most 1120 px for Generate Starter Plan, 800 px for the video as today, and never wider than the viewport minus two gutters. The inline `width: 1600px` goes. At most one filled button, the confirm action |
 | **Filled danger button** ⚠️ (P7) | A destructive modal's confirm action only | New token `--ui-danger-fill`: `#c0362c` light, `#a84f49` dark, white text. Computed by hand: 5.52:1 and 5.41:1 |
 | **Drawer** ⚠️ (P8) | Volume targets | Right-hand sheet, `min(360px, 100vw)` wide and the full height of the viewport, as today. Surface `--surface-2`, radius 16 px on its two left corners, shadow `--shadow-elev-2`, plain header with an 18 / 24 px title at weight 600 and a 40 px close control (44 px below 768 px), body padding 16 px with its own vertical scroll. Rows are hairline boxes with a 12 px radius. Dark theme by token swap |
-| **Menu** ⚠️ (P12) | "More" | A secondary `ui-btn` labelled "More" with a chevron, `aria-haspopup="menu"` and `aria-expanded`. The popover is a raised surface: `--surface-2`, 1 px hairline, 12 px radius, `--shadow-elev-2`, at least 200 px wide, aligned to the button's right edge and never outside the viewport. Items are 40 px tall (44 px below 768 px) with 14 / 20 px text. The destructive item uses `--ui-danger` text and sits below a hairline |
+| **Menu** ⚠️ (P12) | "More" | A secondary `ui-btn` labelled "More" with a chevron, `aria-haspopup="menu"` and `aria-expanded`. The popover is a raised surface: `--surface-2`, 1 px hairline, 12 px radius, `--shadow-elev-2`, at least 200 px wide, aligned to the right edge of the actions row and never outside the viewport (corrected 2026-11-27 under M3; the draft said the button's right edge). Items are 40 px tall (44 px below 768 px) with 14 / 20 px text. The destructive item uses `--ui-danger` text and sits below a hairline |
 | **Tabs** ⚠️ (P3) | Routine tabs | One line per tab: label then count. 40 px tall (44 px below 768 px), 14 / 20 px at weight 500, 8 px radius. The selected tab has `--ink-1` text, a `--surface-1` fill and a 1 px `--ink-3` border. The others have `--ink-2` text and no border. No per-routine colour (R22). Tabs wrap onto further lines |
 | **Chip** ⚠️ (P4) | Active filters | A pill (999 px) that is itself a button: filter name, value and a remove mark. 32 px tall (44 px below 768 px), 12 / 16 px at weight 500, `--ink-1` text on `--surface-1`, 1 px `--ink-3` border. Chips wrap |
 | **Ruled table and card** (R17) | The Plan's table and cards | A variant of `ui-data-table` and `ui-record-card` whose row separator and card outline are 1 px `--ink-3`: 3.16:1 on the light panel and 5.10:1 on the dark panel (the pilot's computed figures). It is a shared variant because step 4's tables are measured by the same check |
@@ -316,7 +320,8 @@ One column below 768 px, two columns from 768 px.
 **Behind Details**
 
 - The six editable numbers as fields, each with its label: Sets, Min Rep, Max Rep, RIR, RPE,
-  Weight. ⚠️ Three to a row (P5).
+  Weight. ⚠️ Three to a row, and two to a row where the card's content box is narrower than
+  240 px (P5; corrected 2026-11-27 under M1).
 - Muscles and the other Simple columns: Primary Muscle, Secondary Muscle, Isolated Muscles,
   Grips. In Advanced mode also Tertiary Muscle, Utility, Movement Pattern, Movement Subpattern,
   Stabilizers and Synergists (R25).
@@ -504,7 +509,7 @@ committed before the restyle and shown to fail on `8b023d1a`. It passes when:
 | `static/css/layout.css` | Nothing expected. The frame is already there |
 | `static/css/pages-workout-plan.css` | Plan-only layout: column widths, the card's internal arrangement, the Add exercise panel's grid, the superset rail, the routine cascade, the execution-style picker, the body map inside Generate Starter Plan, the drawer's rows |
 | `static/css/theme-dark.css` | Nothing for the Plan. Its Plan-only rules are deleted |
-| `scss/pages/_workout_plan_volume_panel.scss` | ⚠️ Loses the drawer's rules (P8). The Volume Splitter rules in the same file stay until step 4 |
+| `scss/pages/_workout_plan_volume_panel.scss` | Not edited in this step (corrected 2026-11-27: the council changed P8). The drawer's old rules stay in the Bootstrap build underneath the shared drawer's rules and are named for a later deletion. The Volume Splitter rules in the same file stay until step 4 |
 
 **What is deleted from `pages-workout-plan.css`.** The sections are the file's own comment
 headings at `8b023d1a`. The `!important` figures are `grep` line counts bucketed by those line
@@ -588,7 +593,7 @@ The file then has no `!important`.
 | `e2e/workout-plan-desktop-contract.spec.ts:206` | 14 `[data-visual-surface]` elements. Replaced by the gutter assertion (R19) |
 | `e2e/workout-plan-desktop-contract.spec.ts:215-222` | The page must overflow 1440 px. Replaced by no page overflow, the region scrolls, the last column and the row actions are reachable (R19) |
 | `e2e/workout-plan-desktop-contract.spec.ts:170`, `:293` | Select `.tbl-wrap` and `.btn-danger`. They follow the markup |
-| `e2e/workout-plan-desktop-contract.spec.ts:353-397` | Stays as written. It must measure a drawn border (criterion 18) |
+| `e2e/workout-plan-desktop-contract.spec.ts:353-397` | Its existing assertions and its skip of a `0px` edge stay. It gains one new assertion that the `td` bottom border has a width above 0 (criterion 18; corrected 2026-11-27 under Q3, where the draft said "stays as written") |
 | `e2e/visual-field-separator.spec.ts:37`, `:185-186` | Selects `table.tbl--responsive` on the Plan. The 3:1 requirement and what it measures stay (R17). The selector string follows the class only if the class goes |
 | `e2e/workout-plan.spec.ts:57`, `:361`, `:384` | `#filters-form` and its selects are visible on load. The filters are collapsed (R4) |
 | `e2e/workout-plan.spec.ts:69`, `:506` | The Excel export button is visible on load. It is in the More menu (R5) |
@@ -606,7 +611,7 @@ The file then has no `!important`.
 | `e2e/visual-helpers.ts:197-206`, `:213-215` | Capture-time CSS aimed at `[data-visual-header]`, `[data-visual-accent]` and `[data-section="filters"]` on the Plan, which the page no longer renders |
 | `tests/test_css_cascade_contracts.py::test_relocated_frame_selectors_remain_reachable_from_runtime_hooks` (`:239-242`) | Asserts `class="collapsible-frame`, `frame-header-2025` and `.collapsible-frame` in the Plan template and `workout-plan-page.js` |
 | `tests/test_css_cascade_contracts.py`, the ten `test_workout_plan_*` tests (`:807`, `:865`, `:951`, `:1056`, `:1106`, `:1144`, `:1186`, `:1230`, `:1285`, `:1361`) | Assert the text of rules in `pages-workout-plan.css` that are deleted, and at `:1045-1053` three collapsible frames, the header markup and the collapse script |
-| `tests/test_css_cascade_contracts.py::test_bootstrap_artifact_keeps_scss_owned_selector_families` (`:106-121`) | Requires `.vp-drawer` and `#vpToggle` in the compiled Bootstrap file. Moves only if P8 is accepted |
+| `tests/test_css_cascade_contracts.py::test_bootstrap_artifact_keeps_scss_owned_selector_families` (`:106-121`) | Requires `.vp-drawer` and `#vpToggle` in the compiled Bootstrap file. Does not move: the council changed P8 on 2026-11-27 and the SCSS is not edited |
 | `tests/test_css_theme_dark_p3_audit_contracts.py:68` | Names `test_workout_plan_page_header_and_collapsible_frame_ownership_cleanup` |
 | `tests/test_css_wp4_4_i_is_repair_contracts.py:112`, `:226` | `components.css` has 5,091 newlines and 883 `!important`. Lines are added and removed. `!important` may only fall |
 | `tests/test_css_wp4_4_i_is_repair_contracts.py:215`, `tests/test_css_wp4_4_components_contracts.py:383-385` | `components.css` holds 19 `:is(` tokens, five of them in the four Plan-only input rules at `components.css:3454-3569`. Those rules are the per-field inputs R22 drops |
@@ -879,10 +884,11 @@ information" order and lists the result in the PR under "Decisions taken without
     tab is selected. That is what happens today (`workout-plan-table.js:231-239`).
   - You lose: the page does not jump to the next routine's tab.
   - Recommendation: accept. It is today's behaviour and the smaller change.
-- ⚠️ **P3. Routine tabs wrap, and each reads workout first.** *Not covered by the owner's
-  reply.*
-  - You will see: each tab on one line, such as `Workout A · GYM · Full Body 6`, in the order
-    the Log's caption uses. When the tabs do not fit one row they continue on the next.
+- ⚠️ **P3. Routine tabs wrap, and each keeps today's label order.** *Not covered by the owner's
+  reply.* (Corrected 2026-11-27: the draft read workout first, as the Log's caption does. The
+  council changed it, because R23 keeps labels as they are.)
+  - You will see: each tab on one line, reading environment, program, workout as today, with
+    its count. When the tabs do not fit one row they continue on the next.
   - You lose: height. Five routines and All take up to six rows on a phone, about 310 px. The
     alternative is one row that scrolls sideways inside itself, which hides the tabs past the
     screen edge.
@@ -898,10 +904,13 @@ information" order and lists the result in the PR under "Decisions taken without
     without opening anything.
 - ⚠️ **P5. Details on a card.** *Not covered by the owner's reply.*
   - You will see: Details closed on every load, as on the Log. Opened, the six numbers are
-    fields three to a row (Sets, Min Rep, Max Rep, then RIR, RPE, Weight) at every card width.
+    fields three to a row (Sets, Min Rep, Max Rep, then RIR, RPE, Weight), and two to a row
+    where the card's content box is narrower than 240 px, which is 320 to 390 px at scale 8.
   - You lose: the page does not remember which cards you opened.
-  - Recommendation: accept. Three to a row fits a 320 px phone at scale 8 with a five-character
-    value by arithmetic (about 62 px a field), with no script deciding the wrap.
+  - Recommendation: accept. A layout rule decides the wrap, not a script. (Corrected 2026-11-27
+    under M1. The draft said three to a row fits a 320 px phone at scale 8 at about 62 px a
+    field. That figure left out the panel's padding: a field is about 50 px there, too narrow
+    for `102.5`.)
 - ⚠️ **P6. The superset selection bar stays in view on cards.** *Not covered by the owner's
   reply.*
   - You will see: below 1360 px, while a row is selected, the bar with Link and Unlink stays
@@ -927,6 +936,8 @@ information" order and lists the result in the PR under "Decisions taken without
   - Recommendation: accept, and stop if the rebuilt file differs anywhere outside the drawer's
     rules (the rule K34 sets for Fatigue). The alternative, overriding the old rules from
     `components.css`, adds a layer on top instead of deleting one.
+  - Changed by the council on 2026-11-27, two reviewers to one: the alternative is used. The
+    SCSS is not edited, nothing is rebuilt and no pin moves. The mechanism is in Plan v2.
 - ⚠️ **P9. K7 reaches the card outline.** *Not covered by the owner's reply.*
   - You will see: below 1360 px each Plan card has a `--ink-3` outline, slightly heavier than
     the Log card's hairline. From 1360 px the table's row lines are `--ink-3`, as K7 says.
@@ -1050,6 +1061,22 @@ the comment "Decisions for the rest of #736 (steps 3, 4 and 5)":
 - [ ] User reviewed the assumptions and corrected or accepted each one. *(Not given. P1–P13 are
   open.)*
 - [x] Blocking questions are answered. *(None is open.)*
+
+**Status of the two open boxes, recorded 2026-11-27.** This is a status note, not an owner
+statement.
+
+- The owner's "Decisions" reply of 2026-11-26, quoted above, is the Gate 0 answer for steps 3 to
+  5: "This is my Gate 0 reply for steps 3–5". The questions were put to the owner to be answered
+  once (`artifacts/design-736/DECISIONS_FOR_ASTRA.md:3`).
+- As the orchestrating session reports it, the owner's instruction of 2026-11-25 for this run is
+  that decisions come once as a batch. Later questions go to the council and `/consult`, then to
+  the orchestrator's judgment, preferring the smaller and more reversible option, and are listed
+  in the PR under "Decisions taken without the owner". This agent did not read that instruction
+  itself.
+- P1–P13, M1–M4 and Q1–Q12 were settled that way by the plan council on 2026-11-27 (see the
+  response matrix). The owner has not reviewed them. An owner answer overrides any of them.
+- The two boxes stay unticked because the owner has not confirmed this text or these
+  assumptions.
 
 Gate 1 and Gate 2 for this step are delegated by the owner (2026-11-20) and are recorded in this
 file when given, as "approved by Claude under the owner's delegation of 2026-11-20". Merging
@@ -1488,13 +1515,740 @@ the evidence a ruling needs and the smaller option, which the plan can take with
 
 | Role | Agent ID | Notes |
 |---|---|---|
-| `product-manager` — Plan v1 | pending — supplied by the manager | Author of Plan v1. Whether the same agent wrote Section 0 is for the manager to state |
-| `product-manager` — response matrix + Plan v2 | pending — supplied by the manager | |
-| `architecture-reviewer` | pending — supplied by the manager | Step 2 reviewer |
-| `test-strategist` | pending — supplied by the manager | Step 2 reviewer |
-| `product-risk-reviewer` | pending — supplied by the manager | Step 2 reviewer |
+| `product-manager` — Plan v1 | `a0cf1a8b9a288e254` | Author of Plan v1. Section 0 was written by a different `product-manager`, `a498d607032f21526`. The mockup was built by a general-purpose agent, `afa4d71956251b7be` |
+| `product-manager` — response matrix + Plan v2 | `a0cf1a8b9a288e254` | Author of the council section, the response matrix and Plan v2 |
+| `architecture-reviewer` | `a25d424cf3e42a127` | Step 2 reviewer |
+| `test-strategist` | `a9d8425e1e51c7316` | Step 2 reviewer |
+| `product-risk-reviewer` | `a8278cfffbf10c3c0` | Step 2 reviewer |
 
-**Same product-manager resumed for the matrix + Plan v2?** pending — supplied by the manager.
+Every ID above was supplied by the manager. None was invented.
 
-**Evidence gap** — pending. To be written as `none`, or as what could not be established, when
-the matrix and Plan v2 are written.
+**Same product-manager resumed for the matrix + Plan v2?** `yes` (resumed via `SendMessage` to
+the Plan v1 agent ID).
+
+**Evidence gap** — none.
+
+---
+
+## Council review of Plan v1
+
+**Reviewed** — Plan v1 in this file, on `feat/736-workout-plan`, on 2026-11-27. The branch head
+was `0573f1f5` when the plan was drafted; the commit the reviewers read was not reported to this
+agent. The manager ran the three reviewers and synthesized the proposed
+dispositions. Their returns are copied below from `artifacts/design-736/step3/council/`.
+
+**Verdicts**
+
+- `architecture-reviewer` — sound with changes (4 findings, none blocking).
+- `test-strategist` — sound with changes (9 findings, none blocking; TS-1 to be fixed before
+  implementation).
+- `product-risk-reviewer` — sound with changes (5 findings, none blocking).
+
+**Outcome** — No blocking finding is open. Every finding and every ruling is accepted, and Plan
+v2 applies them. Nothing is rejected or deferred. Three assumptions were not unanimous: P3 and
+P8 change, and P6 stands with a stated fallback. On reading the returns against the code, the
+product-manager restated two findings (PR-1, PR-4) and added two (PM-1, PM-2). They are marked
+in the matrix and were reported to the manager.
+
+### Response matrix
+
+AR is `architecture-reviewer`, TS is `test-strategist`, PR is `product-risk-reviewer` and PM is
+the `product-manager`. "3/3" means all three reviewers gave that ruling.
+
+**Findings**
+
+| ID | Finding | Reviewer | Severity | Disposition | Action in Plan v2 |
+|---|---|---|---|---|---|
+| AR-1 | A second unscoped `.modal-content` rule (`components.css:2274-2281`) sets a 20 px radius, a glass background, a blur and its own shadow on the element the new modal styles | AR | Non-blocking | Accept | `.ui-modal` declares its radius, border, opaque background, `backdrop-filter: none`, shadow and focus outline explicitly, on the content, the header and the footer. The overlay check asserts a computed `backdrop-filter` of `none` on all three |
+| AR-2 | The legacy focus ring (`components.css:2246-2271`, `!important`) applies inside migrated modals | AR | Non-blocking | Accept | The ring is left unchanged. The `state:modal-open` axe scan is the oracle. If it fails, the rule is narrowed the way Q1 narrows the shadow rule |
+| AR-3 | `static/js/CLAUDE.md` lists modules by file and the new `ui-menu.js` is not declared | AR | Non-blocking | Accept | `static/js/CLAUDE.md` joins the documents table with one row for `ui-menu.js` |
+| AR-4 | Q2 is safe only while `tbl-view-mode-toggle` stays on the toggle; the script looks it up by that class | AR | Non-blocking | Accept | The two classes are appended at `table-responsiveness.js:239`, never substituted. A contract assertion requires the class in the script |
+| TS-1 | "Outline" on the card can make both 3:1 checks pass on nothing: an outline computes a border width of 0, and both specs skip a `0px` edge | TS | Non-blocking, to fix before implementation | Accept | The card edge is a real `border` on `tr`. Each layout gets a new `expect` on the edge it draws: the `tr` top border below 1360 px, the `td` bottom border from 1360 px. The existing skip logic is not edited. The four mutation rows are run per layout |
+| TS-2 | Tabs set `active` together with `aria-selected`, and `exercise-interactions.spec.ts:634` asserts the class. `:611` selects `#routine-tabs .nav-link`, which may match nothing | TS | Non-blocking | Accept | `active` stays alongside `aria-selected`. **Found:** `.nav-link` matches nothing. The template (`:299-312`) and `workout-plan-table.js:186-197` build `li.routine-tab > button.routine-tab-btn`, and no `nav-link` exists in the template or the Plan's modules. `tabCount` is 0, so the body at `:614-623` never runs. The test "routine tabs filter the table" is not counted as coverage of R3. It is not edited in this step |
+| TS-3 | `visual-field-separator.spec.ts:37` selects `table.tbl--responsive`, a class the Plan's table loses | TS | Non-blocking | Accept | The Plan entry becomes `[data-testid="exercise-table"]` in commit 4, the commit that drops the class |
+| TS-4 | Criteria 16 and 17 and the contract half of 18 have no PR-time CI path | TS | Non-blocking | Accept | "Expected gates" names a local `PW_VISUAL_SEED=1` run of `workout-plan-desktop-contract.spec.ts` and a deep-gate dispatch on the final head. Listed as a stated limit |
+| TS-5 | `:not(.ui-modal)` raises the specificity of an `!important` rule from (0,1,0) to (0,2,0) | TS | Non-blocking | Accept | Q1 uses `.modal-content:where(:not(.ui-modal))`, which keeps (0,1,0) |
+| TS-6 | Without `[data-visual-surface]` on page content the capture helper stops flattening the Plan's dark captures, which could flip on Linux | TS | Non-blocking | Accept | After the Linux baselines are copied out, the Linux deep gate runs in compare mode twice on the final head. A flip is a finding, not a retry |
+| TS-7 | No test for P2, for P5's re-render, for a drag on a routine's tab, for the menu's keyboard contract or for `.wpdd` dropdowns in the closed panel | TS | Non-blocking | Accept | Five cases are added: the P2 fallback; P5's re-render pinned as a known loss; the two drag cases under PR-1; the menu's keyboard path in `accessibility.spec.ts`; the 12 `.wpdd` triggers' width after the panel opens, at 390 and 1440 px |
+| TS-8 | The frame check and the overlay check are opt-in | TS | Non-blocking | Accept | The raw runs are in the PR. The mutation "restoring a deleted rule fails" is run and its output recorded, not claimed |
+| TS-9 | `listener-cleanup.spec.ts` is missing from the gates. `test_css_cascade_contracts.py:1396-1413` asserts a Clear Filters rule that goes | TS | Non-blocking | Accept | `e2e/listener-cleanup.spec.ts` joins the gates. The assertion sits in `test_workout_plan_drops_dead_filter_button_family` (from `:1361`). It is retargeted, never deleted |
+| TS, commit order | Keep the red-before commit. No `ci.yml` run happens on a branch push without a PR. Dispatch the deep gate only after commit 6 | TS | Note | Accept | The sequence keeps commit 2 red by design. The deep gate is dispatched after commit 6 |
+| TS, fixture note | `program-backup.spec.ts:79` is a known flake and the plan edits `:20-37` of that spec | TS | Note | Accept | If it reds, the PR records whether it passes in isolation |
+| PR-1 | With D2, a drag in a routine's tab is the default path. It writes that tab's ordinals only, and `exercise_order` is global | PR | Non-blocking | Accept, with the failure restated by PM | Payload and route are unchanged. Two functional cases are added. The PR's migration notes disclose the consequence. The orchestrator opens a follow-up issue. **Restated:** the reviewer wrote that the All tab then interleaves routines. It does not: the page sorts by routine before `exercise_order` (`workout-plan-table.js:322-332`). The payload is 1 to n, not 0 to n-1 (`workout-plan-helpers.js:190`). Details are under *Drag order* in Plan v2 |
+| PR-2 | P3 reorders the tab label, against R23 ("labels stay as they are") | PR | Non-blocking | Accept | Tabs wrap in CSS and keep today's order. `formatRoutineForTab()` is not edited. The orchestrator corrects the mockup's tab labels |
+| PR-3 | The Goal says "the routine they are about to train". The opening tab is the first by `compareRoutines()`, not the next due | PR | Non-blocking | Accept | The Goal reads "opens on the first routine's tab" |
+| PR-4 | P5's list of actions that close open Details is incomplete | PR | Non-blocking | Accept, with one item corrected by PM | The list adds an execution-style save (`workout-plan-execution-style.js:213`). **Corrected:** Swap does not re-render. It updates the row in place (`workout-plan-replacement.js:44-70`) and has no call to `refreshPlan`, so an open card stays open after a swap |
+| PR-5 | The overlay check never measures the drawer's rows | PR | Non-blocking | Accept | Recorded as a stated limit. PM-2 adds a source contract for the rows |
+| PM-1 | With P3 changed, the tab reads environment, program, workout while Section 0's card caption reads workout first (`Workout A · GYM · Full Body`), on the same page. No reviewer raised it | PM (added) | Non-blocking | Accept as a stated inconsistency | Section 0's caption stands, because it follows the Log's shipped card (`templates/workout_log.html:72`). The PR discloses it. The orchestrator may override before commit 4; the other option is no reorder rule, so the caption reads in tab order |
+| PM-2 | With P8 changed, the legacy light and dark rules for the drawer's rows stay live, and the overlay check sees no rows (Q12, PR-5) | PM (added) | Non-blocking | Accept | A pytest contract requires that every property a `.vp-` rule in the SCSS sets on a class the drawer renders is also declared under `.ui-drawer` for that class. One by-eye capture pair shows the drawer with rows in both themes |
+
+**Assumptions P1–P13**
+
+| ID | Rulings | Disposition | Action in Plan v2 |
+|---|---|---|---|
+| P1 | Accept, 3/3 | Accept | As drafted: one flag, set on the first successful response |
+| P2 | Accept, 3/3 | Accept | No code change. A test is added (TS-7) |
+| P3 | AR change, PR change, TS accepts wrapping and has no view on the order | Change | Wrap in CSS, keep today's label order, no helper edit (PR-2). Section 0's P3 is corrected |
+| P4 | Accept, 3/3 | Accept | As drafted. `clearFilters()` is not edited |
+| P5 | Accept, 3/3 | Accept | No memory of open cards. The re-render loss is pinned by a test and listed in the PR (PR-4). Section 0's P5 is corrected for M1 |
+| P6 | PR accept, TS accept with a fallback, AR change to in flow | Stands, 2/3. Dissent: AR | Sticky below 1360 px. If WP11 fails with a row selected, the bar goes in flow and the change is recorded |
+| P7 | Accept, 3/3 | Accept | As drafted |
+| P8 | AR change, TS change, PR accept the rebuild | Change, 2/3. Dissent: PR | `.vp-drawer.ui-drawer` in `components.css`. No SCSS edit and no rebuild. Mechanism and its check are under *Shared components* in Plan v2. Section 0's P8 and two table cells are corrected |
+| P9 | Accept, 3/3 | Accept | As drafted, keyed on the table, with TS-1's border |
+| P10 | Accept, 3/3 | Accept | As drafted |
+| P11 | Accept, 3/3 | Accept | As drafted. The test asserts the first tabbable control of the panel |
+| P12 | Accept, 3/3 | Accept | Every icon in the template is checked against the bundled set before commit 4 |
+| P13 | Accept, 3/3 | Accept | The limits stay. A miss on the built page is a defect to fix |
+
+**Mockup departures M1–M4**
+
+| ID | Rulings | Disposition | Action in Plan v2 |
+|---|---|---|---|
+| M1 | Accept, 3/3 | Accept | Two fields to a row inside the container rule. Section 0's P5 and its Details bullet are corrected |
+| M2 | Accept, 3/3 | Accept | The fixture's long routine name exercises the wrap. With P3 changed the tab reads `GYM`, `Upper Lower Hypertrophy Split`, `Workout B Heavy` |
+| M3 | Accept, 3/3 | Accept | Section 0's popover cell is corrected |
+| M4 | Accept, 3/3 | Accept | The built page's frame check and the `manual-qa-reviewer` comparison are the evidence |
+
+**Questions Q1–Q12**
+
+| ID | Rulings | Disposition | Action in Plan v2 |
+|---|---|---|---|
+| Q1 | AR and PR accept `:not(.ui-modal)`; TS accepts with `:where()` | Accept, in the `:where()` form | See TS-5 and AR-1 |
+| Q2 | Accept, 3/3 | Accept | With AR-4. Whether `layout.css` or `theme-dark.css` carry a count pin is still not verified; the contract subset is run after the deletion |
+| Q3 | 3/3: the width assertion is added | Accept: criterion 18 governs | With TS-1. Section 0's "stays as written" is corrected |
+| Q4 | Accept, 3/3 | Accept | The three capture-helper rules stay and are listed as dead |
+| Q5 | Accept, 3/3 | Accept | `[data-visual-surface]` stays on the migrated modals' content. The contract spec is the real guard |
+| Q6 | Accept the shims, 3/3 | Accept | As drafted |
+| Q7 | Accept, 3/3 | Accept | Every `components.css` deletion is in commit 5 |
+| Q8 | Accept, 3/3 | Accept | The Clear Log flow is a Playwright case at 390 and 1440 px, green before and after. If it fails after the deletion, the functional rules stay and the count is reported |
+| Q9 | Accept, 3/3 | Accept | One commit may be frame-red. Its reds are confined to legacy-rule collisions, and its functional specs and Vitest are green |
+| Q10 | TS accept, PR accept, AR no view | Accept | Tests open the panel before using a filter. The width case from TS-7 is added. PR cites `workout-dropdowns.js:592` as measuring at open, which this agent did not open |
+| Q11 | Accept, 3/3 | Accept | Touch drag is tried by `manual-qa-reviewer` in device emulation |
+| Q12 | Accept the smaller option, 3/3 | Accept | The overlay fixture has no active volume plan. See PR-5 and PM-2 |
+
+No finding is rejected or deferred.
+
+### architecture-reviewer (agent `a25d424cf3e42a127`)
+
+*Verbatim from `artifacts/design-736/step3/council/architecture-reviewer.md`, without that file's
+one-line header.*
+
+**Review: Plan v1, Workout Plan redesign (#736 step 3)**
+
+I read Section 0 and Plan v1 in full. The code claims I checked came from `components.css:2205-2290`, `table-responsiveness.js:169-242`, `templates/base.html:228`, `e2e/scripts/` (file list only) and greps of `theme-dark.css` and `layout.css`. Everything else I cite from the plan is marked "not verified".
+
+**Charter checks: all pass or do not apply**
+- **Module boundaries and API:** No file under `routes/`, `utils/` or `app.py` is touched. No blueprint, schema or `run_all_initializers` change is needed.
+- **DB access, responses, logging and normalization:** There is no new route, DB access, logging or persisted string, so these do not apply.
+- **`utils/__init__.py`:** No re-export is planned.
+- **Payload builders:** The plan keeps the seven payload builders unedited, which I did not re-read.
+- **Base template:** `templates/base.html:228` does define `{% block main_class %}`, so the `main_class` claim holds. The plan does not edit `base.html`.
+- **Shared-state edits:** The plan declares its edits to shared CSS, `DESIGN_BRIEF.md`, `CSS_OWNERSHIP_MAP.md` and `A11Y_EXCEPTIONS.md`.
+
+**Findings**
+
+**AR-1 (non-blocking). Q1 names one shared modal rule, but a second one overrides the same properties.**
+- **Evidence:** `components.css:2238-2240` is the `!important` shadow rule the plan names. `components.css:2274-2281` is a second unscoped `.modal-content` rule. It sets a 20 px radius, a glass background, `backdrop-filter: blur(20px)`, a glass border and its own box-shadow.
+- **Failure:** The new `.ui-modal` rule must win over this second rule on the same element. It does so only by source order, since both have specificity (0,1,0) and the new rules go after `:5091`. If `.ui-modal` does not declare `backdrop-filter: none` and an opaque background explicitly, the blur leaks through and the "no backdrop-filter" rule in Section 0 fails.
+- **Fix:** Add `.ui-modal` to the commit-3 spec as declaring radius, border, background, `backdrop-filter: none` and the focus outline explicitly. Make the overlay check assert computed `backdrop-filter` as `none`.
+
+**AR-2 (non-blocking). The legacy focus ring applies inside migrated modals.**
+- **Evidence:** `components.css:2267-2271` sets `.modal *:focus-visible { outline: 2px solid rgba(13,110,253,.5) !important }`, and `:2246-2264` removes focus shadows with `!important`.
+- **Failure:** The new modals get a half-opacity legacy blue ring, not an indigo token. Whether it meets the 3:1 contrast check was not verified. If it fails, the `state:modal-open` axe scan reds in commit 5 or 6.
+- **Fix:** Say in Plan v2 that the focus ring is left unchanged and that the axe scan is the oracle. If it fails, narrow the rule with `:not(.ui-modal *)`, as Q1 does for the shadow rule.
+
+**AR-3 (non-blocking). A folder `CLAUDE.md` changes without being declared.**
+- **Evidence:** `static/js/CLAUDE.md` lists the modules by file. Plan v1 adds `static/js/modules/ui-menu.js` and the artifact table does not list that file.
+- **Failure:** Charter point 8 (undeclared shared-state edit). Leaving it out also makes the folder map stale.
+- **Fix:** Add `static/js/CLAUDE.md` (one row for `ui-menu.js`) to the documents table, or state that no row is added.
+
+**AR-4 (non-blocking). The plan says the `.tbl-wrap` hooks still hold, and they do.**
+- **Evidence:** `table-responsiveness.js:169`, `:190` and `:230` use `closest('.tbl-wrap')`, and `:99-112` finds `.tbl-controls` inside that wrapper. The toggle class is set at `:239`, and `:174` and `:197` look it up by the class `tbl-view-mode-toggle`.
+- **Failure:** Q2 is safe only if the class stays on the toggle. Deleting the chrome rules is fine as long as `tbl-view-mode-toggle` remains the hook.
+- **Fix:** In the Q2 edit, append `ui-btn ui-btn--small` to the className and never replace it. Add a contract assertion that the class is still present.
+
+**Rulings on P1–P13**
+- **P1 accept as drafted.** The default is All (`workout-plan-state.js:22`), and `workout-plan.spec.ts:329` expects All after adding to an empty plan, which one flag set on the first response preserves.
+- **P2 accept.** It is existing code and needs no change.
+- **P3 change to the smaller option.** Wrap in CSS and keep today's label order (`workout-plan-helpers.js:82-87`). The JS edit to `formatRoutineForTab` buys only a caption order, and nothing is lost by keeping it.
+- **P4 accept.** `clearFilters()` also clears routine and exercise, so leaving it unedited is correct.
+- **P5 accept the smaller option, no memory of open cards.** The loss is a closed card after a reorder or superset link. That is not a wrong result, and the alternative adds state.
+- **P6 change to the smaller option, in flow and not sticky.** It needs no `.ui-panel` overflow assumption, which I did not verify. The cost is one scroll to reach Link on a long list, which does not block the operation.
+- **P7 accept.** The token is needed for D17's filled red confirm. The `#a84f49` source at `tokens.css:460` is not verified.
+- **P8 accept the smaller option, `.vp-drawer.ui-drawer` and no SCSS rebuild.** The compound selector ties the dark rule at (0,2,0), so order decides. Require the overlay check to read every property the legacy rule sets, so nothing leaks. Bundle load order is not verified.
+- **P9 accept as drafted, keyed on the table.** The plan's own evidence is that the separator spec injects bare rows on an empty plan (`visual-field-separator.spec.ts:87-100`), so a card-outline-only rule would pass on nothing.
+- **P10 accept as drafted.** The toggle shows at every width. Hiding it on cards would leave only the navbar muscle toggle to reach Advanced fields, and K3 says it stays.
+- **P11 accept.**
+- **P12 accept.** Confirm that `fa-trash` is in the bundled icon set (`tests/test_visual_selector_contracts.py:12-20`) before commit 4. Not verified.
+- **P13 accept.** Keep the limits.
+
+**Rulings on M1–M4**
+- **M1 accept.** It is arithmetic only, and WP11 is the measurement.
+- **M2 accept.** Wrapping loses nothing.
+- **M3 accept.** Correct the Section 0 table cell in Plan v2.
+- **M4 accept.**
+
+**Rulings on Q1–Q12**
+- **Q1 accept the `:not(.ui-modal)` narrowing.** Without it, `!important` would be needed. See AR-1.
+- **Q2 accept.** See AR-4.
+- **Q3 the plan governs, adding a width assertion.** A `border-top` ruled variant would pass on nothing. Correct Section 0's "stays as written" wording.
+- **Q4 accept.** Leave the dead capture-helper rules and avoid a `scripts/**` edit.
+- **Q5 accept.**
+- **Q6 accept the shims.** `e2e/scripts/run_workout_log_frame.py` is the only existing launcher (confirmed by the file list), and no file may be deleted.
+- **Q7 accept.** Do all `components.css` deletions in one commit.
+- **Q8 accept.** Use the Log clear flow as the control.
+- **Q9 accept one commit that is not frame-green.** Reds in commit 4 must be confined to the legacy-rule collisions.
+- **Q10 no view.** `workout-dropdowns.js` was not opened. Opening the panel first in affected tests is the smaller option.
+- **Q11 accept.**
+- **Q12 accept the smaller option.** Keep the empty drawer, because `volume-progress.spec.ts` covers rows.
+
+**Verdict: sound with changes.** No finding names a concrete loss, a wrong result or a blocked operation. Apply AR-1 to AR-4 and the P3 and P6 changes in Plan v2.
+
+### test-strategist (agent `a9d8425e1e51c7316`)
+
+*Verbatim from `artifacts/design-736/step3/council/test-strategist.md`, without that file's
+one-line header. The reviewer's own headings are demoted to fit this section.*
+
+#### Required gates
+
+Derived from `docs/ai_workflow/QUALITY_GATE.md`. The plan's own "Expected gates" table matches the canonical routing, with the additions in TS-9.
+
+- **pytest: full `pytest`.** The plan edits the shared surfaces `tokens.css`, `components.css`, `layout.css` and `theme-dark.css`, so the full suite is required. It includes:
+  - `tests/test_css_cascade_contracts.py`
+  - `tests/test_css_wp4_4_{a_baseline,components,i_is_repair,a11y,motion}_contracts.py`
+  - `tests/test_css_theme_dark_p3_audit_contracts.py`
+  - `tests/test_visual_capture_contracts.py`
+  - `tests/test_visual_selector_contracts.py`
+  - `tests/test_template_landmarks.py`
+  - `tests/test_workout_log_frame_runner.py`
+  - `tests/test_playwright_shard_launcher_contracts.py` (the `== 25` pin at `:67` exists)
+- **e2e (Chromium):**
+  - The shared-surface set: `smoke-navigation`, `nav-dropdown`, `accessibility`, `dark-mode`, `summary-pages`, `volume-progress`, `fatigue`, `fatigue-stage4-smokes`, `ui-hardening`.
+  - The feature-map set for `workout_plan` and `workout-plan`: `workout-plan`, `exercise-interactions`, `superset-edge-cases`. Add `ui-hardening` for Clear Plan, `workout-log` for the Clear Log modal, `volume-progress`, `program-backup`, `empty-states`, `error-handling` and `browser-navigation-state`.
+  - The control specs: `exercise-catalog-fetch` and **`listener-cleanup`** (see TS-9).
+  - The full `visual.spec.ts` matrix and `visual-baseline-thumbnails.spec.ts`, both with `PW_VISUAL_SEED=1`.
+  - `workout-plan-desktop-contract.spec.ts`, run locally with `PW_VISUAL_SEED=1` and in `deep-gate-visual.yml:148`.
+  - `visual-field-separator.spec.ts`.
+- **other:**
+  - Seven-surface Stylelint (`node scripts/css_audit/stylelint_surfaces.mjs`).
+  - `/build-css` plus the rebuild check, if P8 stands.
+  - `npm run test:js`, `npx tsc --noEmit`, and the pyright baseline diff (any `.py` is touched).
+  - `scripts/generate_test_inventory.py --check`.
+  - The Linux visual deep gate on the final head, with a clean first attempt.
+  - `/verify-and-polish`, with `code-reviewer` and `unslop-reviewer`.
+  - **No** change under `.github/workflows/**`.
+
+#### Existing coverage (verified)
+
+- The 26 baselines. The plan's list is correct on disk. Each platform has 4 `workout-plan-{mobile,tablet}-{light,dark}.png` files under `visual.spec.ts-snapshots` and 9 `plan-*.png` files under `visual-baseline-thumbnails.spec.ts-snapshots`, which is 13 per platform.
+- `BYTE_GATE_EXEMPT` (`e2e/visual-helpers.ts:58-64`) holds exactly the five names the plan states.
+- Contract spec: `e2e/workout-plan-desktop-contract.spec.ts:206` pins `surfaces` at 14, `:215-222` pins page overflow, and `:293` counts `.btn-danger`. `:379-380` and `visual-field-separator.spec.ts:163` skip an edge whose width is `0px`.
+- `static/js/modules/__tests__/workout-plan-seams.test.js:45,51-54,73-77` use `toContain` or `toBe` on the functions the plan edits. I did not open `workout-plan-state.test.js` or `workout-plan-helpers.test.js`.
+- `e2e/exercise-catalog-fetch.spec.ts` and `e2e/listener-cleanup.spec.ts` exist and are outside the required set.
+- `tests/test_ui_flows.py` mentions `workout_plan` 37 times but asserts no template ids. It is unaffected.
+- `.check.ts` files do not match the default `*.spec.ts` match. The `playwright.config.ts` grep found no `testMatch` or frame-check entry.
+
+#### Findings
+
+**TS-1 (non-blocking, high value): the "outline" wording can make the 3:1 separator checks pass vacuously.**
+- **Evidence.** PLANNING.md "Layout by construction", Separators row: the ruled variant draws `border-bottom` on `td` from 1360 px and "a 1 px `--ink-3` outline on `tbody tr`" below it.
+  - `visual-field-separator.spec.ts:134-135` reads `trs.borderTopWidth`, and `:163` returns early on `0px`.
+  - `workout-plan-desktop-contract.spec.ts:380` does the same.
+  - A CSS `outline` computes `border-top-width` as 0.
+- **Failure.** At 375 and 768 px the `td` border is not drawn (the plan draws it only from 1360 px), and the `tr` edge would be an outline. Both edges skip, so a 1.29:1 hairline or no separator at all passes criterion 18.
+- **Fix.**
+  - Draw the card outline as a real `border` on `tr`.
+  - Add the width assertion as a new `expect`, not as an edit to the early return. At each viewport assert the edge that layout draws: `tr` top border below 1360 px, `td` bottom border from 1360 px.
+  - Do not assert both edges at every width. At 1440 px the `tr` border is legitimately 0.
+  - The plan's own mutation rows ("set it to 0 fails") only prove this if the assertion is per-layout.
+
+**TS-2 (non-blocking): the opening-tab and tab-state hooks are underspecified.**
+- **Evidence.** `workout-plan-table.js:201-254` sets the `active` class together with `aria-selected`. `exercise-interactions.spec.ts:622,634` assert `toHaveClass(/active/)` on `#tab-all`. The plan's pin table does not list them.
+- **Failure.** If the new `ui-tab` styling keys on `aria-selected` only and the JS drops `active`, `:634` goes red.
+- **Fix.** State that `active` stays alongside `aria-selected`.
+- **Related.** `exercise-interactions.spec.ts:611` selects `#routine-tabs .nav-link`. `workout-plan-table.js` has no `nav-link`, and I did not check the template. If the selector matches nothing, `if (tabCount > 1)` skips the whole body and the test passes today without testing anything. It is outside this plan's scope, but do not count it as coverage of R3.
+
+**TS-3 (non-blocking): the `visual-field-separator` Plan selector must change in the same commit.**
+- **Evidence.** `visual-field-separator.spec.ts:37` is `table.tbl--responsive`. The plan drops `tbl--responsive` from the Plan table.
+- **Failure.** `missing: true` fails the test in the required functional gate, and `:185-186` follows.
+- **Fix.** Retarget to `[data-testid="exercise-table"]`. This spec is in the required set, so it must move in commit 4, not commit 6. The plan's sequence puts these pins in commit 4, which is consistent.
+
+**TS-4 (non-blocking): two criteria with no CI-required test.**
+- **Evidence.** `workout-plan-desktop-contract.spec.ts` runs only in `visual-linux` (weekly or dispatch, `deep-gate-visual.yml:148`) and locally with the visual seed.
+- **Failure.** Criteria 16 and 17, and the contract half of criterion 18, have no PR-time CI path.
+- **Fix.** The PR must carry a local `PW_VISUAL_SEED=1` run of the contract spec. A dispatch of the deep gate on the final head is also needed. The plan names "visual-linux" but not the local run in "Expected gates".
+
+**TS-5 (non-blocking): Q1's `:not(.ui-modal)` raises the specificity of an `!important` rule.**
+- **Evidence.** `components.css:2238` is `.modal-content { box-shadow … !important }`, at specificity (0,1,0). `:4199` is `[data-theme='dark'] .modal-content.frame-calm-glass`.
+- **Failure.** `:not(.ui-modal)` makes it (0,2,0), so it can now beat other `!important` box-shadow rules on the four unmigrated modals. The overlay check would catch it, but only after the fact.
+- **Fix.** Use `.modal-content:where(:not(.ui-modal))`, which keeps specificity identical.
+
+**TS-6 (non-blocking): the capture helper stops flattening the Plan's dark captures.**
+- **Evidence.** `visual-helpers.ts:173-193` flattens dark borders and backgrounds only on `[data-visual-surface]`. The plan removes that attribute from page content.
+- **Failure.** `workout-plan-mobile-dark` and `plan-*-dark-*` are captured without the determinism layer, and `workout-plan-mobile-light` has a recorded 13 px flip. These could flip on Linux.
+- **Fix.** The plan's "clean first attempt" compare is the right control. Add: after the baselines are copied out, run the Linux deep gate in compare mode twice, and treat any flip as a finding, not a retry.
+
+**TS-7 (non-blocking): plan items with no test.**
+- **P2.** Remove the last exercise of the opening tab and assert All becomes selected. No named test.
+- **P5.** A reorder or superset link closes open Details. Pin it either as intended behaviour or as a known loss.
+- **Drag on the opening tab.** Drag now posts only that tab's rows by default. The plan itself concedes this ("becomes the common case"). Add a case: drag on the opening tab, reload, and assert the other routines' order is unchanged. Whether the route tolerates a partial list is **not verified**.
+- **`ui-menu.js` and the chip renderer.** They have no Vitest case, only Playwright. This is acceptable because the plan promises no Vitest add or rename, but the keyboard contract (arrows, Escape, focus return) must be in `accessibility.spec.ts` as the plan says.
+- **`.wpdd` dropdowns in a hidden panel (Q10).** Add: open the filters, then assert all 12 `.wpdd` triggers have non-zero width at 390 and 1440 px.
+
+**TS-8 (non-blocking): the frame check and the overlay check are opt-in (V-TS-1).**
+- **Fix.** The PR must show raw runs, as planned. The WP9 source scan and the retargeted cascade tests are the only durable guard. Mutation row 25 ("restoring a deleted rule fails") must be run, not claimed.
+
+**TS-9 (non-blocking): gate additions.**
+- Add `e2e/listener-cleanup.spec.ts`. It covers detached picker and dropdown listeners, and the plan adds delegated listeners in `filters.js`.
+- `test_css_cascade_contracts.py:1396-1413` asserts `#workout[data-page="workout-plan"] #clear-filters-btn.btn {` survives in the CSS. It is probably one of the ten `test_workout_plan_*` tests, but I did not confirm which. If Clear Filters becomes `ui-btn`, retarget it deliberately. Do not delete the assertion.
+
+**Not blocking, verified clean.** `tests/test_ui_flows.py`, `test_template_landmarks.py:15`, and the `== 25` pin are unaffected by the plan's file set.
+
+#### Coverage gaps (new tests to write)
+
+- **`e2e/workout-plan.spec.ts`**
+  - P2 fallback to All.
+  - Drag on the opening tab, then reload.
+  - Hidden-panel `.wpdd` width.
+  - The No-flash `data-plan-state` case is frame-check only.
+- **`e2e/visual-field-separator.spec.ts` and the contract spec**
+  - The per-layout width assertion (TS-1).
+- **`e2e/accessibility.spec.ts`**
+  - The menu keyboard path and focus return after a modal.
+
+#### Conftest / fixture work
+
+None. No blueprint or table is added. `e2e/frame-check.ts` is a helper and not a spec, so it is not counted in the inventory. The new `.check.ts` files stay out of the default run. Regenerate `docs/test_inventory/` after the changes to `tests/test_workout_log_frame_runner.py` and the specs. Known-red: `e2e/program-backup.spec.ts:79`. The plan edits that spec's lines `:20-37`. If it reds, record whether it passes in isolation.
+
+#### Rulings on the open points
+
+**Assumptions**
+- **P1:** accept. It keeps `workout-plan.spec.ts:329` true.
+- **P2:** accept. It is today's behaviour. Add the test from TS-7.
+- **P3:** accept wrapping. Keep today's label order (the plan's "smaller option") if the `formatRoutineForTab` reorder touches `workout-plan-seams.test.js:51-54`. Those cases use `toContain`, so the reorder is safe either way. No view beyond that.
+- **P4:** accept. `clearFilters()` stays unedited, and tests click Clear Filters without opening the panel.
+- **P5:** accept (closed on load, no memory of open cards).
+- **P6:** accept, but the smaller option is "in flow, not sticky". WP11 measures it with a row selected, so keep sticky only if that check passes.
+- **P7:** accept.
+- **P8:** change to the smaller, reversible option: `.vp-drawer.ui-drawer` in `components.css`, with no SCSS rebuild. The rebuild moves a generated artifact, a contract pin and an extra stop condition. The old rules stay underneath. That is not a concrete loss, and a later step can delete them. If the owner wants the deletion, keep the plan's rebuild check as drafted.
+- **P9:** accept. The pilot spec needs a drawn border (see TS-1).
+- **P10:** accept.
+- **P11:** accept. Assert the first tabbable control of the panel, as drafted.
+- **P12:** accept. Every new icon must be in the bundled set.
+- **P13:** accept. A miss on the built page is a defect, not a limit to move.
+
+**Mockup departures**
+- **M1:** accept (two fields to a row at narrow widths). It satisfies WP11 by construction.
+- **M2:** accept. The equal-height assertion (`:208-213`) is not run against a long name, so add one to the fixture. The plan's fixture already has a long routine name.
+- **M3:** accept, and correct the Section 0 table cell.
+- **M4:** accept.
+
+**Questions**
+- **Q1:** accept with the `:where()` form (TS-5).
+- **Q2:** accept. Only `workout_plan.html:330` carries `data-table-responsive`, and no test asserts the toggle's chrome. I did not check `layout.css` or `theme-dark.css` for line-count pins.
+- **Q3:** criterion 18 governs. Add the width assertion as a new `expect` and keep the existing skip logic. Draw the card edge as a `border` (TS-1).
+- **Q4:** accept (leave the dead capture rules). See TS-6 for the determinism side.
+- **Q5:** accept with a note. `visual-helpers.ts:84` counts the whole document, so closed modals keep it above zero even if page content has none. The Plan's contract spec is the real guard.
+- **Q6:** accept the shims.
+- **Q7:** accept (all `components.css` deletions in commit 5).
+- **Q8:** accept (run the Clear Log flow before and after, and keep the functional rules if it fails).
+- **Q9:** accept one commit that is not frame-green, provided commit 4's functional specs and Vitest are green.
+- **Q10:** accept with the hidden-panel width case from TS-7.
+- **Q11:** accept (manual).
+- **Q12:** accept (the drawer in its empty state). `volume-progress.spec.ts` covers rows.
+
+**Commit order.** Keep the plan's order, red-before at commit 2. No `ci.yml` run happens on a non-PR branch push. The deep-gate dispatch uses the pushed head, so dispatch only after commit 6.
+
+#### Verdict
+
+**Sound with changes.** No finding names a concrete loss, a wrong result or a blocked operation.
+
+TS-1 is the one to fix before implementation, because it decides whether criterion 18 can fail. TS-2 to TS-9 are non-blocking.
+
+**Not verified:**
+- `workout-plan-state.test.js` and `workout-plan-helpers.test.js` contents.
+- The `/update_exercise_order` partial-list behaviour.
+- Whether `layout.css` or `theme-dark.css` carry line-count pins.
+- Which `test_css_*` assertions move beyond those the plan lists.
+- Whether `#routine-tabs .nav-link` matches anything.
+
+### product-risk-reviewer (agent `a8278cfffbf10c3c0`)
+
+*Verbatim from `artifacts/design-736/step3/council/product-risk-reviewer.md`, without that file's
+one-line header. The reviewer's own headings are demoted to fit this section.*
+
+#### Review of Plan v1, #736 step 3 (Workout Plan)
+
+**Verdict: sound with changes.** I found no blocking finding. Nothing in Plan v1 or Section 0 needs more than presentation, and nothing contradicts an owner answer, so nothing has to go back to the owner.
+
+##### What I verified
+
+- **No calculation, schema or response-shape change.**
+  - The artifact list touches no file under `routes/` or `utils/`.
+  - `applyRoutineTabFilter` filters rows already fetched (`workout-plan-helpers.js:102-107`).
+  - Inline edit does not re-fetch the plan. `refreshPlan` is called only after drag (`workout-plan-table.js:712,717`), superset link and unlink (`workout-plan-supersets.js:197,224`) and an execution-style save (`workout-plan-execution-style.js:213`).
+  - No `utils/effective_sets.py` or fatigue surface is touched, and the page adds no Effective/Raw gating.
+- **Local-first.** The plan adds no accounts, no cloud sync and no telemetry. Opening on the first tab needs only a module-private flag, with nothing written to storage (R3, `workout-plan-state.js:22`). That honours D2's "nothing remembered between visits". The drawer's existing `vpDrawer.open` persistence stays.
+- **Copy.**
+  - Today's Excel export label is "Export All Tables" (`templates/workout_plan.html:239`), and the plan keeps it (K13).
+  - "Volume targets", "Superset", "RIR" and "RPE" are unchanged.
+  - The mockup's prescription line uses RIR and RPE in the canonical form.
+- **Backup contract.** No schema change, so existing backups stay restorable.
+- **Only the Plan renders the Simple/Advanced toggle.** `data-table-responsive` appears only at `templates/workout_plan.html:330`.
+- **Mockups viewed:** `populated-390-light.png` and `clear-plan-modal-390-light.png`. They match the brief, with one filled primary, a neutral Superset rail and badge, and a filled danger confirm.
+
+##### Findings
+
+**PR-1 — non-blocking. Drag reorder in a tab becomes the default path.**
+- Evidence: `workout-plan-table.js:701-702` posts 0..n-1 for the visible tab's rows only. `routes/workout_plan.py:444` writes those values to `exercise_order`, which is global across routines. `routes/workout_plan.py:204` orders by `exercise_order, routine, exercise`. New rows are placed at max+1 (`utils/exercise_manager.py:59`).
+- Failure: with D2 the first tab is the opening view, so a drag in a later routine writes small ordinals that tie with the first routine's. The All tab then interleaves rows from different routines. It is today's behaviour, but it now happens routinely.
+- Fix: keep the payload and route unchanged, because API shapes are frozen. Put it under the PR's migration notes as a known consequence of D2. Add one functional case that drags within a second routine's tab and asserts that tab's order after reload.
+
+**PR-2 — non-blocking. P3 reorders the tab label, which conflicts with K13/R23 ("labels stay as they are").**
+- Evidence: `workout-plan-helpers.js:82-87` emits environment, program, workout. Plan v1 changes `formatRoutineForTab` to workout first. R23 says labels stay.
+- Failure: the tab text no longer matches the Add-exercise breadcrumb, the cascade or the existing copy, and the change is not listed as a wording change.
+- Fix: take P3's smaller option, wrap tabs in CSS and keep today's order. Regenerate the mockup's tab labels to match (see the M-list below).
+
+**PR-3 — non-blocking. The Goal sentence overstates D2.**
+- Evidence: the Goal reads "the routine they are about to train". The opening tab is the first routine by `compareRoutines` (`workout-plan-helpers.js:89-100`), which is alphabetical by environment, program, then workout. It is not recency or "next up".
+- Failure: the PR text would promise something the page does not do.
+- Fix: reword to "opens on the first routine's tab", as D2 says.
+
+**PR-4 — non-blocking. P5's evidence is incomplete.**
+- Evidence: the plan names reorder and superset link as the actions that close open Details. An execution-style save (`workout-plan-execution-style.js:213`) and Swap also re-render.
+- Failure: a user on a phone who changes an execution style sees the card collapse. This is mild.
+- Fix: add both to P5's list and to the PR's behaviour notes. The ruling does not change.
+
+**PR-5 — non-blocking. The overlay check never measures the drawer's rows.**
+- Evidence: the frame check reads "every overlay closed", and Q12's fixture has no active volume plan.
+- Failure: the rows' 12 px radius and type sizes (the D17 drawer style) are covered by no C2/C3 reading.
+- Fix: record this as a stated limit next to the opt-in limit. Activating a volume plan in the fixture is optional.
+
+##### Rulings on P1–P13
+
+| # | Ruling | Evidence |
+|---|---|---|
+| P1 | Accept | The add toast already covers a routine hidden by the tab (`workout-plan-add-exercise.js:307-313`). An empty plan stays on All. |
+| P2 | Accept | Existing behaviour, `workout-plan-table.js:231-233`. |
+| P3 | Change: keep today's label order | See PR-2. |
+| P4 | Accept | A chip is a single-filter clear, and `clearFilters()` stays unedited, so nothing silently changes meaning. |
+| P5 | Accept, with PR-4 | No memory of open cards is the smaller and more reversible option. |
+| P6 | Accept | A superset message is invisible deep in a card list unless the bar sticks. WP11 measures the occlusion, and the fallback is in-flow. |
+| P7 | Accept | D17 requires a filled red confirm. `#a84f49` is today's dark `--action-danger`. |
+| P8 | Accept | `[data-theme='dark'] .vp-drawer` outranks plain `.ui-drawer` rules, so the old dark rules would override the tokens. The plan's rebuild check (only `.vp-` removals) is adequate. I did not open the SCSS: not verified. |
+| P9 | Accept | Keying the rule on the table, as the empty-plan injection at `visual-field-separator.spec.ts:87-100` needs, is right. |
+| P10 | Accept as drafted | Hiding the toggle below 1360 px would remove the Advanced-only fields from phones and contradict K3/R25. |
+| P11 | Accept | Asserting the first tabbable control of the panel is the right hedge. |
+| P12 | Accept | The icon names must be checked against the bundled set before commit 4. I did not verify them. |
+| P13 | Accept | A miss on the built page is a defect to fix, not a limit to move. |
+
+##### Rulings on M1–M4
+
+| # | Ruling | Evidence |
+|---|---|---|
+| M1 | Accept | A clipped `102.5` at 320 px at scale 8 is forbidden by WP11. |
+| M2 | Accept | Truncating names was ruled out in Section 0. |
+| M3 | Accept | Correct Section 0's popover cell ("aligned to the button's right edge") in Plan v2. |
+| M4 | Accept | The frame check on the built page and the `manual-qa-reviewer` comparison are the evidence. |
+| (new) | Follows PR-2 | Mockup tab labels must revert to environment · program · workout order. |
+
+##### Rulings on Q1–Q12
+
+| # | Ruling | Evidence |
+|---|---|---|
+| Q1 | Accept `:not(.ui-modal)` | The unmigrated modals compute the same value, and the overlay check proves it. The alternative breaks D17's shadow. |
+| Q2 | Accept | Only the Plan renders the toggle (`templates/workout_plan.html:330`). The chrome fails C2, C3 and C4. |
+| Q3 | Accept the plan | Adding a width assertion strengthens the check and does not weaken it. Correct Section 0's "stays as written" in v2. |
+| Q4 | Accept | Leave the dead helper rules and avoid a `scripts/**` edit. |
+| Q5 | Accept | |
+| Q6 | Accept shims | R27 says no file is deleted. |
+| Q7 | Accept | A single commit of deletions shifts the lines once. |
+| Q8 | Accept | Make the Log clear-flow control a Playwright case, not a by-eye one. The rules at `pages-workout-log.css:4-36` set `pointer-events` and `z-index` with `!important`. |
+| Q9 | Accept | The branch is not pushed for review until commit 6. |
+| Q10 | Accept | `workout-dropdowns.js:592` measures at open, not at enhance. Whether `selectOption` works on a hidden select is not verified. The tests should open the panel first. |
+| Q11 | Accept | |
+| Q12 | Accept the smaller option | See PR-5. |
+
+##### Owner-answer check
+
+- D1 (list first, then the Add exercise panel), D3 (collapsed, with chips), D4 (Export in the header, the rest in More) and D24 are all met.
+- D5 (cards below 1360 px), D6, D7 and D17 are met as the plan describes them.
+- D2 is met, with the PR-1 consequence disclosed.
+
+---
+
+## Plan v2
+
+Product-manager `a0cf1a8b9a288e254`, 2026-11-27. This revision adopts Plan v1's scope, artifact
+tables, sequence, layout rules, script changes, frame check, criterion table, baseline list and
+gates. The text below supersedes the matching v1 text. Every disposition in the response matrix
+is applied. As with v1, nothing was run: statements about files come from opening them.
+
+**Goal** — A populated plan opens on the first routine's tab. A lifter reads and edits each
+exercise on a card on a phone or in a contained table on a desktop, and adds an exercise from one
+panel, on the frame and components the Workout Log already uses.
+
+**No calculation, schema or response-shape change** — as in v1, re-checked for the order route
+(see *Drag order*). No file under `routes/` or `utils/` is edited.
+
+### What changed from Plan v1
+
+| Area | Plan v1 | Plan v2 | From |
+|---|---|---|---|
+| Tab label | Workout first, by editing `formatRoutineForTab()` | Today's order. The helper is not edited | P3, PR-2 |
+| Drawer | SCSS edit and Bootstrap rebuild | `.vp-drawer.ui-drawer` rules. No SCSS edit, no rebuild, no pin move | P8 |
+| Legacy modal shadow rule | `:not(.ui-modal)` | `.modal-content:where(:not(.ui-modal))` | Q1, TS-5 |
+| Modal rules | Surface, header, title, close, body, footer | The same, with every property the two legacy `.modal-content` rules and the header and footer rules set declared explicitly | AR-1 |
+| Card edge below 1360 px | "Outline" on `tbody tr` | A `border` on `tbody tr` | TS-1 |
+| Separator specs | A width assertion | One new `expect` per layout; the skip logic is untouched | TS-1, Q3 |
+| Tab state | Not stated | `active` stays with `aria-selected` | TS-2 |
+| Toggle class | "Also carries" | Appended, with a contract assertion | AR-4 |
+| Tests | v1's list | Seven cases added; see *Tests added to v1's list* | TS-7, PR-1, Q8 |
+| Gates | v1's table | The `scss/**` row goes. Three runs are added | TS-4, TS-6, TS-9 |
+| Documents | v1's table | `static/js/CLAUDE.md` is added | AR-3 |
+
+### Artifacts — changes to the v1 tables
+
+**Removed**
+
+- `scss/pages/_workout_plan_volume_panel.scss`, `static/css/bootstrap.custom.min.css` and its
+  `.map`: not edited.
+- The edit to `tests/test_css_cascade_contracts.py:114-121`: that pin does not move.
+- The change to `formatRoutineForTab()` in `workout-plan-helpers.js`. The file's only change is
+  `renderExecutionStyleBadge()` (`:143`).
+
+**Changed**
+
+| Path | Plan v2 |
+|---|---|
+| `static/css/components.css` | Adds `.vp-drawer.ui-drawer` and its descendants in place of a plain `.ui-drawer` family. Edits `:2238` to `.modal-content:where(:not(.ui-modal))`. `.ui-modal` declares the properties listed under *Shared components* |
+| `templates/workout_plan.html` | `#vpDrawer` keeps `vp-drawer` and gains `ui-drawer`. `#vpActiveSummary` loses `vp-active-summary` and its wrapper loses `vp-header-summary`, because the old rules for those classes stay live (`_workout_plan_volume_panel.scss:1-26`, `:218-229`). Both ids stay. No test, and none of the Plan's modules, reads either class. Every `fas` icon is checked against the bundled set first (P12) |
+| `static/js/modules/workout-plan-table.js` | As v1. The `active` class is still toggled with `aria-selected` (`:199-254`). Tab labels come from the unedited helper |
+| `static/js/table-responsiveness.js` | `:239` becomes `'tbl-view-mode-toggle ui-btn ui-btn--small'`. The first class is the lookup key at `:174` and `:197` and is never removed |
+| `e2e/visual-field-separator.spec.ts` | The Plan entry at `:37` becomes `[data-testid="exercise-table"]`. One new `expect` per layout for the Plan surface. `:163` is not edited |
+| `e2e/workout-plan-desktop-contract.spec.ts` | As v1, plus one new `expect` that `separatorWidth` is above 0, placed before the call at `:396`. `:379-380` is not edited |
+| `e2e/overlay-style.check.ts` | Also reads `backdrop-filter` on each migrated modal's content, header and footer, and on the drawer's shell every property the legacy light and dark rules set |
+| `tests/test_css_cascade_contracts.py` | As v1 without `:114-121`. `test_workout_plan_drops_dead_filter_button_family` keeps its hook assertions (`:1397-1404`) and has its Clear Filters assertion (`:1406-1413`) retargeted: the template's `#clear-filters-btn` carries `ui-btn`, and the page bundle holds no `#clear-filters-btn` rule. Two assertions are added: `tbl-view-mode-toggle` is in the class string at `table-responsiveness.js:239`, and the drawer contract below |
+
+**Added**
+
+| Path | Change | Writer |
+|---|---|---|
+| `static/js/CLAUDE.md` | One row for `modules/ui-menu.js` | `senior-developer` |
+
+### Shared components
+
+**Modal (AR-1, AR-2, Q1).**
+
+- The `ui-modal` class goes on the `.modal-content` element, which is what lets the `:where()`
+  form below exclude a migrated modal. The two widths are classes on `.modal-dialog`
+  (`ui-modal-dialog--confirm`, `ui-modal-dialog--wide`). Plan v1 did not say which element
+  carries the class.
+- `.ui-modal` declares, on `.modal-content`: `border-radius`, `border`, an opaque `background`,
+  `backdrop-filter: none` and `box-shadow`. On `.modal-header` and `.modal-footer`: `background`,
+  `backdrop-filter: none`, `border`, `border-radius` and `padding`. On `.modal-body`: `padding`
+  and `background`. Those are the properties the legacy rules at `components.css:2274-2306` set.
+- The legacy shadow rule becomes `.modal-content:where(:not(.ui-modal)) { box-shadow … !important }`.
+  Its specificity stays (0,1,0) and the `!important` count stays 883 at that point.
+- The focus ring inside a modal is the legacy one (`components.css:2246-2271`) and is not
+  changed. The `state:modal-open` axe scan decides. If it fails, that rule is narrowed with the
+  same `:where(:not(…))` form.
+
+**Drawer (P8, changed). Plan v2 uses the compound selector, not the rebuild.** The manager asked
+for a check of whether it can win without `!important` or a `[data-theme]` selector. It can:
+
+- **Load order.** `bootstrap.custom.min.css` is linked at `templates/base.html:16`,
+  `components.css` at `:22`, the page bundle at `:27` and `theme-dark.css` at `:29`.
+- **The legacy rules.** `scss/pages/_workout_plan_volume_panel.scss` was read whole. It has no
+  `!important`. Its strongest dark rules are one attribute and one class, (0,2,0), such as
+  `[data-theme='dark'] .vp-drawer` (`:231`), and one at (0,2,1),
+  `[data-theme='dark'] .vp-drawer__header h2` (`:241`).
+- **The new rules.** `.vp-drawer.ui-drawer` is (0,2,0). A part is written `.ui-drawer .vp-row`,
+  also (0,2,0), and the title `.ui-drawer .vp-drawer__header h2`, (0,2,1). Each ties its legacy
+  competitor and loads later, so it wins on order. No rule uses `!important` or `[data-theme`.
+- **C8 holds.** The new rules carry no `[data-theme`. The scan also skips `.min.css` files
+  (`e2e/workout-log-frame.check.ts:1027`).
+- **Full shadowing.** A tie on order wins only for the properties the new rule declares. The new
+  rules therefore restate every property the old ones set, including position, size,
+  `transform` and today's 220 ms transition. A later deletion of the SCSS rules then changes
+  nothing. The shell goes in `components.css`. The rows (`.vp-list`, `.vp-row*`, `.vp-progress`,
+  `.vp-dot`, `.vp-state*`, `.vp-bonus*`) go in `pages-workout-plan.css`, unscoped by `#workout`
+  because the script moves the drawer to `body` (`plan_volume_panel.js:36-45`).
+- **Checks.** The overlay check reads, on the drawer, its header, title, close button, body and
+  state box, every property the legacy light and dark rules set, in both themes. The rows are not
+  rendered in that fixture, so a pytest contract covers them at source: for each `.vp-` class the
+  drawer renders, every property a rule in the SCSS partial sets for it must be declared under
+  `.ui-drawer` for the same class in `components.css` or `pages-workout-plan.css` (PM-2).
+- **What stays underneath.** The `.vp-` and `#vpToggle` rules in the SCSS and in the compiled
+  file. They are listed for the owner as a later deletion. `#vpToggle { width: 100% }` at 576 px
+  and below (`:289-299`) stays live and agrees with the full-width heading row below 768 px.
+- **Fallback.** If the contract or the overlay check shows a legacy value that cannot be
+  shadowed without `!important`, the run falls back to v1's rebuild with its stop check, and the
+  change is recorded here.
+
+**Ruled table and card (TS-1, Q3).**
+
+- Below 1360 px: `.ui-data-table--ruled tbody tr { border: 1px solid var(--ink-3) }`. It is a
+  border, not an outline, and it is keyed on the table so the bare rows the separator spec
+  injects take it. Cells draw no border.
+- From 1360 px: `.ui-data-table--ruled tbody td` has `border-top: 0` and
+  `border-bottom: 1px solid var(--ink-3)`. The row declares no border.
+- `visual-field-separator.spec.ts` asserts, for the Plan only, a `tr` top border above 0 at 375
+  and 768 px and a `td` bottom border above 0 at 1440 px. The contract spec asserts the `td`
+  bottom border at 1440 px.
+- Mutations, run and recorded after commit 5. For each of the two layouts: the border colour set
+  to `--ui-hairline` must fail the ratio, and the border width set to 0 must fail the new
+  `expect`.
+
+### Tabs, Details and drag
+
+- **Tabs (P3, TS-2).** Tabs wrap in CSS. The label is today's three spans in today's order. A
+  tab is styled from `aria-selected`, and the script keeps toggling `active`, which
+  `e2e/exercise-interactions.spec.ts:634` reads.
+- **Selection bar (P6).** Sticky below 1360 px. If WP11 fails with a row selected, it goes in
+  flow.
+- **What closes an open card (P5, PR-4).** Any re-render: a tab click
+  (`workout-plan-table.js:262`), a drag (`:712`, `:717`), a superset link or unlink
+  (`workout-plan-supersets.js:197`, `:224`), an execution-style save
+  (`workout-plan-execution-style.js:213`), and an add or a remove. A swap and an inline edit
+  update the row in place and leave the card open. The loss is pinned by a test and listed in
+  the PR.
+
+**Drag order (PR-1).** The manager asked what the order route does with a partial list.
+
+- `POST /update_exercise_order` (`routes/workout_plan.py:421-451`) checks that each entry has an
+  id and an order, then runs one `UPDATE user_selection SET exercise_order = ? WHERE id = ?` per
+  entry in one transaction. It does not require the whole plan. A partial list is tolerated: a
+  row the payload does not name keeps its value.
+- A drag on a routine's tab writes 1 to n for that tab's rows (`workout-plan-helpers.js:190`).
+  Rows of different routines can then hold equal values.
+- The page is not affected: it sorts by routine before `exercise_order`
+  (`workout-plan-table.js:322-332`), so the All tab keeps each routine together. The Excel export
+  also orders by routine first (`utils/export_service.py:291`).
+- Two readers order by `exercise_order` first: the raw `/get_workout_plan` response
+  (`routes/workout_plan.py:204`), which the page re-sorts, and the backup snapshot
+  (`utils/program_backup.py:258`). Whether a restore depends on that order was not verified.
+- The payload and the route are not changed. The PR's migration notes say that, with D2, a drag
+  usually reorders one routine. The follow-up issue for equal values across routines is the
+  orchestrator's to open.
+
+### Tests added to v1's list
+
+All are written by `automation-qa` in commit 2. No spec file is added.
+
+| Case | Spec | On `8b023d1a`'s page |
+|---|---|---|
+| P2: on a routine's tab, remove its last exercise; All is selected | `workout-plan.spec.ts` | Green (today's behaviour) |
+| P5: with a card's Details open, a superset link and an execution-style save close it; a swap and an inline edit do not. Marked as a known loss | `workout-plan.spec.ts`, at 390 px | Red (no Details) |
+| PR-1: drag within a second routine's tab, reload, assert that tab's order | `exercise-interactions.spec.ts` | Green |
+| TS-7: drag within the first routine's tab, reload, assert the other routines' order is unchanged and All lists each routine together | `exercise-interactions.spec.ts` | Green |
+| Menu: Enter, Space and ArrowDown open; arrows move; Escape closes and focuses More; focus returns to More after a modal opened from the menu | `accessibility.spec.ts` | Red |
+| Q10: after the filters open, each of the 12 `.wpdd` triggers has a width above 0, at 390 and 1440 px | `workout-plan.spec.ts` | Red (no toggle) |
+| Q8: Clear Log opens, cancels, confirms and clears, at 390 and 1440 px | `workout-log.spec.ts` | Green; it must stay green after the 12 rules go |
+
+Whether `workout-log.spec.ts` already holds the Q8 flow at both widths was not checked; the case
+is added only where it is missing. The test at `exercise-interactions.spec.ts:607-624` is not
+counted as coverage of R3 (TS-2).
+
+### Sequence — changes to the v1 table
+
+Plan v1's seven commits, writers and rules stand. These rows change.
+
+| # | Commit | Change from v1 |
+|---|---|---|
+| 2 | Acceptance tests | Two lists are recorded in the evidence round: the cases that are red, each for the reason it tests, and the characterization cases that must be green now and stay green (P2, the two drag cases, Q8) |
+| 3 | Shared components and tokens | The modal's explicit declarations, the `:where()` form, and the drawer's shell as `.vp-drawer.ui-drawer`. No SCSS and no rebuild |
+| 4 | Template and scripts | The icons are checked first. The separator spec's selector and its per-layout `expect` move here. The drawer's rows and the drawer contract land here |
+| 5 | Deletions | The 12 Clear Log rules go only if the Q8 case stays green. The mutations for criteria 18 and 25 are run and their output kept |
+| 6 | Pins and documents | Adds `static/js/CLAUDE.md`. The contract spec is run locally with `PW_VISUAL_SEED=1`. The branch is pushed and the PR opened after this commit, and the deep gate is first dispatched then |
+| 7 | Baselines | After the 13 Linux files are copied out and committed, the deep gate runs in compare mode twice on that head |
+
+### Expected gates — changes to the v1 table
+
+- **Removed:** the `scss/**` row. Nothing is rebuilt, so `/build-css` and the rebuild check do
+  not run.
+- **Added to `templates/**`, `static/js/**`:** `e2e/listener-cleanup.spec.ts`, outside the
+  required set, run as a control for the delegated listeners.
+- **Added:** `PW_VISUAL_SEED=1 npx playwright test e2e/workout-plan-desktop-contract.spec.ts --project=chromium`,
+  locally, with its output in the PR. It is the only PR-time evidence for criteria 16 and 17 and
+  the contract half of 18.
+- **Added:** `gh workflow run deep-gate-visual.yml --ref feat/736-workout-plan` in compare mode
+  on the final head, twice. Both runs must be green on the first attempt. A capture that passes
+  once and fails once is a finding to investigate, not a retry.
+- If `e2e/program-backup.spec.ts` reds at its known flake (`:79`), the PR records whether it
+  passes in isolation.
+
+### Stated limits
+
+1. The frame check and the overlay check are opt-in. After merge, CI protects only what the
+   required specs, the contract spec and pytest hold.
+2. Criteria 16 and 17 and the contract half of 18 have no PR-time CI path. Their evidence is the
+   local contract run and the deep-gate runs.
+3. The overlay check does not render the drawer's rows. The source contract and one by-eye
+   capture pair with an active volume plan cover them.
+4. The Plan's dark captures are no longer flattened by the capture helper. The double compare
+   run is the control.
+5. Touch drag on a card grid is tried by hand, not automated.
+6. A re-render closes an open card.
+7. The tab reads environment, program, workout and the card caption reads workout first (PM-1).
+8. The three Plan rules in `e2e/visual-helpers.ts` (`:197-206`, `:213-215`) and the drawer's
+   SCSS rules stay as dead or shadowed code and are listed for the owner.
+
+### For the orchestrator
+
+These are outside this document and outside this agent's writes.
+
+- Open the follow-up issue for equal `exercise_order` values across routines, with the facts
+  under *Drag order*.
+- Correct the mockup's tab labels to environment, program, workout.
+- Confirm or override PM-1 before commit 4.
+- List P1–P13, M1–M4, Q1–Q12, PM-1 and PM-2 in the PR under "Decisions taken without the owner",
+  and put the D2 drag consequence and the P5 loss in its migration notes.
+- Consider a follow-up for the test at `e2e/exercise-interactions.spec.ts:607-624`, which runs
+  no assertion today.
+
+**Orchestrator's record, 2026-11-27** (Claude, the orchestrating session):
+
+- PM-1 is confirmed as recorded: the card caption stays workout first, as on the Log's card, and
+  the tab keeps today's order. It is the smaller change and is listed in the PR.
+- The mockup's three tab labels now read environment, program, workout. Its captures under
+  `artifacts/design-736/step3/mockups/` were taken before that correction and still show the old
+  label order on the tabs.
+- Issue #750 was opened for equal `exercise_order` values across routines and closed the same
+  day as not a defect. It was opened from PR-1 as first written, before the page's own sort by
+  routine (`workout-plan-table.js:320-332`) was checked. Its correction comment carries the
+  facts under *Drag order*. The two drag cases stay in the test list.
+- No follow-up is opened for `e2e/exercise-interactions.spec.ts:607-624`. This step's new R3
+  cases cover the opening tab; the vacuous test is named in the PR.
+
+### Not verified in Plan v2
+
+- Everything under "Not verified in this pass" in Plan v1 still applies, except the order
+  route's handling of a partial list and the `.nav-link` selector, both now checked.
+- `static/js/modules/workout-dropdowns.js` was not opened. `:592` is the product-risk
+  reviewer's citation.
+- `components.css:4199`, cited in TS-5, was not opened.
+- Whether a restore depends on the row order of a backup snapshot.
+- Whether `e2e/workout-log.spec.ts` already covers the Clear Log flow at 390 and 1440 px.
+- The add and remove paths' calls to the plan refresh were not opened; they are listed as
+  re-renders from the wiring at `workout-plan.js:83` and from Section 0's behaviour table.
+
+---
+
+## Sign-off
+
+- [x] **Gate 0.** The owner's "Decisions" reply of 2026-11-26 is the Gate 0 answer for steps 3 to
+  5. The two owner confirmations in Section 0's Gate 0 block stay unticked; the status note
+  there explains why.
+- [x] **Every finding has a disposition.** See the response matrix. None is rejected or deferred.
+- [x] **Agent provenance complete.** Both `product-manager` IDs, same-PM-resumed `yes`, the three
+  reviewer IDs, and an evidence gap of `none`.
+- [x] **Plan v2 approval (Gate 1) — delegated, not an owner sign-off.** Gate 1 approved by Claude
+  under the owner's delegation of 2026-11-20. Recorded on 2026-11-27 at the orchestrating
+  session's instruction. Grounds: the council ran (`architecture-reviewer` `a25d424cf3e42a127`,
+  `test-strategist` `a9d8425e1e51c7316`, `product-risk-reviewer` `a8278cfffbf10c3c0`), every
+  finding has a disposition, and no blocking finding is open. The delegation is the owner's
+  sentence in `artifacts/design-736/RUN_PROMPT.md`, "Approvals I am giving", item 2. The owner
+  has not reviewed Plan v2, and an owner answer overrides it.
+- [x] **Ready to implement.** The orchestrator proceeds under Plan v2. The `product-manager`
+  stops here.
