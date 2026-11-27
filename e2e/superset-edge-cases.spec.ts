@@ -18,6 +18,9 @@ import {
   expectToast,
   resetWorkoutPlan,
 } from './fixtures';
+import { test as guardedTest } from './console-guard';
+import { BENCH, DEADLIFT, ROUTINE_A, ROW, SQUAT, addPlanRow, loadPlan, planData, planPost, planRow } from './workout-plan-fixture';
+import { setDetails, setSupersetChoice } from './workout-plan-redesign';
 
 /**
  * Helper to select a complete routine
@@ -760,5 +763,62 @@ test.describe('Superset Visual Indicators', () => {
     expect(await rows.nth(0).getAttribute('data-superset-group')).toBe(
       await rows.nth(1).getAttribute('data-superset-group')
     );
+  });
+});
+
+guardedTest.describe('Plan redesign acceptance', () => {
+  guardedTest('phone links a second pair with the same neutral rail and badge and can unlink it', async ({ page }) => {
+    await resetWorkoutPlan(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const exercise of [BENCH, ROW, SQUAT, DEADLIFT]) await addPlanRow(page.request, ROUTINE_A, exercise);
+    const rows = await planData(page.request);
+    const [bench, row, squat, deadlift] = [BENCH, ROW, SQUAT, DEADLIFT].map(name => rows.find(entry => entry.exercise === name)!);
+    await planPost(page.request, '/api/superset/link', { exercise_ids: [bench.id, row.id] });
+    await loadPlan(page);
+    await expect(planRow(page, bench.id).locator('.superset-badge'), 'linked cards display the neutral Superset badge')
+      .toHaveText('Superset');
+
+    for (const entry of [squat, deadlift]) {
+      await setDetails(page, entry.id, true);
+      await setSupersetChoice(planRow(page, entry.id), true);
+    }
+    await expect(page.locator('#superset-selection-info')).toContainText(/2.*selected/i);
+    const linked = page.waitForResponse(response => new URL(response.url()).pathname === '/api/superset/link');
+    await page.locator('#link-superset-btn').click();
+    const link = await linked;
+    expect(link.ok()).toBe(true);
+    expect(link.request().postDataJSON()).toEqual({ exercise_ids: [squat.id, deadlift.id] });
+    await expectToast(page, "Linked 'Barbell Squat' and 'Barbell Deadlift' as superset");
+    const appearances = [];
+    for (const entry of [bench, row, squat, deadlift]) {
+      const card = planRow(page, entry.id);
+      await expect(card.locator('.superset-badge')).toHaveText('Superset');
+      appearances.push(await card.evaluate(element => {
+        const badge = getComputedStyle(element.querySelector('.superset-badge')!);
+        const rail = [getComputedStyle(element), getComputedStyle(element, '::before')].map(style =>
+          [style.borderLeftWidth, style.borderLeftColor, style.backgroundColor]);
+        return { badge: [badge.color, badge.backgroundColor], rail };
+      }));
+    }
+    expect(appearances).toEqual(Array(4).fill(appearances[0]));
+    const stored = await planData(page.request);
+    const group = (id: number) => stored.find(entry => entry.id === id)?.superset_group;
+    expect(group(bench.id)).toBeTruthy();
+    expect(group(squat.id)).toBeTruthy();
+    expect(group(bench.id)).toBe(group(row.id));
+    expect(group(squat.id)).toBe(group(deadlift.id));
+    expect(group(bench.id)).not.toBe(group(squat.id));
+
+    await setDetails(page, squat.id, true);
+    await setSupersetChoice(planRow(page, squat.id), true);
+    const unlinked = page.waitForResponse(response => new URL(response.url()).pathname === '/api/superset/unlink');
+    await page.locator('#unlink-superset-btn').click();
+    const unlink = await unlinked;
+    expect(unlink.ok()).toBe(true);
+    expect(unlink.request().postDataJSON()).toEqual({ exercise_id: squat.id });
+    await expectToast(page, /Unlinked superset:.*Barbell Squat/);
+    await expect(planRow(page, squat.id).locator('.superset-badge')).toHaveCount(0);
+    await expect(planRow(page, deadlift.id).locator('.superset-badge')).toHaveCount(0);
+    await expect(planRow(page, bench.id).locator('.superset-badge')).toBeVisible();
   });
 });

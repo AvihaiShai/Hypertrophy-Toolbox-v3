@@ -9,6 +9,9 @@
  * - Empty table displays
  */
 import { test, expect, ROUTES, SELECTORS, waitForPageReady, resetWorkoutPlan } from './fixtures';
+import { test as guardedTest } from './console-guard';
+import { loadPlan, planRows, routineTab } from './workout-plan-fixture';
+import { addPanel, planPanel } from './workout-plan-redesign';
 
 /**
  * Helper to select a complete routine
@@ -361,5 +364,35 @@ test.describe('Table Empty State Messages', () => {
     await expect(tableBody.locator('tr')).toHaveCount(0);
     
     consoleErrors.assertNoErrors();
+  });
+});
+
+guardedTest.describe('Plan redesign acceptance', () => {
+  guardedTest('empty Plan offers the starter and focuses the first Add exercise control', async ({ page }) => {
+    await resetWorkoutPlan(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadPlan(page);
+    const panel = planPanel(page);
+    const empty = panel.getByRole('heading', { name: 'No exercises in your plan yet' });
+    await expect(empty, 'empty Plan has an action panel outside its table').toBeVisible();
+    await expect(page.locator('#workout_plan_table_body tr')).toHaveCount(0);
+    await expect(planRows(page)).toHaveCount(0);
+    await expect(routineTab(page, 'all')).toHaveAttribute('aria-selected', 'true');
+    await expect(panel.locator('#vpActiveSummary')).toBeVisible();
+    await expect(panel.locator('#vpToggle')).toBeVisible();
+
+    await panel.getByRole('button', { name: 'Generate Starter Plan' }).click();
+    const modal = page.locator('#generatePlanModal');
+    await expect(modal).toBeVisible();
+    await modal.getByRole('button', { name: 'Cancel' }).click();
+    await expect(modal).toBeHidden();
+
+    await panel.getByRole('button', { name: 'Add first exercise' }).click();
+    const controls = addPanel(page).locator(
+      ':is(button, select, input, a[href]):enabled:visible:not([tabindex="-1"]):not([aria-hidden="true"])',
+    );
+    const first = controls.first();
+    await expect(first).toBeFocused();
+    await expect(first).toBeInViewport();
   });
 });

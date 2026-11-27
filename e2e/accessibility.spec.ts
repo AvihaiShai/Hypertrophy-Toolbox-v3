@@ -21,6 +21,8 @@ import {
   waitForWorkoutPlanReady,
 } from './fixtures';
 import type { Page } from '@playwright/test';
+import { loadPlan } from './workout-plan-fixture';
+import { moreButton, planHeader } from './workout-plan-redesign';
 
 /** WCAG 2.1 SC 1.4.3 floor for normal-size body text. */
 const MIN_TEXT_CONTRAST = 4.5;
@@ -1190,5 +1192,51 @@ test.describe('Axe — deterministic states', () => {
     expect(injected.rows, 'fewer than three data rows were injected').toBe(3);
 
     await expectRegisteredAxeViolations(page, 'state:populated-table');
+  });
+});
+
+test.describe('Plan redesign acceptance', () => {
+  test('More supports click and keyboard, ordered items, Escape and modal focus return', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadPlan(page);
+    const more = moreButton(page);
+    await expect(more, 'the header has a More menu trigger').toHaveAttribute('aria-haspopup', 'menu');
+    await expect(planHeader(page).getByRole('button', { name: 'Export to workout log' })).toBeVisible();
+    for (const selector of ['[data-testid="export-excel-btn"]', '#load-program-btn', '#generate-plan-btn', '#clear-plan-btn']) {
+      await expect(page.locator(selector)).toBeHidden();
+    }
+    const menu = page.getByRole('menu').filter({ has: page.getByRole('menuitem', { name: /Clear Plan/ }) });
+    const items = menu.getByRole('menuitem');
+    const order = ['Export All Tables', 'Backup Center', 'Generate Starter Plan', 'Clear Plan'];
+    await more.click();
+    await expect(items).toHaveText(order);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(more).toBeFocused();
+
+    for (const key of ['Enter', 'Space', 'ArrowDown']) {
+      await more.focus();
+      await page.keyboard.press(key);
+      await expect(more).toHaveAttribute('aria-expanded', 'true');
+      await expect(items).toHaveText(order);
+      await expect(items.first()).toBeFocused();
+      await page.keyboard.press('ArrowDown');
+      await expect(items.nth(1)).toBeFocused();
+      await page.keyboard.press('ArrowUp');
+      await expect(items.first()).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(menu).toBeHidden();
+      await expect(more).toHaveAttribute('aria-expanded', 'false');
+      await expect(more).toBeFocused();
+    }
+
+    await more.press('ArrowDown');
+    await items.last().click();
+    const modal = page.locator('#clearPlanModal');
+    await expect(menu).toBeHidden();
+    await expect(modal).toBeVisible();
+    await modal.getByRole('button', { name: 'Cancel' }).click();
+    await expect(modal).toBeHidden();
+    await expect(more).toBeFocused();
   });
 });

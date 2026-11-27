@@ -2252,3 +2252,47 @@ These are outside this document and outside this agent's writes.
   has not reviewed Plan v2, and an owner answer overrides it.
 - [x] **Ready to implement.** The orchestrator proceeds under Plan v2. The `product-manager`
   stops here.
+
+## Migration-test isolation prerequisite
+
+A source inspection on 2026-11-27 confirmed two paths from tests to installation data. The no-override fresh interpreter in `test_real_app_db_isolation.py` could migrate the installation database, and its state checks also enumerated the installation's backup directory. In `test_runtime_migration.py`, passing an explicit scratch database and destination still left the parameterless backup copy using the installation and runtime defaults.
+
+The question for the council was whether to run the fresh probes from an allowlisted disposable installation, redirect the path resolver in the probes, or use a different test-only design. Architecture, test strategy and product risk each voted for a disposable application installation for the subprocess probes and private installation and runtime roots for the in-process migration tests. The second-vendor review agreed. The physical installation exercises the production resolver with real source and the public catalog seed, while the default backup-copy path can be tested on synthetic snapshots. The decision affects test fixtures only.
+
+The isolation prerequisite is PR #751. The ordinary frame-runner tests on the Plan branch passed all 26 cases and commit 1 is `d8b2d52f`. On the prerequisite branch, 106 tests passed across the two migration modules, the runtime initialization module and the app factory module. The test inventory matched and Pyright reported zero diagnostics. Independent code and maintainability reviewers ran. The code review led to moving two adjacent import and snapshot probes onto the same private installation. Full local pytest on the Plan branch resumes only when the fixture isolation is present there.
+
+
+PR #751 merged as `1facfe6c` on November 27 after all 12 required contexts passed on `1ed54a46`. Gate 2 for the isolation prerequisite was approved by Astra under the owner's delegation of 2026-11-27.
+
+### Acceptance tests before the redesign
+
+The functional cases below all failed at their first design assertion on the original page. The three narrow-phone cases reached the card assertion with app scale 8 selected by cookie. Later assertions in these cases still need a passing implementation.
+
+- More supports click and keyboard, ordered items, Escape and modal focus return
+- empty Plan offers the starter and focuses the first Add exercise control
+- drags the phone card by its handle and writes the same payload as the table
+- keyboard edits and rejection › edits a field by keyboard, saves once, discards drafts and warns on rejection at 390 px
+- keyboard edits and rejection › edits a field by keyboard, saves once, discards drafts and warns on rejection at 1440 px
+- phone links a second pair with the same neutral rail and badge and can unlink it
+- opens on the first routine, exposes All by pointer and keyboard, and never remembers the choice
+- shows only Add Exercise as filled primary and puts volume above the tabs at 390 px
+- collapses filters and renders all 12 dropdown triggers when opened at 390 px
+- shows only Add Exercise as filled primary and puts volume above the tabs at 1440 px
+- collapses filters and renders all 12 dropdown triggers when opened at 1440 px
+- names active filter chips and removing one sends one filter request
+- phone Details › reveals the approved Simple and Advanced fields by touch and keyboard and closes after reload
+- fits widest realistic values and card actions at 320 px and scale 8
+- fits widest realistic values and card actions at 360 px and scale 8
+- fits widest realistic values and card actions at 390 px and scale 8
+- card Details closes on link and execution-style rerenders but stays open on swap and inline edit
+- phone Add exercise preserves cascade, validation, estimate request, hidden-routine toast and control values
+- phone exports the current mode to Excel, follows Backup Center and exports to Workout Log
+- phone starter generation keeps its payload and Clear Plan resets the six controls
+- phone card keeps thumbnail preview and plays and dismisses the curated reference video
+- swap errors › phone card reports each established swap rejection and keeps its exercise
+
+Five characterization cases passed on the original page. Removing the last exercise in a selected routine returned to All. Dragging in the first or second routine persisted after reload and preserved the other routine's order. The Clear Log cancel and confirm flows passed at both 390 and 1440 px. Both established catalog controls also passed.
+
+Both new opt-in checks passed their historical control at `8b023d1a`. C1–C5 and WP10 failed as expected on Plan. The four retained modals matched their measured references across both widths and themes, and all 20 comparisons for the overlays slated for migration detected a difference. The reference records geometry at the plan's half-pixel precision. Both opt-in candidates were red before implementation. The targeted Python run had 71 passes and one expected failure for the missing Add exercise heading. TypeScript passed.
+
+Local evidence is under `artifacts/design-736/step3/commit2-qa/`. The functional logs are `12-characterization.txt`, `18-acceptance.txt` and `24-catalog-control.txt`. The Plan controls and candidates are in `16-plan-control.txt` and `17-plan-candidate.txt`, overlay results in `22-overlay-control.txt` and `23-overlay-candidate.txt`, and the Python result in `20-pytest.txt`.

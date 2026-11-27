@@ -68,13 +68,13 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 598
+      "tests": 625
     },
     "specs": [
       {
         "in_required_functional_set": true,
         "spec": "accessibility.spec.ts",
-        "tests": 41
+        "tests": 42
       },
       {
         "in_required_functional_set": true,
@@ -99,7 +99,7 @@
       {
         "in_required_functional_set": true,
         "spec": "empty-states.spec.ts",
-        "tests": 16
+        "tests": 17
       },
       {
         "in_required_functional_set": false,
@@ -119,7 +119,7 @@
       {
         "in_required_functional_set": true,
         "spec": "exercise-interactions.spec.ts",
-        "tests": 21
+        "tests": 26
       },
       {
         "in_required_functional_set": false,
@@ -179,7 +179,7 @@
       {
         "in_required_functional_set": true,
         "spec": "superset-edge-cases.spec.ts",
-        "tests": 16
+        "tests": 17
       },
       {
         "in_required_functional_set": true,
@@ -224,7 +224,7 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-log.spec.ts",
-        "tests": 32
+        "tests": 34
       },
       {
         "in_required_functional_set": false,
@@ -234,14 +234,14 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-plan.spec.ts",
-        "tests": 39
+        "tests": 56
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 748
+    "total_tests": 775
   },
   "pytest": {
-    "collected_deterministic": 4727,
+    "collected_deterministic": 4760,
     "deterministic_files": 145,
     "environment_dependent_files": [
       {
@@ -708,7 +708,7 @@
       },
       {
         "file": "tests/test_template_landmarks.py",
-        "tests": 2
+        "tests": 3
       },
       {
         "file": "tests/test_trailing_slash_routing.py",
@@ -796,7 +796,7 @@
       },
       {
         "file": "tests/test_workout_log_frame_runner.py",
-        "tests": 26
+        "tests": 58
       },
       {
         "file": "tests/test_workout_log_routes.py",

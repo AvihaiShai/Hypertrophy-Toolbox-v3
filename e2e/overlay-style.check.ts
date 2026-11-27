@@ -1,0 +1,246 @@
+import type { Locator, Page } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import {
+  expectFrameRun, fontsLoaded, gutter, installFrameSettings,
+  openFramePass, THEMES, writeMetrics,
+} from './frame-check';
+import { expect, ROUTES, test } from './strict-fixtures';
+import { editVisualPlanFixture, planRows } from './workout-plan-fixture';
+
+const MIGRATED = [
+  { route: ROUTES.WORKOUT_PLAN, id: 'generatePlanModal', width: 1120, fill: '--ui-primary' },
+  { route: ROUTES.WORKOUT_PLAN, id: 'clearPlanModal', width: 480, fill: '--ui-danger-fill' },
+  { route: ROUTES.WORKOUT_PLAN, id: 'exerciseVideoModal', width: 800, fill: null },
+  { route: ROUTES.WORKOUT_LOG, id: 'clearLogModal', width: 480, fill: '--ui-danger-fill' },
+] as const;
+
+const UNMIGRATED = [
+  { route: ROUTES.HOME, id: 'eraseDataModal' },
+  { route: ROUTES.PROGRESSION, id: 'deleteGoalModal' },
+  { route: ROUTES.PROGRESSION, id: 'goalSettingModal' },
+  { route: ROUTES.VOLUME_SPLITTER, id: 'deleteVolumePlanModal' },
+] as const;
+
+const REFERENCE = 'overlay-style.reference.json';
+
+async function toggleModal(modal: Locator, show: boolean) {
+  await modal.evaluate((element, opening) => new Promise<void>(resolve => {
+    const { bootstrap } = window as unknown as {
+      bootstrap: { Modal: { getOrCreateInstance: (element: Element) => { show(): void; hide(): void } } };
+    };
+    element.addEventListener(opening ? 'shown.bs.modal' : 'hidden.bs.modal', () => resolve(), { once: true });
+    const instance = bootstrap.Modal.getOrCreateInstance(element);
+    if (opening) instance.show();
+    else instance.hide();
+  }), show);
+}
+
+function modalStyle(modal: Locator) {
+  return modal.evaluate(element => {
+    const read = (selector: string, properties: string[]) => {
+      const node = element.querySelector(selector);
+      if (!node) return null;
+      const style = getComputedStyle(node);
+      return Object.fromEntries(properties.map(property => [property, style.getPropertyValue(property)]));
+    };
+    const dialog = element.querySelector('.modal-dialog')!;
+    const rect = dialog.getBoundingClientRect();
+    const round = (value: number) => Math.round(value * 2) / 2;
+    const tokens = document.createElement('span');
+    tokens.style.cssText =
+      'position:absolute; visibility:hidden; background:var(--surface-2); box-shadow:var(--shadow-elev-2);' +
+      'color:var(--ui-primary); border:1px solid var(--ui-danger-fill);';
+    element.append(tokens);
+    const tokenStyle = getComputedStyle(tokens);
+    const expected = {
+      surface: tokenStyle.backgroundColor, shadow: tokenStyle.boxShadow,
+      primary: tokenStyle.color, danger: tokenStyle.borderTopColor,
+    };
+    tokens.remove();
+    const boxStyles = ['background-color', 'background-image', 'backdrop-filter', 'border-top-width',
+      'border-top-style', 'border-top-color', 'border-top-left-radius', 'box-shadow', 'padding-top'];
+    return {
+      dialog: { left: round(rect.left), right: round(rect.right), width: round(rect.width) },
+      content: read('.modal-content', boxStyles)!,
+      header: read('.modal-header', boxStyles)!,
+      title: read('.modal-title', ['color', 'font-size', 'line-height', 'font-weight'])!,
+      body: read('.modal-body', boxStyles)!,
+      footer: read('.modal-footer', boxStyles),
+      controls: [...element.querySelectorAll('button, .modal-footer a[href]')]
+        .filter(node => node.getClientRects().length)
+        .map(node => {
+          const style = getComputedStyle(node);
+          return {
+            text: node.getAttribute('aria-label') || node.textContent?.trim(),
+            height: round(node.getBoundingClientRect().height),
+            fill: style.backgroundColor, image: style.backgroundImage, color: style.color,
+            footer: !!node.closest('.modal-footer'),
+            close: node.matches('.btn-close'),
+          };
+        }),
+      expected,
+    };
+  });
+}
+
+type ModalStyle = Awaited<ReturnType<typeof modalStyle>>;
+const transparent = 'rgba(0, 0, 0, 0)';
+
+function modalProblems(style: ModalStyle, spec: typeof MIGRATED[number], width: number) {
+  const problems: string[] = [];
+  const must = (condition: boolean, symptom: string) => { if (!condition) problems.push(symptom); };
+  must(style.content['background-color'] === style.expected.surface, 'opaque modal surface');
+  must(style.content['border-top-left-radius'] === '16px', '16 px radius');
+  must(style.content['border-top-width'] === '1px', '1 px border');
+  must(style.content['box-shadow'] === style.expected.shadow, 'elevation shadow');
+  for (const [part, properties] of [['content', style.content], ['header', style.header], ['footer', style.footer]] as const) {
+    if (properties) {
+      must(properties['backdrop-filter'] === 'none', part + ' backdrop filter');
+      must(properties['background-image'] === 'none', part + ' background image');
+    }
+  }
+  must([transparent, style.expected.surface].includes(style.header['background-color']), 'plain header');
+  must(style.title['font-size'] === '18px' && style.title['line-height'] === '24px' &&
+    style.title['font-weight'] === '600', 'title typography');
+  must(style.body['padding-top'] === '16px', 'body padding');
+  if (style.footer) must(style.footer['padding-top'] === '16px', 'footer padding');
+  const expectedFill = spec.fill === '--ui-primary' ? style.expected.primary : style.expected.danger;
+  const filled = style.controls.filter(button => button.footer &&
+    (button.fill === style.expected.primary || button.fill === style.expected.danger || button.image !== 'none'));
+  must(filled.length === (spec.fill ? 1 : 0) &&
+    (!spec.fill || (filled[0]?.fill === expectedFill && filled[0]?.image === 'none')),
+  'footer confirm is the only filled primary or danger action');
+  const gutterWidth = gutter(width);
+  must(style.dialog.left >= gutterWidth - 0.5 && style.dialog.right <= width - gutterWidth + 0.5 &&
+    style.dialog.width <= spec.width + 0.5, 'dialog width and side gutters');
+  const close = style.controls.find(control => control.close);
+  must(!!close && close.height >= (width < 768 ? 44 : 40) - 0.5, 'close target');
+  if (width < 768) {
+    must(style.controls.every(control => control.height >= 43.5), 'phone control heights');
+  }
+  return problems;
+}
+
+/** The shell and each rendered descendant that the legacy light and dark drawer rules style. */
+async function drawerStyle(page: Page, width: number) {
+  const drawer = page.locator('#vpDrawer');
+  await page.locator('#vpToggle').click();
+  await expect(drawer).toHaveAttribute('aria-hidden', 'false');
+  await expect(drawer.locator('.vp-state')).toContainText('No active volume plan');
+  await drawer.evaluate(async element => {
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    await Promise.all(element.getAnimations().map(animation => animation.finished));
+  });
+  const measured = await drawer.evaluate(element => {
+    const read = (node: Element, properties: string[]) => {
+      const style = getComputedStyle(node);
+      return Object.fromEntries(properties.map(property => [property, style.getPropertyValue(property)]));
+    };
+    const tokens = document.createElement('span');
+    tokens.style.cssText = 'position:absolute;visibility:hidden;background:var(--surface-2);box-shadow:var(--shadow-elev-2)';
+    element.append(tokens);
+    const tokenStyle = getComputedStyle(tokens);
+    const expected = { surface: tokenStyle.backgroundColor, shadow: tokenStyle.boxShadow };
+    tokens.remove();
+    const { left, right, top, bottom, width: renderedWidth } = element.getBoundingClientRect();
+    const part = (selector: string, properties: string[]) => read(element.querySelector(selector)!, properties);
+    const edges = ['border-left-width', 'border-left-style', 'border-left-color'];
+    return {
+      expected, bounds: { left, right, top, bottom, width: renderedWidth, height: window.innerHeight },
+      shell: read(element, ['position', 'top', 'right', 'z-index', 'display', 'flex-direction', 'width', 'height',
+        'background-color', 'background-image', 'backdrop-filter', 'box-shadow', 'transform',
+        'border-top-left-radius', 'border-bottom-left-radius', ...edges]),
+      transition: read(element, ['transition-property', 'transition-duration', 'transition-timing-function']),
+      header: part('.vp-drawer__header', ['display', 'align-items', 'justify-content', 'gap', 'padding',
+        'background-color', 'border-bottom-width', 'border-bottom-style', 'border-bottom-color']),
+      title: part('.vp-drawer__header h2', ['font-size', 'line-height', 'font-weight', 'margin', 'color']),
+      close: part('.vp-close', ['display', 'align-items', 'justify-content', 'width', 'height',
+        'border-width', 'border-radius', 'background-color', 'color', 'font-size', 'line-height']),
+      body: part('.vp-drawer__body', ['overflow-y', 'padding']),
+      state: part('.vp-state', ['border-width', 'border-style', 'border-color', 'border-radius',
+        'padding', 'color', 'background-color']),
+      paragraph: part('.vp-state p', ['margin']),
+    };
+  });
+  const { shell, expected, bounds, transition, header, title, close, body } = measured;
+  const problems: string[] = [];
+  if (shell['background-color'] !== expected.surface || shell['box-shadow'] !== expected.shadow ||
+      shell['border-top-left-radius'] !== '16px' || shell['border-bottom-left-radius'] !== '16px') {
+    problems.push('drawer surface, radius and shadow');
+  }
+  if (shell.position !== 'fixed' || bounds.left < -0.5 || Math.abs(bounds.right - width) > 0.5 ||
+      Math.abs(bounds.top) > 0.5 || Math.abs(bounds.bottom - bounds.height) > 0.5 ||
+      Math.abs(bounds.width - Math.min(360, width)) > 0.5) {
+    problems.push('drawer containment and size');
+  }
+  if (![transparent, expected.surface].includes(header['background-color']) ||
+      title['font-size'] !== '18px' || title['line-height'] !== '24px' || title['font-weight'] !== '600') {
+    problems.push('drawer header');
+  }
+  if (Number.parseFloat(close.height) < (width < 768 ? 44 : 40) ||
+      Number.parseFloat(close.width) < (width < 768 ? 44 : 40)) {
+    problems.push('drawer close target');
+  }
+  if (body.padding !== '16px' || body['overflow-y'] !== 'auto') {
+    problems.push('drawer body padding and scrolling');
+  }
+  if (transition['transition-property'] !== 'transform' || transition['transition-duration'] !== '0.22s' ||
+      transition['transition-timing-function'] !== 'ease') {
+    problems.push('drawer retains its transform transition');
+  }
+  return { measured, problems };
+}
+
+test('measure migrated overlays and compare the four legacy modals to the control', async ({ page, baseURL }) => {
+  const frame = await expectFrameRun(page, baseURL);
+  await editVisualPlanFixture(page.request);
+  await installFrameSettings(page);
+  const reference: unknown[] = [];
+  const metrics: unknown[] = [];
+  const failures: { id: string; width: number; theme: string; problems: string[] }[] = [];
+
+  for (const width of [390, 1440]) {
+    for (const theme of THEMES) {
+      let currentRoute = '';
+      for (const spec of [...MIGRATED, ...UNMIGRATED]) {
+        if (currentRoute !== spec.route) {
+          await openFramePass(page, frame.baseURL, spec.route, { width, theme, scale: 6 });
+          await fontsLoaded(page);
+          currentRoute = spec.route;
+        }
+        const modal = page.locator('#' + spec.id);
+        await toggleModal(modal, true);
+        const { expected, ...style } = await modalStyle(modal);
+        const entry = { id: spec.id, width, theme, style };
+        if ('fill' in spec) {
+          const problems = modalProblems({ ...style, expected }, spec, width);
+          failures.push({ id: spec.id, width, theme, problems });
+          metrics.push({ ...entry, problems });
+        } else {
+          reference.push(entry);
+        }
+        await toggleModal(modal, false);
+      }
+      await openFramePass(page, frame.baseURL, ROUTES.WORKOUT_PLAN, { width, theme, scale: 6 });
+      await expect(planRows(page).first()).toBeVisible();
+      await fontsLoaded(page);
+      const { measured, problems } = await drawerStyle(page, width);
+      failures.push({ id: 'vpDrawer', width, theme, problems });
+      metrics.push({ id: 'vpDrawer', width, theme, style: measured, problems });
+      await page.locator('#vpDrawer .vp-close').click();
+    }
+  }
+
+  writeMetrics(frame.run, metrics);
+  const referenceJSON = JSON.stringify(reference, null, 2) + '\n';
+  fs.writeFileSync(path.join(frame.run, REFERENCE), referenceJSON);
+  const fixture = path.join(__dirname, REFERENCE);
+  expect(fs.existsSync(fixture), 'capture in ' + frame.run + ' before creating the reference').toBe(true);
+  expect(reference).toEqual(JSON.parse(fs.readFileSync(fixture, 'utf8')));
+  for (const { id, width, theme, problems } of failures) {
+    const label = id + ' at ' + width + ' px, ' + theme;
+    if (frame.control) expect.soft(problems.length, label + ' must expose the legacy style').toBeGreaterThan(0);
+    else expect.soft(problems, label).toEqual([]);
+  }
+});

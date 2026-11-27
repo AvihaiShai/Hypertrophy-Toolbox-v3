@@ -91,6 +91,8 @@ class Route:
 
 ROUTES: dict[str, Route] = {
     "workout_log": Route("Workout Log", "workout-log-frame.check.ts", "5dc83cef", seed_workout_log),
+    "workout_plan": Route("Workout Plan", "workout-plan-frame.check.ts", "8b023d1a"),
+    "overlays": Route("Overlay style", "overlay-style.check.ts", "8b023d1a"),
 }
 
 

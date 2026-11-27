@@ -12,10 +12,19 @@ import { test, expect } from './console-guard';
 import {
   ROUTES,
   SELECTORS,
+  expectToast,
   waitForPageReady,
   waitForWorkoutPlanReady,
   resetWorkoutPlan,
 } from './fixtures';
+import {
+  BENCH, DEADLIFT, ROUTINE_A, ROUTINE_B, ROW, SQUAT, addPlanRow, addTheWidePhoneValues,
+  details, loadPlan, planData, planPost, planRow, planRows, routineTab,
+} from './workout-plan-fixture';
+import {
+  addPanel, filledPlanActions, filterToggle, moreButton, phonePlanProblems, planHeader, planPanel,
+  setDetails, setPlanView, setSupersetChoice, singleAddAction,
+} from './workout-plan-redesign';
 
 /**
  * Toggle the muscle-naming mode. The `#muscleModeToggle` button lives in the
@@ -1304,5 +1313,504 @@ test.describe('Workout Plan drag-and-drop library', () => {
     expect(sortable.type).toBe('function');
     expect(sortable.create).toBe('function');
     expect(sortable.version).toBe('1.14.0');
+  });
+});
+
+test.describe('Plan redesign acceptance', () => {
+  test('opens on the first routine, exposes All by pointer and keyboard, and never remembers the choice', async ({ page }) => {
+    await addPlanRow(page.request, ROUTINE_B, DEADLIFT);
+    await addPlanRow(page.request, ROUTINE_A, SQUAT);
+    await loadPlan(page);
+    await waitForWorkoutPlanReady(page);
+    const first = routineTab(page, ROUTINE_A);
+    const all = routineTab(page, 'all');
+    const storage = () => page.evaluate(() => ({
+      local: Object.fromEntries(Object.entries(localStorage).sort()),
+      session: Object.fromEntries(Object.entries(sessionStorage).sort()),
+      cookies: document.cookie.split('; ').sort(),
+    }));
+    const before = await storage();
+    await expect(first, 'a populated page opens on the first routine in display order').toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT]);
+
+    await all.click();
+    await expect(all).toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT, DEADLIFT]);
+    expect(await storage()).toEqual(before);
+    await loadPlan(page, true);
+    await waitForWorkoutPlanReady(page);
+    await expect(first).toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT]);
+    expect(await storage()).toEqual(before);
+
+    await all.focus();
+    await page.keyboard.press('Enter');
+    await expect(all).toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT, DEADLIFT]);
+    expect(await storage()).toEqual(before);
+  });
+
+  for (const width of [390, 1440]) {
+    test(`shows only Add Exercise as filled primary and puts volume above the tabs at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      for (const populated of [false, true]) {
+        if (populated) await addPlanRow(page.request, ROUTINE_A, SQUAT);
+        const volume = page.waitForResponse(response => new URL(response.url()).pathname === '/api/volume_progress');
+        await loadPlan(page);
+        expect((await volume).ok()).toBe(true);
+        await expect(planRows(page)).toHaveCount(populated ? 1 : 0);
+        expect(await filledPlanActions(page), populated ? 'populated plan' : 'empty plan').toEqual(singleAddAction);
+        await expect(planHeader(page)).toBeVisible();
+        await expect(planPanel(page).locator('#vpActiveSummary')).toBeVisible();
+        await expect(planPanel(page).locator('#vpToggle')).toBeVisible();
+        const top = await page.locator('#workout').evaluate(workout => {
+          const y = (selector: string) => workout.querySelector(selector)!.getBoundingClientRect().top;
+          return { volume: y('#vpActiveSummary'), targets: y('#vpToggle'), tabs: y('#routine-tabs') };
+        });
+        expect(Math.max(top.volume, top.targets)).toBeLessThan(top.tabs);
+      }
+      await planPanel(page).locator('#vpToggle').click();
+      const drawer = page.locator('#vpDrawer');
+      await expect(drawer).toHaveAttribute('aria-hidden', 'false');
+      await expect(drawer.getByRole('heading', { name: 'Volume targets' })).toBeVisible();
+      await loadPlan(page, true);
+      await expect(drawer).toHaveAttribute('aria-hidden', 'false');
+      await drawer.locator('.vp-close').click();
+      await expect(drawer).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    test(`collapses filters and renders all 12 dropdown triggers when opened at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await loadPlan(page);
+      const toggle = filterToggle(page);
+      const dropdowns = page.locator('#filters-form .wpdd-button');
+      await expect(toggle, 'filters open only on demand').toHaveAttribute('aria-expanded', 'false');
+      await expect(dropdowns).toHaveCount(12);
+      expect(await dropdowns.evaluateAll(nodes => nodes.every(node => !node.getClientRects().length))).toBe(true);
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      const widths = await dropdowns.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+      expect(widths).toHaveLength(12);
+      for (const triggerWidth of widths) expect(triggerWidth).toBeGreaterThan(0);
+    });
+  }
+
+  test('names active filter chips and removing one sends one filter request', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadPlan(page);
+    const toggle = filterToggle(page);
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    const select = (key: string) => page.locator('#filters-form select[data-filter-key="' + key + '"]');
+    const muscle = select('Primary Muscle Group');
+    const equipment = select('Equipment');
+    const isFilter = (url: string) => new URL(url).pathname === '/filter_exercises';
+    for (const [locator, label] of [[muscle, 'Chest'], [equipment, 'Barbell']] as const) {
+      const response = page.waitForResponse(result => isFilter(result.url()) && result.request().method() === 'POST');
+      await locator.selectOption({ label }, { force: true });
+      expect((await response).ok()).toBe(true);
+    }
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    const muscleChip = page.getByRole('button', { name: /Primary Muscle Group.*Chest/i });
+    const equipmentChip = page.getByRole('button', { name: /Equipment.*Barbell/i });
+    await expect(muscleChip).toBeVisible();
+    await expect(equipmentChip).toBeVisible();
+    const calls: object[] = [];
+    page.on('request', request => {
+      if (isFilter(request.url()) && request.method() === 'POST') calls.push(request.postDataJSON());
+    });
+    const filtered = page.waitForResponse(response => isFilter(response.url()) && response.request().method() === 'POST');
+    await muscleChip.click();
+    expect((await filtered).ok()).toBe(true);
+    await expect(muscle).toHaveValue('');
+    await expect(equipment).not.toHaveValue('');
+    await expect(muscleChip).toBeHidden();
+    await expect(equipmentChip).toBeVisible();
+    await page.locator('#routine-env').selectOption('GYM');
+    await page.locator('#routine-program').selectOption('Full Body');
+    const cascadePath = '/get_routine_exercises/';
+    const cascaded = page.waitForResponse(response => new URL(response.url()).pathname.startsWith(cascadePath));
+    await page.locator('#routine-day').selectOption('Workout A');
+    expect((await cascaded).ok()).toBe(true);
+    await expect(page.locator('#routine')).toHaveValue(ROUTINE_A);
+    const exercise = page.locator('#exercise');
+    await exercise.selectOption({ index: 1 }, { force: true });
+    await expect(exercise).not.toHaveValue('');
+    expect(calls, 'removing one chip sends exactly one filtering request').toHaveLength(1);
+
+    await page.locator('#clear-filters-btn').click();
+    await expectToast(page, 'Filters cleared successfully');
+    await expect(equipmentChip).toBeHidden();
+    const values = await page.locator('#filters-form select, #routine, #routine-env, #routine-program, #routine-day, #exercise')
+      .evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).value));
+    expect(values).toEqual(Array(17).fill(''));
+  });
+
+  test.describe('phone Details', () => {
+    test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+
+    test('reveals the approved Simple and Advanced fields by touch and keyboard and closes after reload', async ({ page }) => {
+      await addPlanRow(page.request, ROUTINE_A, SQUAT);
+      const [record] = await planData(page.request);
+      await loadPlan(page);
+      const row = planRow(page, record.id);
+      await expect(row).toBeVisible();
+      const disclosure = details(page, record.id);
+      await expect(disclosure, 'a closed card shows a Details disclosure').toHaveAttribute('aria-expanded', 'false');
+      const common = row.locator('[data-field], .execution-style-cell, .superset-checkbox, [data-label="Primary Muscle"], [data-label="Actions"]');
+      const extra = row.locator(
+        '[data-label="Tertiary Muscle"], [data-label="Utility"], [data-label="Movement Pattern"], ' +
+        '[data-label="Movement Subpattern"], [data-label="Stabilizers"], [data-label="Synergists"]',
+      );
+      await expect(common).toHaveCount(10);
+      await expect(extra).toHaveCount(6);
+      for (const cell of await common.all()) await expect(cell).toBeHidden();
+      await disclosure.tap();
+      await expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      for (const cell of await common.all()) await expect(cell).toBeVisible();
+      for (const cell of await extra.all()) await expect(cell).toBeHidden();
+      await disclosure.tap();
+      await setPlanView(page, 'advanced');
+      await disclosure.focus();
+      await page.keyboard.press('Space');
+      await expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      for (const cell of await extra.all()) await expect(cell).toBeVisible();
+      await loadPlan(page, true);
+      await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+      for (const cell of await common.all()) await expect(cell).toBeHidden();
+    });
+  });
+
+  for (const width of [320, 360, 390]) {
+    test(`fits widest realistic values and card actions at ${width} px and scale 8`, async ({ page, baseURL }) => {
+      await page.setViewportSize({ width, height: 844 });
+      const { squat, deadlift } = await addTheWidePhoneValues(page.request);
+      expect(baseURL, 'the isolated Playwright server has a base URL').toBeDefined();
+      await page.context().addCookies([{ name: 'ui-scale-level', value: '8', url: baseURL! }]);
+      await page.addInitScript(() => localStorage.setItem('ui-scale-level', '8'));
+      await loadPlan(page);
+      await expect(page.locator('html')).toHaveAttribute('data-scale', '8');
+      expect(await page.locator('html').evaluate(el => Number(getComputedStyle(el).zoom))).toBe(1.2);
+      await page.evaluate(() => document.fonts.ready);
+      await expect(planRow(page, squat.id), 'the phone renders a Plan card').toHaveClass(/\bui-record-card\b/);
+      expect(await phonePlanProblems(page), 'closed cards').toEqual([]);
+      await setDetails(page, squat.id, true);
+      for (const [field, value] of Object.entries({ sets: 10, min_rep_range: 30, max_rep_range: 30, weight: 102.5, rir: 10, rpe: 9.5 })) {
+        await expect(planRow(page, squat.id).locator('[data-field="' + field + '"]')).toHaveText(String(value));
+      }
+      expect(await phonePlanProblems(page), 'Squat Details').toEqual([]);
+      await setSupersetChoice(planRow(page, squat.id), true);
+      await expect(page.locator('#superset-actions')).toBeVisible();
+      expect(await phonePlanProblems(page), 'selection bar and Squat Details').toEqual([]);
+      await setSupersetChoice(planRow(page, squat.id), false);
+      await setDetails(page, squat.id, false);
+      await setDetails(page, deadlift.id, true);
+      await expect(planRow(page, deadlift.id).locator('[data-field="weight"]')).toHaveText('999.5');
+      expect(await phonePlanProblems(page), '999.5 kg Deadlift Details').toEqual([]);
+    });
+  }
+
+  test('card Details closes on link and execution-style rerenders but stays open on swap and inline edit', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const exercise of [BENCH, ROW, SQUAT]) await addPlanRow(page.request, ROUTINE_A, exercise);
+    const rows = await planData(page.request);
+    const bench = rows.find(row => row.exercise === BENCH)!;
+    const row = rows.find(record => record.exercise === ROW)!;
+    const squat = rows.find(record => record.exercise === SQUAT)!;
+    await loadPlan(page);
+    await setDetails(page, bench.id, true);
+    await setDetails(page, row.id, true);
+    await setSupersetChoice(planRow(page, bench.id), true);
+    await setSupersetChoice(planRow(page, row.id), true);
+    const link = page.waitForResponse(response => new URL(response.url()).pathname === '/api/superset/link');
+    await page.locator('#link-superset-btn').click();
+    expect((await link).ok()).toBe(true);
+    await expect(details(page, bench.id)).toHaveAttribute('aria-expanded', 'false');
+    await expect(details(page, row.id)).toHaveAttribute('aria-expanded', 'false');
+
+    await setDetails(page, squat.id, true);
+    await planRow(page, squat.id).locator('.execution-style-cell .badge').click();
+    const picker = page.locator('.execution-style-picker');
+    await picker.getByText('AMRAP', { exact: true }).click();
+    const style = page.waitForResponse(response => new URL(response.url()).pathname === '/api/execution_style' &&
+      response.request().method() === 'POST');
+    await picker.getByRole('button', { name: 'Apply' }).click();
+    const saved = await style;
+    expect(saved.ok()).toBe(true);
+    expect(saved.request().postDataJSON()).toMatchObject({ exercise_id: squat.id, execution_style: 'amrap' });
+    await expect(details(page, squat.id)).toHaveAttribute('aria-expanded', 'false');
+
+    await setDetails(page, squat.id, true);
+    const swap = page.waitForResponse(response => new URL(response.url()).pathname === '/replace_exercise');
+    await planRow(page, squat.id).getByRole('button', { name: 'Swap exercise' }).click();
+    const swapped = await swap;
+    expect(swapped.ok()).toBe(true);
+    expect(swapped.request().postDataJSON()).toEqual({ id: squat.id, strategy: 'ai' });
+    await expect.poll(async () => (await planData(page.request)).find(record => record.id === squat.id)?.exercise)
+      .not.toBe(SQUAT);
+    await expect(details(page, squat.id)).toHaveAttribute('aria-expanded', 'true');
+
+    const field = planRow(page, squat.id).locator('[data-field="sets"]');
+    await field.getByRole('button').click();
+    const editor = field.getByRole('spinbutton');
+    await editor.fill('4');
+    const update = page.waitForResponse(response => new URL(response.url()).pathname === '/update_exercise');
+    await editor.press('Enter');
+    expect((await update).ok()).toBe(true);
+    await expect(field).toHaveText('4');
+    await expect(details(page, squat.id)).toHaveAttribute('aria-expanded', 'true');
+
+    const removed = page.waitForResponse(response => new URL(response.url()).pathname === '/remove_exercise');
+    await planRow(page, squat.id).getByRole('button', { name: 'Remove' }).click();
+    const deletion = await removed;
+    expect(deletion.ok()).toBe(true);
+    expect(deletion.request().postDataJSON()).toEqual({ id: squat.id });
+    await expectToast(page, /Exercise removed successfully/);
+    await expect(planRow(page, squat.id)).toHaveCount(0);
+  });
+});
+
+test.describe('Plan redesign characterization', () => {
+  test('returns to All when the selected routine loses its last exercise', async ({ page }) => {
+    await addPlanRow(page.request, ROUTINE_A, SQUAT);
+    await addPlanRow(page.request, ROUTINE_B, DEADLIFT);
+    await loadPlan(page);
+    await routineTab(page, ROUTINE_A).click();
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT]);
+    const deleted = page.waitForResponse(response => new URL(response.url()).pathname === '/remove_exercise');
+    await planRows(page).getByRole('button', { name: 'Remove' }).click();
+    expect((await deleted).ok()).toBe(true);
+    await expect(routineTab(page, ROUTINE_A)).toHaveCount(0);
+    await expect(routineTab(page, 'all')).toHaveAttribute('aria-selected', 'true');
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([DEADLIFT]);
+  });
+});
+
+test.describe('Plan redesign acceptance', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+  });
+
+  test('phone Add exercise preserves cascade, validation, estimate request, hidden-routine toast and control values', async ({ page }) => {
+    await addPlanRow(page.request, ROUTINE_A, BENCH);
+    await loadPlan(page);
+    await expect(addPanel(page), 'phone Add exercise is in the dedicated panel').toBeVisible();
+    const routine = page.locator('#routine');
+    const add = page.locator('#add_exercise_btn');
+    await expect(routine).toHaveValue('');
+    await add.click();
+    await expectToast(page, 'Please select: Routine and Exercise');
+
+    await page.locator('#routine-env').selectOption('GYM');
+    await page.locator('#routine-program').selectOption('Full Body');
+    const catalog = page.waitForResponse(response => new URL(response.url()).pathname.startsWith('/get_routine_exercises/'));
+    await page.locator('#routine-day').selectOption('Workout B');
+    const routineResult = await catalog;
+    expect(routineResult.ok()).toBe(true);
+    expect(decodeURIComponent(new URL(routineResult.url()).pathname)).toBe('/get_routine_exercises/' + ROUTINE_B);
+    await expect(routine).toHaveValue(ROUTINE_B);
+    const estimates = page.waitForResponse(response => new URL(response.url()).pathname === '/api/user_profile/estimate');
+    await page.locator('#exercise').selectOption(SQUAT, { force: true });
+    expect((await estimates).ok()).toBe(true);
+    await waitForWorkoutPlanReady(page);
+
+    const values = { weight: '102.5', sets: '4', rir: '2', rpe: '8', min_rep: '8', max_rep_range: '12' };
+    for (const [id, value] of Object.entries(values)) await page.locator('#' + id).fill(value);
+    const added = page.waitForResponse(response => new URL(response.url()).pathname === '/add_exercise');
+    await add.click();
+    const response = await added;
+    expect(response.ok()).toBe(true);
+    expect(response.request().postDataJSON()).toEqual({
+      exercise: SQUAT, routine: ROUTINE_B, sets: '4', min_rep_range: '8', max_rep_range: '12',
+      rir: 2, rpe: 8, weight: 102.5,
+    });
+    await expectToast(page, 'Exercise added to ' + ROUTINE_B + ". Open that routine's tab to see it.");
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([BENCH]);
+    await routineTab(page, ROUTINE_B).click();
+    await expect(planRows(page).locator('.exercise-name')).toHaveText([SQUAT]);
+
+    await loadPlan(page, true);
+    await waitForWorkoutPlanReady(page);
+    await expect(routine).toHaveValue('');
+    for (const [id, value] of Object.entries(values)) await expect(page.locator('#' + id)).toHaveValue(value);
+    await page.goto(ROUTES.VOLUME_SPLITTER);
+    await page.goBack();
+    await expect(routine).toHaveValue('');
+    await expect(page.locator('#routine-env')).toHaveValue('');
+  });
+
+  test('phone exports the current mode to Excel, follows Backup Center and exports to Workout Log', async ({ page }) => {
+    await planPost(page.request, '/clear_workout_log');
+    try {
+      await addPlanRow(page.request, ROUTINE_A, SQUAT);
+      await loadPlan(page);
+      const more = moreButton(page);
+      await expect(more, 'phone export actions are in the header and More menu').toBeVisible();
+      await setPlanView(page, 'advanced');
+      await more.click();
+      const excel = page.waitForResponse(response => new URL(response.url()).pathname === '/export_to_excel');
+      const downloaded = page.waitForEvent('download');
+      await page.getByRole('menuitem', { name: /Export All Tables/ }).click();
+      const [exported, workbook] = await Promise.all([excel, downloaded]);
+      expect(exported.ok()).toBe(true);
+      expect(exported.request().method()).toBe('GET');
+      expect(new URL(exported.url()).searchParams.get('view_mode')).toBe('advanced');
+      expect(workbook.suggestedFilename()).toMatch(/\.xlsx$/);
+      await expectToast(page, 'Successfully exported to Excel');
+
+      await expect(more).toHaveAttribute('aria-expanded', 'false');
+      await more.click();
+      await page.getByRole('menuitem', { name: /Backup Center/ }).click();
+      await expect(page).toHaveURL(/\/backup\?intent=browse$/);
+
+      await loadPlan(page);
+      const log = page.waitForResponse(response => new URL(response.url()).pathname === '/export_to_workout_log');
+      await planHeader(page).getByRole('button', { name: 'Export to workout log' }).click();
+      const response = await log;
+      expect(response.ok()).toBe(true);
+      expect(response.request().postDataJSON()).toEqual({});
+      await expectToast(page, 'Successfully exported to workout log');
+      await expect(page).toHaveURL(/\/workout_log$/);
+      await expect(page.locator('#workout-log-table tbody .exercise-name')).toHaveText([SQUAT]);
+    } finally {
+      await planPost(page.request, '/clear_workout_log');
+    }
+  });
+
+  test('phone starter generation keeps its payload and Clear Plan resets the six controls', async ({ page }) => {
+    await loadPlan(page);
+    const more = moreButton(page);
+    await expect(more, 'the phone header exposes Starter and Clear Plan from More').toBeVisible();
+    await more.click();
+    await page.getByRole('menuitem', { name: 'Generate Starter Plan' }).click();
+    const generate = page.locator('#generatePlanModal');
+    await expect(generate).toBeVisible();
+    await generate.locator('#gen-training-days').selectOption('3');
+    await generate.locator('#gen-goal').selectOption('hypertrophy');
+    const starter = page.waitForResponse(response => new URL(response.url()).pathname === '/generate_starter_plan');
+    await generate.locator('#generatePlanSubmit').click();
+    const generated = await starter;
+    expect(generated.ok()).toBe(true);
+    expect(generated.request().postDataJSON()).toMatchObject({
+      training_days: 3, goal: 'hypertrophy', overwrite: true,
+      movement_restrictions: null, priority_muscles: null, persist: true,
+    });
+    const result = await generated.json();
+    expect(result.data.total_exercises).toBeGreaterThan(0);
+    await expectToast(page, /Plan generated successfully/);
+    await expect(planRows(page).first()).toBeVisible();
+
+    const defaults = { weight: '25', sets: '3', rir: '3', rpe: '7', min_rep: '6', max_rep_range: '8' };
+    for (const [id, value] of Object.entries(defaults)) await page.locator('#' + id).fill(String(Number(value) + 1));
+    await more.click();
+    await page.getByRole('menuitem', { name: 'Clear Plan' }).click();
+    const clear = page.locator('#clearPlanModal');
+    await expect(clear).toBeVisible();
+    const cleared = page.waitForResponse(response => new URL(response.url()).pathname === '/clear_workout_plan');
+    await clear.locator('#confirmClearPlanBtn').click();
+    const response = await cleared;
+    expect(response.ok()).toBe(true);
+    expect(response.request().postData()).toBeNull();
+    await expectToast(page, /Workout plan cleared successfully/);
+    await expect(planRows(page)).toHaveCount(0);
+    for (const [id, value] of Object.entries(defaults)) await expect(page.locator('#' + id)).toHaveValue(value);
+    expect(await page.evaluate(() => sessionStorage.getItem('hypertrophy_workout_controls_v1'))).toBeNull();
+  });
+
+  test('phone card keeps thumbnail preview and plays and dismisses the curated reference video', async ({ page }) => {
+    await addPlanRow(page.request, ROUTINE_A, BENCH);
+    const [record] = await planData(page.request);
+    const mediaPath = 'Barbell_Bench_Press_-_Medium_Grip/0.jpg';
+    await page.route('**/get_workout_plan', async route => {
+      const response = await route.fetch();
+      const body = await response.json();
+      body.data = body.data.map((row: { id: number }) =>
+        row.id === record.id ? { ...row, media_path: mediaPath, youtube_video_id: 'dQw4w9WgXcQ' } : row);
+      await route.fulfill({ response, json: body });
+    });
+    await page.route('https://www.youtube.com/embed/**', route => route.fulfill({ body: '<!doctype html><title>Video fixture</title>' }));
+    await loadPlan(page);
+    const card = planRow(page, record.id);
+    await expect(card, 'the video is reachable from a closed phone card').toHaveClass(/\bui-record-card\b/);
+    await expect(details(page, record.id)).toHaveAttribute('aria-expanded', 'false');
+    const thumbnail = card.locator('img.exercise-thumbnail');
+    await expect(thumbnail).toHaveAttribute('src', '/static/vendor/free-exercise-db/exercises/' + mediaPath);
+    await thumbnail.hover();
+    await expect(page.locator('#exercise-image-preview')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#exercise-image-preview')).toBeHidden();
+
+    const modal = page.locator('#exerciseVideoModal');
+    await modal.evaluate(element => {
+      element.addEventListener('shown.bs.modal', () => element.setAttribute('data-test-opened', ''), { once: true });
+    });
+    await card.locator('[data-action="play-video"]').click();
+    await expect(modal).toHaveAttribute('data-test-opened', '');
+    await expect(page.locator('#exerciseVideoIframe')).toHaveAttribute('src', /^https:\/\/www\.youtube\.com\/embed\/dQw4w9WgXcQ/);
+    await modal.getByRole('button', { name: 'Close' }).click();
+    await expect(modal).toBeHidden();
+    await expect(page.locator('#exerciseVideoIframe')).toHaveAttribute('src', /^(|about:blank)$/);
+  });
+
+  test.describe('swap errors', () => {
+    test.use({
+      consoleAllowlist: { expected: [
+        {
+          match: 'Failed to load resource: the server responded with a status of 400 (Bad Request)',
+          reason: 'Chromium reports the deliberate missing-metadata response',
+        },
+        {
+          match: /^\[req_[0-9a-z_]+\] API Error: \{url: \/replace_exercise, method: POST, status: 400, error: Object\}$/,
+          reason: 'fetch-wrapper.js reports the deliberately injected 400 response',
+        },
+        {
+          match: /^\[req_[0-9a-z_]+\] API Error \(final\): \{url: \/replace_exercise, method: POST, error: Object\}$/,
+          reason: 'fetch-wrapper.js reports the final failure for the injected 400 response',
+        },
+        {
+          match: /^Error swapping exercise: \{code: VALIDATION_ERROR, message: Exercise is missing muscle group or equipment metadata, requestId: req_[0-9a-z_]+\}$/,
+          reason: 'workout-plan-replacement.js logs the rejected swap before showing its toast',
+        },
+      ] },
+    });
+
+    test('phone card reports each established swap rejection and keeps its exercise', async ({ page }) => {
+      await addPlanRow(page.request, ROUTINE_A, SQUAT);
+      const [record] = await planData(page.request);
+      await loadPlan(page);
+      const card = planRow(page, record.id);
+      await expect(card, 'Swap is available immediately on the phone card').toHaveClass(/\bui-record-card\b/);
+      const cases = [
+        {
+          status: 200, reason: 'no_candidates', code: 'NO_CANDIDATES',
+          message: 'No alternative exercises found for Quadriceps with Barbell',
+          toast: 'No alternative found for this muscle/equipment.', severity: /bg-warning/,
+        },
+        {
+          status: 200, reason: 'duplicate', code: 'DUPLICATE',
+          message: 'All candidate exercises are already in this routine',
+          toast: 'All alternatives are already in this routine.', severity: /bg-warning/,
+        },
+        {
+          status: 400, reason: 'missing_metadata', code: 'VALIDATION_ERROR',
+          message: 'Exercise is missing muscle group or equipment metadata',
+          toast: 'Exercise is missing muscle group or equipment metadata', severity: /bg-danger/,
+        },
+      ];
+      const posted: object[] = [];
+      for (const { status, reason, code, message, toast, severity } of cases) {
+        await page.route('**/replace_exercise', async route => {
+          posted.push(route.request().postDataJSON());
+          await route.fulfill({ status, json: { ok: false, status: 'error', message, error: { code, reason, message } } });
+        }, { times: 1 });
+        await card.getByRole('button', { name: 'Swap exercise' }).click();
+        await expectToast(page, toast);
+        await expect(page.locator('#liveToast')).toHaveClass(severity);
+        await expect(card.locator('.exercise-name')).toHaveText(SQUAT);
+      }
+      expect(posted).toEqual(cases.map(() => ({ id: record.id, strategy: 'ai' })));
+      expect((await planData(page.request))[0].exercise).toBe(SQUAT);
+    });
   });
 });

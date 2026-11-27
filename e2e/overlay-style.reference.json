@@ -1,0 +1,1458 @@
+[
+  {
+    "id": "eraseDataModal",
+    "width": 390,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 8,
+        "right": 382,
+        "width": 374
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "rgba(255, 255, 255, 0.5)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Yes, Erase Everything",
+          "height": 40,
+          "fill": "color(srgb 0.893333 0.251373 0.251373)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteGoalModal",
+    "width": 390,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 8,
+        "right": 382,
+        "width": 374
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "color(srgb 0.893333 0.251373 0.251373)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "goalSettingModal",
+    "width": 390,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Close",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Save Goal",
+          "height": 40,
+          "fill": "rgb(76, 110, 245)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteVolumePlanModal",
+    "width": 390,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 8,
+        "right": 382,
+        "width": 374
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "color(srgb 0.893333 0.251373 0.251373)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "eraseDataModal",
+    "width": 390,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 8,
+        "right": 382,
+        "width": 374
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "rgba(255, 255, 255, 0.5)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Yes, Erase Everything",
+          "height": 40,
+          "fill": "rgb(168, 79, 73)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteGoalModal",
+    "width": 390,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 8,
+        "right": 382,
+        "width": 374
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "rgb(168, 79, 73)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "goalSettingModal",
+    "width": 390,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Close",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Save Goal",
+          "height": 40,
+          "fill": "rgb(82, 100, 173)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteVolumePlanModal",
+    "width": 390,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 8,
+        "right": 382,
+        "width": 374
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 28,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "rgb(168, 79, 73)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "eraseDataModal",
+    "width": 1440,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "rgba(255, 255, 255, 0.5)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Yes, Erase Everything",
+          "height": 40,
+          "fill": "color(srgb 0.893333 0.251373 0.251373)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteGoalModal",
+    "width": 1440,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "color(srgb 0.893333 0.251373 0.251373)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "goalSettingModal",
+    "width": 1440,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Close",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Save Goal",
+          "height": 40,
+          "fill": "rgb(76, 110, 245)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteVolumePlanModal",
+    "width": 1440,
+    "theme": "light",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(255, 255, 255, 0.55)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(255, 255, 255, 0.65)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(167, 175, 200, 0.35) 8px 8px 20px 0px, rgba(255, 255, 255, 0.9) -8px -8px 20px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(15, 18, 32)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(15, 18, 32)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 1 1 1 / 0.78)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.16)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(244, 246, 250)",
+          "image": "none",
+          "color": "rgb(15, 18, 32)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "color(srgb 0.893333 0.251373 0.251373)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "eraseDataModal",
+    "width": 1440,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "rgba(255, 255, 255, 0.5)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Yes, Erase Everything",
+          "height": 40,
+          "fill": "rgb(168, 79, 73)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteGoalModal",
+    "width": 1440,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "rgb(168, 79, 73)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "goalSettingModal",
+    "width": 1440,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Close",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Save Goal",
+          "height": 40,
+          "fill": "rgb(82, 100, 173)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "deleteVolumePlanModal",
+    "width": 1440,
+    "theme": "dark",
+    "style": {
+      "dialog": {
+        "left": 470,
+        "right": 970,
+        "width": 500
+      },
+      "content": {
+        "background-color": "rgba(25, 32, 40, 0.94)",
+        "background-image": "none",
+        "backdrop-filter": "blur(18px) saturate(1.8)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgba(185, 203, 224, 0.16)",
+        "border-top-left-radius": "8px",
+        "box-shadow": "rgba(0, 0, 0, 0.32) 0px 10px 28px 0px, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px",
+        "padding-top": "0px"
+      },
+      "header": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "20px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "title": {
+        "color": "rgb(243, 246, 250)",
+        "font-size": "20px",
+        "line-height": "30px",
+        "font-weight": "500"
+      },
+      "body": {
+        "background-color": "rgba(0, 0, 0, 0)",
+        "background-image": "none",
+        "backdrop-filter": "none",
+        "border-top-width": "0px",
+        "border-top-style": "none",
+        "border-top-color": "rgb(243, 246, 250)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "32px"
+      },
+      "footer": {
+        "background-color": "color(srgb 0.0980392 0.12549 0.156863 / 0.88)",
+        "background-image": "none",
+        "backdrop-filter": "blur(8px)",
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "color(srgb 0.298039 0.431373 0.960784 / 0.18)",
+        "border-top-left-radius": "0px",
+        "box-shadow": "none",
+        "padding-top": "24px"
+      },
+      "controls": [
+        {
+          "text": "Close",
+          "height": 29,
+          "fill": "rgba(0, 0, 0, 0)",
+          "image": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e\")",
+          "color": "rgb(0, 0, 0)",
+          "footer": false,
+          "close": true
+        },
+        {
+          "text": "Cancel",
+          "height": 40,
+          "fill": "rgb(25, 32, 40)",
+          "image": "none",
+          "color": "rgb(243, 246, 250)",
+          "footer": true,
+          "close": false
+        },
+        {
+          "text": "Delete",
+          "height": 40,
+          "fill": "rgb(168, 79, 73)",
+          "image": "none",
+          "color": "rgb(255, 255, 255)",
+          "footer": true,
+          "close": false
+        }
+      ]
+    }
+  }
+]
