@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 
@@ -399,6 +400,7 @@ export function visualScreenshotOptions(page: Page): {
   animations: 'disabled';
   caret: 'hide';
   fullPage: true;
+  stylePath: string;
   mask: Locator[];
   maxDiffPixels: number;
   threshold: 0;
@@ -407,6 +409,7 @@ export function visualScreenshotOptions(page: Page): {
     fullPage: true,
     animations: 'disabled',
     caret: 'hide',
+    stylePath: path.join(__dirname, 'full-page-screenshot.css'),
     mask: [
       page.locator('#auto-backup-banner'),
       page.locator('.timestamp, [data-volatile]'),

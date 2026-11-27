@@ -1,0 +1,6 @@
+/* The former fixed header's backdrop filter put text on a grayscale raster
+   path. Preserve that path only while comparing full-page screenshots. The
+   opaque header covers the sampled backdrop, including its saturation. */
+#navbar {
+  backdrop-filter: saturate(1.01) !important;
+}
