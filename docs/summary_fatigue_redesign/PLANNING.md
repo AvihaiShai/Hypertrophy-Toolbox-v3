@@ -244,6 +244,16 @@ The [filtered Session and failure-state control](../../artifacts/design-736/step
 
 - [x] The owner's Step 4 Gate 0 reply covers D13, D14, D15 and D18.
 - [x] Three original group reviews, supplemental ballots, all dispositions and PM continuity are recorded.
-- [ ] Required reviewers verify the revisions to their blocking findings.
-- [ ] Manager records delegated Gate 1 after verification. Implementation has not been authorized by this document.
+- [x] All three original reviewers verified their blocking findings against `c1723c99259ae936d35aac342143348a9544e203` and cleared the revised plan.
+- [x] Gate 1 approved by Astra under the owner's delegation of 2026-11-27. Acceptance tests may now be written and run against the pinned control before production changes.
 - [ ] Red/green implementation evidence, final manual comparison, approved baseline regeneration and delegated Gate 2 remain pending.
+
+### Gate 1 reviewer verification
+
+| Reviewer | Verified on c1723c99 |
+|---|---|
+| Architecture, `/root/summary_arch` | AR1, AR2 and AR3 resolved in v2. Both Summary routes distinguish failed projection, Session preserves URL scope across all three refresh paths, and compiled Fatigue plus Plan/Profile scoping are checked. Q1–Q5 accepted. |
+| Test strategy, `/root/summary_test` | Passed v2. Confirmed independent empty/error oracles, actual touch/keyboard/link behavior, three distinct logged-period totals, visual and meter parity, and two-routine/filtered warning coverage. |
+| Product risk, `/root/summary_product` | P1–P4 closed at plan stage. Failure and window copy, display of warning severity and target position, and the scope of Session rows and badge are specified and have a control. Q1–Q5 accepted. |
+
+The manager checked each vote against the pushed revision, the dated scratch captures, and the prototype digest. No plan blocker remains. Gate 2 requires candidate evidence.
