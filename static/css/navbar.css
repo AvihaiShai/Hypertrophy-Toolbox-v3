@@ -4,6 +4,12 @@
     --nav-height: 64px;
   }
 
+  @media (max-width: 1359.98px) {
+    :root {
+      --nav-height: 56px;
+    }
+  }
+
   .navbar {
     --nav-current: color-mix(in srgb, var(--accent) 74%, var(--ink-1));
     --focus-ring-color: var(--nav-current);
@@ -175,10 +181,6 @@
 }
 
 @media (max-width: 1359.98px) {
-  #navbar > .container-fluid {
-    min-height: 55px;
-  }
-
   #navbar .navbar-toggler {
     flex: none;
     width: 45px;

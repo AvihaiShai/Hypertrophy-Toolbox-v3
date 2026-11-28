@@ -158,7 +158,7 @@ def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
         {"layer": "workout-dropdowns", "openLine": 6, "closeLine": 97}
     ]
     assert layers["spans"]["navbar.css"] == [
-        {"layer": "navbar", "openLine": 2, "closeLine": 16}
+        {"layer": "navbar", "openLine": 2, "closeLine": 22}
     ]
 
 
