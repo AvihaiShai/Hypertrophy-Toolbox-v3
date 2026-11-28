@@ -1,15 +1,10 @@
 {% macro method_selector(update_function_name) %}
 <div class="method-selector">
-    <div class="mb-3">
-        <label for="contribution-mode" class="form-label">Muscle Contribution Mode</label>
-        <select id="contribution-mode" class="form-select input-calm-inset" onchange="{{ update_function_name }}()">
-            <option value="total" selected>Total (Primary + Secondary + Tertiary)</option>
-            <option value="direct">Direct Only (Primary Muscle Only)</option>
-        </select>
-        <small class="form-text text-muted">
-            <strong>Total:</strong> Counts volume from all muscles worked (Primary 100%, Secondary 50%, Tertiary 25%).<br>
-            <strong>Direct Only:</strong> Only counts sets where the muscle is the primary target.
-        </small>
-    </div>
+    <label for="contribution-mode">Muscle Contribution Mode</label>
+    <select id="contribution-mode" class="ui-select" aria-describedby="contribution-help" onchange="{{ update_function_name }}()">
+        <option value="total" selected>Total (Primary + Secondary + Tertiary)</option>
+        <option value="direct">Direct Only (Primary Muscle Only)</option>
+    </select>
+    <p id="contribution-help" class="form-text">Total credits primary, secondary and tertiary muscles. Direct Only counts the primary muscle.</p>
 </div>
 {% endmacro %}

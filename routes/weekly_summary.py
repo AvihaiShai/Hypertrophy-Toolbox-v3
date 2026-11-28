@@ -83,21 +83,6 @@ def weekly_summary():
         category_results = calculate_exercise_categories()
         isolated_muscles_stats = calculate_isolated_muscles_stats()
 
-        # Fatigue badge (Phase 1, D3+D10): independent of counting_mode and
-        # contribution_mode; reads planned user_selection rows directly.
-        # BRAINSTORM §1 non-goal: the badge must never block the page, so
-        # any failure here degrades to an empty-state badge.
-        fatigue_score = 0.0
-        fatigue_band = "light"
-        fatigue_period_label = "Planned weekly volume"
-        try:
-            fatigue_week = compute_weekly_fatigue()
-            fatigue_score = fatigue_week.score
-            fatigue_band = fatigue_week.band
-        except Exception:
-            logger.exception("Fatigue badge computation failed; falling back to empty state")
-            fatigue_period_label = "Projected fatigue unavailable"
-
         if is_xhr_request():
             return jsonify(success_response(data={
                 "weekly_summary": results,
@@ -109,6 +94,22 @@ def weekly_summary():
                 }
             }))
 
+        # Fatigue badge (Phase 1, D3+D10): independent of counting_mode and
+        # contribution_mode; reads planned user_selection rows directly.
+        # A failed projection must leave the independently loaded tables usable.
+        fatigue_score = 0.0
+        fatigue_band = "light"
+        fatigue_period_label = "Planned weekly volume"
+        try:
+            fatigue_week = compute_weekly_fatigue()
+            fatigue_score = fatigue_week.score
+            fatigue_band = fatigue_week.band
+            fatigue_state = "scored" if fatigue_week.session_count else "empty"
+        except Exception:
+            logger.exception("Fatigue badge computation failed")
+            fatigue_state = "unavailable"
+            fatigue_period_label = "Projected fatigue unavailable"
+
         return render_template(
             "weekly_summary.html",
             weekly_summary=results,
@@ -117,6 +118,7 @@ def weekly_summary():
             counting_mode=counting_mode.value,
             contribution_mode=contribution_mode.value,
             fatigue_score=fatigue_score,
+            fatigue_state=fatigue_state,
             fatigue_band=fatigue_band,
             fatigue_period_label=fatigue_period_label,
             get_volume_class=get_volume_class,

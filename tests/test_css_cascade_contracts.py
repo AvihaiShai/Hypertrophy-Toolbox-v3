@@ -205,16 +205,18 @@ def test_shared_frame_and_route_surfaces_have_one_owner() -> None:
 
     assert log_start not in routes["log"]
     assert routes["log"].count(summary_start) == 0
-    assert routes["weekly"].count(summary_start) == 1
-    assert routes["session"].count(summary_start) == 1
+    assert summary_start not in routes["weekly"]
+    assert summary_start not in routes["session"]
+    assert ".ui-summary-table" in components
     assert routes["weekly"].count(log_start) == 0
     assert routes["session"].count(log_start) == 0
     assert routes["plan"].count(log_start) == 0
     assert routes["plan"].count(summary_start) == 0
 
-    # The weekly-only filter remains route-owned; WP4.2 does not delete it.
-    assert "#isolated_muscles_filter" in routes["weekly"]
-    assert "#isolated_muscles_filter" not in routes["session"]
+    # The Summary selector controls muscle contribution. The isolated-muscle
+    # catalog filter lives on Plan and has no styling in either Summary bundle.
+    for name in ("weekly", "session"):
+        assert "#isolated_muscles_filter" not in routes[name]
 
 
 def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None:
@@ -251,8 +253,9 @@ def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None
     assert ".collapsible-frame" not in log_js
     assert 'class="workout-log-frame"' in log
     assert "PAGE_WORKOUT_LOG: '.workout-log-frame'" in fixtures
-    assert 'class="summary-frame frame-calm-glass"' in weekly
-    assert 'class="summary-frame frame-calm-glass"' in session
+    for summary in (weekly, session):
+        assert "{% block main_class %}ui-page-frame{% endblock %}" in summary
+        assert '{% include "partials/_summary_panels.html" %}' in summary
     assert 'class="progression-plan-container"' in progression
     for route_hook in ('id="workout"', "workout-log-page", "summary-frame"):
         assert route_hook not in progression
@@ -625,151 +628,32 @@ def test_welcome_tokens_extract_exact_values_without_dead_custom_properties() ->
     assert 'id="welcome" data-page="welcome"' in template
 
 
-def test_session_summary_tokens_extract_exact_values_value_preserving() -> None:
-    base = (ROOT / "templates" / "base.html").read_text(encoding="utf-8")
-    template = (ROOT / "templates" / "session_summary.html").read_text(
-        encoding="utf-8"
-    )
-    css = (ROOT / "static" / "css" / "pages-session-summary.css").read_text(
-        encoding="utf-8"
-    )
-
-    # Route bundle loads in the page_css block, after a11y and before the late
-    # motion/theme boundary; no document-wide :has() scope is introduced.
-    assert base.index("css/a11y.css") < base.index("{% block page_css %}")
-    assert base.index("{% block page_css %}") < base.index("css/motion.css")
-    assert base.index("css/motion.css") < base.index("css/theme-dark.css")
-    assert "html:has(" not in css
-
-    # New page-local semantic tokens: each defined once and consumed by the exact
-    # count of the repeated literal it replaced. Distinct roles keep distinct
-    # tokens even when values coincide (--ss-label-ink vs --ss-dark-border-strong
-    # are both #495057 but light label ink vs dark border).
-    for token, consumers in (
-        ("--ss-table-border", 6),
-        ("--ss-label-ink", 2),
-        ("--ss-dark-ink", 9),
-        ("--ss-dark-ink-bright", 12),
-        ("--ss-dark-border", 5),
-        ("--ss-dark-border-strong", 6),
-        ("--ss-dark-surface", 3),
-        ("--ss-dark-surface-deep", 2),
-        ("--ss-dark-elevated", 3),
-        ("--ss-dark-cell", 2),
-        ("--ss-dark-hover", 2),
-    ):
-        assert css.count(f"{token}:") == 1
-        assert css.count(f"var({token})") == consumers
-
-    # Every extracted literal now survives only in its single token definition;
-    # #495057 backs two distinct-role tokens so it appears exactly twice.
-    for literal in (
-        "#e0e0e0",
-        "#404040",
-        "#d0d0d0",
-        "#212529",
-        "#343a40",
-        "#2d2d2d",
-        "#3d3d3d",
-        "#1a1a1a",
-    ):
-        assert css.count(literal) == 1
-    assert css.count("#495057") == 2
-    assert "--ss-dark-ink-bright: #fff;" in css
-    assert "color: #fff;" not in css
-    assert "color: #fff !important;" not in css
-
-    # Shared volume-badge classification colors and the light striping/glass
-    # literals are deliberately left untouched (single-use / shared semantics).
-    for shared in ("#dc3545", "#fd7e14", "#198754", "#6f42c1"):
-        assert shared in css
-    assert "background-color: #ffffff !important;" in css
-    assert css.count("@media") == 9
-    assert 'id="session-summary-container"' in template
+def test_session_summary_warning_paint_is_scoped_to_status_pills() -> None:
+    css = (ROOT / "static/css/pages-session-summary.css").read_text(encoding="utf-8")
+    rules = re.findall(r"([^{}]+)\{([^{}]+)\}", COMMENT_RE.sub("", css))
+    expected = {"ok": "--ui-achieved", "borderline": "--ui-pending", "excessive": "--ui-danger"}
+    assert len(rules) == len(expected)
+    for selector, declarations in rules:
+        warning = re.fullmatch(r'\.session-warning\[data-warning="(\w+)"\]', selector.strip())
+        assert warning and f"var({expected[warning[1]]})" in declarations
+        assert "!important" not in declarations
 
 
-def test_weekly_summary_tokens_extract_values_and_drop_dead_session_arms() -> None:
-    base = (ROOT / "templates" / "base.html").read_text(encoding="utf-8")
-    template = (ROOT / "templates" / "weekly_summary.html").read_text(
-        encoding="utf-8"
-    )
-    css = (ROOT / "static" / "css" / "pages-weekly-summary.css").read_text(
-        encoding="utf-8"
-    )
-
-    # Route bundle loads in the page_css block, after a11y and before the late
-    # motion/theme boundary; no document-wide :has() scope is introduced.
-    assert base.index("css/a11y.css") < base.index("{% block page_css %}")
-    assert base.index("{% block page_css %}") < base.index("css/motion.css")
-    assert base.index("css/motion.css") < base.index("css/theme-dark.css")
-    assert "html:has(" not in css
-
-    # New page-local semantic tokens mirror the WP4.3f Session Summary set (the
-    # two bundles were byte-identical for this region). Each is defined once and
-    # consumed by the exact count of the repeated literal it replaced. Distinct
-    # roles keep distinct tokens even when values coincide (--wk-label-ink vs
-    # --wk-dark-border-strong are both #495057 but light label ink vs dark
-    # border, split by CSS property).
-    for token, consumers in (
-        ("--wk-table-border", 6),
-        ("--wk-label-ink", 2),
-        ("--wk-dark-ink", 9),
-        ("--wk-dark-ink-bright", 12),
-        ("--wk-dark-border", 5),
-        ("--wk-dark-border-strong", 6),
-        ("--wk-dark-surface", 3),
-        ("--wk-dark-surface-deep", 2),
-        ("--wk-dark-elevated", 3),
-        ("--wk-dark-cell", 2),
-        ("--wk-dark-hover", 2),
-    ):
-        assert css.count(f"{token}:") == 1
-        assert css.count(f"var({token})") == consumers
-
-    # Every extracted literal now survives only in its single token definition,
-    # except two intentional keeps: #d0d0d0 also backs the weekly-only
-    # #isolated_muscles_filter form-control border (a distinct single-use role),
-    # and #495057 backs two distinct-role tokens.
-    for literal in (
-        "#e0e0e0",
-        "#404040",
-        "#212529",
-        "#343a40",
-        "#2d2d2d",
-        "#3d3d3d",
-        "#1a1a1a",
-    ):
-        assert css.count(literal) == 1
-    assert css.count("#d0d0d0") == 2
-    assert css.count("#495057") == 2
-    assert "--wk-dark-ink-bright: #fff;" in css
-    assert "color: #fff;" not in css
-    assert "color: #fff !important;" not in css
-
-    # Finding (a): the dead #session-summary-* selector arms — those ids render
-    # only on session_summary.html — were dropped; the live #weekly-summary
-    # arms and every declaration remain.
-    assert "#session-summary" not in css
-    assert "#weekly-summary-container" in css
-    assert 'id="weekly-summary-container"' in template
-
-    # The weekly-only filter block stays route-owned and value-untouched
-    # (single-use literals: form border #d0d0d0, label ink #505050).
-    assert "#isolated_muscles_filter" in css
-    assert css.count("#505050") == 1
-
-    # Finding (b): the two parallel dark table systems both retain live owners
-    # (audited in both themes), so their single-use dark literals are left
-    # untouched rather than folded into tokens.
-    for kept_dark in ("#252525", "#2a2a2a", "#2c3034", "#b0b0b0"):
-        assert kept_dark in css
-
-    # Shared volume-badge classification colors and the light striping literal
-    # are deliberately left untouched (shared semantics); breakpoints preserved.
-    for shared in ("#dc3545", "#fd7e14", "#198754", "#6f42c1"):
-        assert shared in css
-    assert "background-color: #ffffff !important;" in css
-    assert css.count("@media") == 9
+def test_weekly_summary_pattern_and_shared_record_styles_remain_separate() -> None:
+    css = (ROOT / "static/css/pages-weekly-summary.css").read_text(encoding="utf-8")
+    panels = (ROOT / "templates/partials/_summary_panels.html").read_text(encoding="utf-8")
+    shared = (ROOT / "static/css/components.css").read_text(encoding="utf-8")
+    for retired in ("!important", "html:has(", ".frame-calm-glass", ".table-striped"):
+        assert retired not in css
+    assert ".pattern-groups { grid-template-columns:" in css
+    assert '.summary-page .method-selector' in shared
+    assert 'class="ui-summary-table"' in panels
+    assert 'role="region"' in panels and 'tabindex="0"' in panels
+    for level, color in (("low", "danger"), ("medium", "orange"), ("high", "success"), ("ultra", "purple")):
+        assert f".summary-page .{level}-volume {{ --volume-color: var(--bs-{color}); }}" in shared
+    assert ".ui-summary-table tbody tr" in shared and "border: 1px solid var(--ink-3)" in shared
+    assert ".ui-summary-table th, .ui-summary-table td" in shared
+    assert "border-bottom: 1px solid var(--ink-3)" in shared
 
 
 def test_user_profile_tokens_extract_repeated_operands_value_preserving() -> None:

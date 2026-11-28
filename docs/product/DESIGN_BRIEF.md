@@ -82,12 +82,12 @@ is how reduced-motion overrides and dark theming win over page-specific rules wi
 | `tokens.css` | 514 | Design tokens and responsive bands |
 | `base.css` | 79 | Body background and base typography |
 | `layout.css` | 1,800 | Containers, grids, page scaffolding |
-| `components.css` | 4,576 | Buttons, cards, tables, badges, fields and overlays |
+| `components.css` | 4,677 | Buttons, cards, tables, badges, fields and overlays |
 | `navbar.css` | 248 | Navigation, its panels and utilities |
 | `a11y.css` | 551 | Focus, scale capability, contrast and screen-reader affordances |
 | `motion.css` | 91 | Transitions and the reduced-motion override |
 | `theme-dark.css` | 471 | Shared dark-mode overrides |
-| `pages-*.css` (10) | 8,616 total | Route-specific styling. The Plan bundle accounts for 1,999 lines |
+| `pages-*.css` (10) | 7,389 total | Route-specific styling. The Plan bundle accounts for 1,999 lines |
 
 ---
 
@@ -100,11 +100,11 @@ compiled Bootstrap bundle.
 | Token | Light | Dark | Role | `var()` refs |
 |---|---|---|---|---:|
 | `--surface-0` | `#eef1f6` | `#101419` | Page background / inset dark controls | 12 |
-| `--surface-1` | `#f4f6fa` | `#192028` | Recessed / secondary surface | 72 |
+| `--surface-1` | `#f4f6fa` | `#192028` | Recessed / secondary surface | 74 |
 | `--surface-2` | `#ffffff` | `#26313d` | Raised surface for cards, panels and navigation | 79 |
-| `--ink-1` | `#0f1220` | `#f3f6fa` | Primary text | 144 |
-| `--ink-2` | `#4a5170` | `#c3ccd7` | Secondary text, table headers | 123 |
-| `--ink-3` | `#8a90a8` | `#96a2b1` | Tertiary text, hints | 71 |
+| `--ink-1` | `#0f1220` | `#f3f6fa` | Primary text | 150 |
+| `--ink-2` | `#4a5170` | `#c3ccd7` | Secondary text, table headers | 133 |
+| `--ink-3` | `#8a90a8` | `#96a2b1` | Tertiary text, hints | 74 |
 | `--accent` | `#4c6ef5` | `#4c6ef5` | Single accent — indigo | 164 |
 | `--accent-ink` | `#ffffff` | `#ffffff` | Text on accent | 7 |
 | `--success` | `#10b981` | `#10b981` | Positive state | 6 |
@@ -275,6 +275,22 @@ you see comes from padding and line-height, not from that token; and the **top t
 ---
 
 ## Components
+
+### Plan Volume Summary and Session Summary
+
+Both pages use the shared page frame, a 24 / 32 px title at every width and a secondary
+workbook export action. The projected-fatigue panel precedes muscle group volume,
+exercise categories and the conditional isolated-muscle panel. Movement pattern
+coverage follows on Weekly. The contribution selector, visible four-band legend and
+keyboard-operated definitions and formula disclosure sit with the volume table.
+
+Below 768 px each table row becomes a labelled card with an 8 px corner and a 1 px
+`--ink-3` boundary. From 768 px the same cells sit beneath column headers in a
+focusable region, with a 1 px row divider. Numeric data uses right-aligned 14 px
+tabular Inter. Headers and phone field labels use 12 px Inter. Status text accompanies
+the danger, orange, success and purple swatches. Session warnings use a second pill
+on the ordinary row surface. Weekly names each warning's priority and each routine's
+position relative to its returned target range.
 
 ### Workout Plan redesign
 

@@ -1,56 +1,27 @@
-{#
-  Fatigue Meter badge partial (Phase 1).
-
-  Inputs (passed from the parent template via include-with-context):
-    fatigue_score        : float — projected fatigue from utils.fatigue.aggregate_*.
-    fatigue_band         : str   — one of light / moderate / heavy / very_heavy.
-                                   Drives the CSS class fatigue-{band}.
-    fatigue_period_label : str   — short label naming the period ("Routine: Push A",
-                                   "Planned weekly volume", etc.).
-
-  Copy is descriptive only; keep it informational and non-clinical.
-  Color tokens land in scss/_fatigue.scss.
-#}
-{% set _band = (fatigue_band or 'light') | replace('_', '-') %}
-{% set _empty = (fatigue_score is none) or (fatigue_score == 0) %}
-<section class="fatigue-badge fatigue-{{ _band }} mb-3"
-         role="status"
-         aria-label="Projected fatigue for {{ fatigue_period_label or 'planned program' }}">
+<section class="ui-panel fatigue-badge fatigue-{{ fatigue_band | replace('_', '-') }}"
+         data-projection-state="{{ fatigue_state }}" data-visual-surface
+         role="status" aria-labelledby="fatigue-badge-heading">
     <div class="fatigue-badge__head">
-        <span class="fatigue-badge__eyebrow">Projected fatigue</span>
-        <button type="button"
-                class="fatigue-badge__info-btn"
-                data-bs-toggle="tooltip"
-                data-bs-placement="left"
-                data-bs-html="true"
-                aria-label="What does projected fatigue mean?"
-                title="A planning estimate based on movement pattern, rep range, and Reps In Reserve. Higher bands mean the plan sits above a typical easy workload. Phase 1 reads planned routines, not logged sets, and ignores the Counting Mode toggle.">
+        <h2 id="fatigue-badge-heading" class="fatigue-badge__eyebrow">Projected fatigue</h2>
+        <button type="button" class="fatigue-badge__info-btn" data-bs-toggle="tooltip"
+                data-bs-placement="auto" aria-label="About projected fatigue"
+                title="A planning estimate based on movement pattern, rep range and Reps In Reserve. Higher bands indicate a higher planned workload.">
             <i class="fas fa-info-circle" aria-hidden="true"></i>
-            <span class="visually-hidden">About projected fatigue</span>
         </button>
     </div>
     <div class="fatigue-badge__body">
         <div class="fatigue-badge__readout">
-            {% if _empty %}
-                <span class="fatigue-badge__score" aria-hidden="true">—</span>
-                <span class="fatigue-badge__band fatigue-badge__band--empty">
-                    No planned exercises yet
-                </span>
-            {% else %}
+            {% if fatigue_state == 'scored' %}
                 <span class="fatigue-badge__score">{{ '%.0f' | format(fatigue_score) }}</span>
-                <span class="fatigue-badge__band">
-                    {{ (fatigue_band or 'light') | replace('_', ' ') }}
-                </span>
+                <span class="fatigue-badge__band">{{ fatigue_band | replace('_', ' ') }}</span>
+            {% else %}
+                <span class="fatigue-badge__score" aria-hidden="true">—</span>
+                <span class="fatigue-badge__band fatigue-badge__band--empty">{{ 'Projected fatigue unavailable' if fatigue_state == 'unavailable' else 'No planned exercises yet' }}</span>
             {% endif %}
         </div>
-        <div class="fatigue-badge__period">
-            {{ fatigue_period_label or 'Planned program' }}
-        </div>
+        {% if fatigue_state != 'unavailable' %}<p class="fatigue-badge__period">{{ fatigue_period_label }}</p>{% endif %}
     </div>
-    <a class="fatigue-badge__breakdown-link"
-       href="{{ url_for('fatigue.fatigue_page') }}"
-       data-testid="fatigue-badge-breakdown-link">
-        View per-muscle breakdown
-        <span aria-hidden="true">→</span>
+    <a class="fatigue-badge__breakdown-link" href="{{ url_for('fatigue.fatigue_page') }}" data-testid="fatigue-badge-breakdown-link">
+        View per-muscle breakdown <span aria-hidden="true">→</span>
     </a>
 </section>

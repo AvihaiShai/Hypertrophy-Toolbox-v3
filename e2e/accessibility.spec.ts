@@ -1150,7 +1150,7 @@ test.describe('Axe — deterministic states', () => {
     // last column's production `.volume-badge`; that badge, including the
     // medium-orange variant, is outside this structural-table scan.
     const injected = await page.evaluate(() => {
-      const table = document.querySelector('table.tbl--responsive');
+      const table = document.querySelector('table:has(#weekly-summary-table)');
       if (!table) return { headers: 0, rows: 0 };
 
       const headers = Array.from(table.querySelectorAll('thead th'));
@@ -1177,7 +1177,7 @@ test.describe('Axe — deterministic states', () => {
 
     // A missing table would leave nothing injected and the scan would pass
     // against the empty page it was written to avoid.
-    expect(injected.headers, 'no table.tbl--responsive on /weekly_summary to populate')
+    expect(injected.headers, 'no volume table on /weekly_summary to populate')
       .toBeGreaterThanOrEqual(3);
     expect(injected.rows, 'fewer than three data rows were injected').toBe(3);
 

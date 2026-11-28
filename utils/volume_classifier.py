@@ -53,8 +53,8 @@ def get_volume_tooltip(volume_label, total_sets):
     """Return tooltip text for volume classification."""
     ranges = {
         'Low Volume': 'Below 10 sets',
-        'Medium Volume': '10-19 sets',
-        'High Volume': '20-29 sets',
+        'Medium Volume': '10 to below 20 sets',
+        'High Volume': '20 to below 30 sets',
         'Excessive Volume': '30+ sets',
     }
     return f"{volume_label}: {ranges.get(volume_label, 'Unknown')} (Current: {total_sets:.1f} sets)"

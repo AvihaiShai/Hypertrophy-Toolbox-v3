@@ -426,9 +426,9 @@ Three specifics that are easy to state wrong:
 | Control | Action type | Behavior |
 |---|---|---|
 | Muscle Contribution Mode `<select>` | API | Re-requests `GET /weekly_summary?contribution_mode=total\|direct` with JSON headers. `TOTAL` credits primary 100%, secondary 50%, tertiary 25%; `DIRECT_ONLY` credits primary only. A failed isolated-muscle read returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
-| Export to Excel | Download | `GET /export_to_excel` — the **workout plan** export, not a summary export |
-| Pattern coverage panel | API | `GET /api/pattern_coverage` |
-| **Projected fatigue badge** | Presentation + Navigation | Server-rendered on every request. Shows a band label and an info tooltip; its "View per-muscle breakdown" link navigates to `/fatigue` |
+| Export workout data | Download | Uses the existing workbook handler. On a Summary page its Plan-table precheck shows “No exercises to export” before sending a request ([#754](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/754)). |
+| Pattern coverage panel | API | `GET /api/pattern_coverage`. A failed read shows a local unavailable message and leaves the volume table usable. |
+| **Projected fatigue badge** | Presentation + Navigation | Shows the planned week’s score and band, confirmed empty state, or unavailable message. The info tooltip and “View per-muscle breakdown” link remain available. |
 | Collapsible explanation | Presentation | `<details>` block |
 
 **`counting_mode` has no UI control.** It is a query parameter (`raw` / `effective`, default
@@ -477,9 +477,9 @@ per-session averages.
 |---|---|---|
 | Routine filter | API | `GET /session_summary?routine=…` with JSON headers |
 | Start / end date | API | Same endpoint, `start_date` / `end_date` |
-| Muscle Contribution Mode | API | Same endpoint, `contribution_mode`. A failed isolated-muscle read during this refresh returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
-| **Projected fatigue badge** | Presentation + Navigation | Same always-on server-rendered badge as Weekly Summary; links to `/fatigue` |
-| Export to Excel | Download | `GET /export_to_excel` |
+| Muscle Contribution Mode | API | The initial refresh, contribution changes and navbar muscle-name changes preserve the URL’s routine and either date bound. Categories and isolated muscles remain global. A failed isolated-muscle read returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
+| **Projected fatigue badge** | Presentation + Navigation | Shows the selected planned routine or the heaviest planned routine. The date range limits logs only. The breakdown link stays available if the projection fails. |
+| Export workout data | Download | Uses the same workbook handler and Plan-table precheck as Weekly Summary ([#754](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/754)). |
 
 If the isolated-muscle statistics read fails on initial navigation, the page returns HTTP 500
 and shows the shared error page. A successful read with no matches leaves the page available

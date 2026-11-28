@@ -20,6 +20,7 @@ from utils.effective_sets import (
 from utils.fatigue_data import (
     compute_heaviest_session_fatigue,
     compute_session_fatigue_for_routine,
+    load_planned_exercises,
 )
 from utils.logger import get_logger
 from utils.rep_range_integrity import annotate, scan_rep_ranges, suppressed_for
@@ -91,28 +92,6 @@ def session_summary():
         category_results = calculate_exercise_categories()
         isolated_muscles_stats = calculate_isolated_muscles_stats()
 
-        # Fatigue badge (Phase 1, D3+D10): independent of counting_mode and
-        # contribution_mode; reads planned user_selection rows directly.
-        # BRAINSTORM §1 non-goal: the badge must never block the page, so
-        # any failure here degrades to an empty-state badge.
-        fatigue_score = 0.0
-        fatigue_band = "light"
-        try:
-            if routine:
-                fatigue_session = compute_session_fatigue_for_routine(routine)
-                fatigue_period_label = f"Routine: {routine}"
-            else:
-                heaviest_routine, fatigue_session = compute_heaviest_session_fatigue()
-                if heaviest_routine:
-                    fatigue_period_label = f"Heaviest planned routine: {heaviest_routine}"
-                else:
-                    fatigue_period_label = "No planned routines"
-            fatigue_score = fatigue_session.score
-            fatigue_band = fatigue_session.band
-        except Exception:
-            logger.exception("Fatigue badge computation failed; falling back to empty state")
-            fatigue_period_label = "Projected fatigue unavailable"
-
         if is_xhr_request():
             return jsonify(success_response(data={
                 "session_summary": results,
@@ -124,6 +103,33 @@ def session_summary():
                 }
             }))
 
+        # Fatigue badge (Phase 1, D3+D10): independent of counting_mode and
+        # contribution_mode; reads planned user_selection rows directly.
+        # A failed projection must leave the independently loaded tables usable.
+        fatigue_score = 0.0
+        fatigue_band = "light"
+        try:
+            if routine:
+                fatigue_session = compute_session_fatigue_for_routine(routine)
+                fatigue_period_label = f"Routine: {routine}"
+                # Older zero-set rows have no scored exercises. Check their presence
+                # before describing the selected routine as empty.
+                has_plan = bool(fatigue_session.exercise_count or results or load_planned_exercises(routine))
+            else:
+                heaviest_routine, fatigue_session = compute_heaviest_session_fatigue()
+                has_plan = heaviest_routine is not None
+                if heaviest_routine:
+                    fatigue_period_label = f"Heaviest planned routine: {heaviest_routine}"
+                else:
+                    fatigue_period_label = "No planned routines"
+            fatigue_score = fatigue_session.score
+            fatigue_band = fatigue_session.band
+            fatigue_state = "scored" if has_plan else "empty"
+        except Exception:
+            logger.exception("Fatigue badge computation failed")
+            fatigue_state = "unavailable"
+            fatigue_period_label = "Projected fatigue unavailable"
+
         return render_template(
             "session_summary.html",
             session_summary=results,
@@ -132,6 +138,7 @@ def session_summary():
             counting_mode=counting_mode.value,
             contribution_mode=contribution_mode.value,
             fatigue_score=fatigue_score,
+            fatigue_state=fatigue_state,
             fatigue_band=fatigue_band,
             fatigue_period_label=fatigue_period_label,
             get_volume_class=get_volume_class,

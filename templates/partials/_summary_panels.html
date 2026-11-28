@@ -1,0 +1,126 @@
+{% from "partials/_volume_controls.html" import method_selector %}
+
+{% macro headers(fields, numeric) %}
+<thead role="rowgroup"><tr role="row">
+    {% for field in fields %}
+    <th scope="col" role="columnheader" data-label="{{ field }}"{% if field in numeric %} class="is-num"{% endif %}
+        {% if field == 'Routines' %}data-bs-toggle="tooltip" title="Planned routines that credit this muscle with at least 1 effective set"{% endif %}>{{ field }}</th>
+    {% endfor %}
+</tr></thead>
+{% endmacro %}
+{% macro classification(sets) %}
+<span class="volume-classification" data-bs-toggle="tooltip" title="{{ get_volume_tooltip(get_volume_label(sets), sets) }}">
+    <span class="volume-badge {{ get_volume_class(sets) }}">{{ get_volume_label(sets) }}</span>
+</span>
+{% endmacro %}
+
+<div class="summary-page">
+    <header class="ui-page-header" data-visual-surface>
+        <h1 class="ui-page-title ui-page-title--analysis">{{ title }}</h1>
+        <button type="button" class="ui-btn" data-testid="export-excel-btn" onclick="exportToExcel()">
+            <i class="fas fa-file-excel" aria-hidden="true"></i>Export workout data
+        </button>
+    </header>
+    {% include "_fatigue_badge.html" %}
+    <section class="ui-panel ui-empty-state" id="summary-empty" role="status" hidden>
+        <h2>No plan data to summarize</h2>
+        <p>Add exercises to your <a href="{{ url_for('workout_plan.workout_plan') }}">workout plan</a> to see volume and exercise categories.</p>
+    </section>
+    <section class="ui-panel" aria-labelledby="volume-heading" data-visual-surface>
+        <div class="summary-volume-head">
+            <h2 id="volume-heading">Muscle group volume</h2>
+            {{ method_selector('updateWeeklySummary' if weekly else 'updateSessionSummary') }}
+        </div>
+        <div class="volume-legend">
+            <h3>Volume Classification Legend</h3>
+            <ul class="summary-legend" aria-label="Effective set ranges">
+                {% for level, label, description in [
+                    ('low', 'Low Volume', 'Below 10'), ('medium', 'Medium Volume', '10 to below 20'),
+                    ('high', 'High Volume', '20 to below 30'), ('ultra', 'Excessive Volume', '30 or above')] %}
+                <li><span class="volume-badge {{ level }}-volume"><span class="volume-indicator" data-volume-level="{{ level }}" aria-hidden="true"></span>{{ label }}</span>
+                    <span>{{ description }}</span></li>
+                {% endfor %}
+            </ul>
+            <details class="summary-definitions">
+                <summary>Details</summary>
+                <p><strong>Raw Sets</strong> are planned sets credited to each muscle. Total credits the primary muscle at 100%, secondary at 50% and tertiary at 25%. Credits add when one muscle appears in several roles. Direct Only counts primary sets at 100%.</p>
+                <p><strong>Effective Sets</strong> = credited raw sets × effort factor × rep range factor. This table classifies volume using effective sets.</p>
+                <p><strong>Effort factor</strong> uses Reps In Reserve (RIR), or 10 minus RPE when only RPE is available. RIR of 0–1 earns 100%, 2–3 earns 85%, 4–5 earns 70% and 6 or more earns 55%. Missing effort defaults to 100%.</p>
+                <p><strong>Rep range factor</strong> uses average reps. Below 6 earns 85%, 6 through 20 earns 100%, over 20 through 30 earns 85% and over 30 earns 70%. A missing or nonpositive average defaults to 100%.</p>
+                <p id="volume-formula"><strong>Training Volume Formula</strong> for each exercise is <span id="volume-formula-text">Effective Sets × Avg Reps × Weight</span>. The table sums those volumes per muscle.</p>
+                {% if weekly %}
+                <p><strong>Routines</strong> counts the planned routines that credit the muscle with at least 1 effective set.</p>
+                {% else %}
+                <p><strong>Session Warnings</strong> use effective sets per muscle per logged session. Below 10 is OK, 10 to below 11 is Borderline, and 11 or above is Excessive. No Sessions means no sessions were logged for that routine and muscle in the selected date range.</p>
+                {% endif %}
+            </details>
+        </div>
+        <div id="{{ summary_id }}-container" class="summary-table-region" role="region" aria-label="{{ title }} table" tabindex="0">
+            <table class="ui-summary-table" role="table" aria-label="{{ 'Plan muscle group volume summary' if weekly else 'Session muscle group summary' }}" data-visual-surface>
+                {% set fields = (['Muscle Group', 'Effective Sets', 'Raw Sets', 'Routines', 'Total Volume', 'Volume Classification'] if weekly else ['Routine', 'Muscle Group', 'Effective Sets', 'Raw Sets', 'Total Volume', 'Volume Status']) %}
+                {{ headers(fields, ['Effective Sets', 'Raw Sets', 'Routines', 'Total Volume']) }}
+                <tbody role="rowgroup" id="{{ summary_id }}-table">
+                    {% for row in rows %}
+                    <tr role="row">
+                        {% if not weekly %}<td role="cell" data-label="Routine">{{ row.routine }}</td>{% endif %}
+                        <td role="cell" data-label="Muscle Group" data-raw-value="{{ row.muscle_group }}">{{ row.muscle_group }}</td>
+                        <td role="cell" class="is-num" data-label="Effective Sets">{{ '%.1f' | format(row.effective_sets) }}</td>
+                        <td role="cell" class="is-num" data-label="Raw Sets">{{ '%.1f' | format(row.raw_sets) }}</td>
+                        {% if weekly %}<td role="cell" class="is-num" data-label="Routines">{{ row.frequency }}</td>{% endif %}
+                        <td role="cell" class="is-num" data-label="Total Volume">{{ '%.0f' | format(row.total_volume) }}</td>
+                        <td role="cell" data-label="{{ fields[-1] }}"><div class="summary-status">{{ classification(row.effective_sets) }}
+                            {% if not weekly %}<span class="session-warning" data-warning="{{ row.warning_level }}">{{ {'ok':'OK', 'borderline':'Borderline', 'excessive':'Excessive'}.get(row.warning_level, 'No Sessions') }}</span>{% endif %}
+                        </div></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="ui-panel" aria-labelledby="category-heading" data-visual-surface>
+        <h2 id="category-heading">Exercise Categories Summary</h2>
+        <div class="summary-table-region" role="region" aria-label="Exercise categories table" tabindex="0">
+            <table class="ui-summary-table" role="table" aria-label="Exercise categories" data-visual-surface>
+                {{ headers(['Category', 'Subcategory', 'Total Exercises'], ['Total Exercises']) }}
+                <tbody role="rowgroup" id="categories-table-body">
+                    {% for category in categories %}
+                    <tr role="row">
+                        <td role="cell" data-label="Category"><span data-bs-toggle="tooltip" title="{{ get_category_tooltip(category.category) }}">{{ category.category }}</span></td>
+                        <td role="cell" data-label="Subcategory"><span data-bs-toggle="tooltip" title="{{ get_subcategory_tooltip(category.category, category.subcategory) }}">{{ category.subcategory }}</span></td>
+                        <td role="cell" class="is-num" data-label="Total Exercises">{{ category.total_exercises }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% if isolated_muscles %}
+    <section class="ui-panel" aria-labelledby="isolated-heading" data-visual-surface>
+        <h2 id="isolated-heading">Advanced Isolated Muscles Statistics</h2>
+        <p class="summary-note">Volume classification in this table uses raw, unweighted sets.</p>
+        <div class="summary-table-region" role="region" aria-label="Isolated muscles statistics table" tabindex="0">
+            <table class="ui-summary-table" role="table" aria-label="Isolated muscles statistics" data-visual-surface>
+                {{ headers(['Isolated Muscle', 'Exercise Count', 'Total Sets', 'Total Reps', 'Total Volume', 'Volume Classification'], ['Exercise Count', 'Total Sets', 'Total Reps', 'Total Volume']) }}
+                <tbody role="rowgroup">
+                    {% for muscle in isolated_muscles %}
+                    <tr role="row">
+                        <td role="cell" data-label="Isolated Muscle">{{ muscle.isolated_muscle }}</td>
+                        <td role="cell" class="is-num" data-label="Exercise Count">{{ muscle.exercise_count }}</td>
+                        <td role="cell" class="is-num" data-label="Total Sets">{{ muscle.total_sets }}</td>
+                        <td role="cell" class="is-num" data-label="Total Reps">{{ muscle.total_reps }}</td>
+                        <td role="cell" class="is-num" data-label="Total Volume">{{ muscle.total_volume }}</td>
+                        <td role="cell" data-label="Volume Classification">{{ classification(muscle.total_sets) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+    {% if weekly %}
+    <section class="ui-panel" id="pattern-coverage-section" aria-labelledby="pattern-heading" data-visual-surface>
+        <h2 id="pattern-heading">Movement Pattern Coverage</h2>
+        <div id="pattern-coverage-container" aria-live="polite">Loading pattern coverage…</div>
+    </section>
+    {% endif %}
+</div>
