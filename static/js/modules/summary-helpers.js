@@ -199,6 +199,7 @@ export async function refreshSummary(key, params, renderRow) {
     setSummaryOutcome('tables', 'pending');
     const table = document.getElementById(key.replace('_', '-') + '-table');
     const categories = document.getElementById('categories-table-body');
+    table.setAttribute('aria-busy', 'true');
     replaceSummaryRows(table, messageRow('Loading volume…', 6));
     try {
         const data = await fetchSummaryData(`/${key}?${params}`);
@@ -216,6 +217,8 @@ export async function refreshSummary(key, params, renderRow) {
         console.error('Error fetching data:', error);
         replaceSummaryRows(table, messageRow('Failed to load data.', 6));
         setSummaryOutcome('tables', 'unavailable');
+    } finally {
+        if (request === latestRequest) table.setAttribute('aria-busy', 'false');
     }
 }
 

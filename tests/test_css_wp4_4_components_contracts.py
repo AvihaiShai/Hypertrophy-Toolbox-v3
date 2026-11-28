@@ -45,7 +45,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 COMPONENTS = ROOT / "static" / "css" / "components.css"
 # The existing rules keep their measured line anchors after the opt-in Summary styles.
-SUMMARY_PREFIX_LINES = 103
+SUMMARY_PREFIX_LINES = 104
 LEGACY_START = "/* Button Base Styles - Glass Effect Enhancement */"
 SUMMARY_FAMILY_COUNTS = {r":where\(": 5, r":focus": 3, r"::[\w-]+": 3, r"@media": 2}
 

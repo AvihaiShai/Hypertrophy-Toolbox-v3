@@ -282,6 +282,7 @@ workbook export action. The projected-fatigue panel precedes muscle group volume
 exercise categories and the conditional isolated-muscle panel. Movement pattern
 coverage follows on Weekly. The contribution selector, visible four-band legend and
 keyboard-operated definitions and formula disclosure sit with the volume table.
+On an empty plan, the link back to Workout Plan uses underlined primary text in both themes.
 
 Below 768 px each table row becomes a labelled card with an 8 px corner and a 1 px
 `--ink-3` boundary. From 768 px the same cells sit beneath column headers in a

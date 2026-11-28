@@ -17,6 +17,7 @@
 :where(.summary-page) h2 { margin: 0 0 12px; color: var(--ink-1); font: 600 18px/24px Inter, sans-serif; }
 :where(.summary-page) h3, .summary-page h4 { margin: 0 0 8px; color: var(--ink-1); font: 600 14px/20px Inter, sans-serif; }
 .summary-page p { font-size: 14px; line-height: 20px; }
+.summary-page .ui-empty-state a { color: var(--ink-1); text-decoration: underline; text-underline-offset: 3px; }
 .summary-page b, .summary-page strong { font-weight: 600; }
 .summary-volume-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 12px; }
 .summary-page .method-selector { display: grid; gap: 4px; max-width: 100%; }

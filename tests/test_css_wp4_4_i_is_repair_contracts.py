@@ -102,7 +102,7 @@ def _is_groups(css: str) -> list[str]:
 def test_the_repair_added_no_lines() -> None:
     """Keep the repaired 4,576-line source and the new Summary prefix accounted for."""
     prefix, marker, repaired = _css().partition("/* Button Base Styles - Glass Effect Enhancement */")
-    assert marker and prefix.count("\n") == 103
+    assert marker and prefix.count("\n") == 104
     assert repaired.count("\n") == 4576
 
 
