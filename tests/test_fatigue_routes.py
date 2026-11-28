@@ -1,4 +1,7 @@
 """Integration tests for GET /fatigue (Phase 2 Stage 2)."""
+from datetime import date
+from functools import partial
+
 import pytest
 
 import routes.fatigue as fatigue_route
@@ -55,6 +58,38 @@ class TestFatigueRouteBasic:
 
 
 class TestFatigueRouteWithData:
+    def test_period_empty_historical_and_unscored_logged_only_are_distinct(
+        self, client, clean_db, exercise_factory, monkeypatch,
+    ):
+        # A retired plan can leave a log without a plan FK, as in a restored backup.
+        exercise = exercise_factory("Historical press", primary_muscle_group="Chest")
+        clean_db.execute_query(
+            """INSERT INTO workout_log (routine, exercise, planned_sets, scored_min_reps, scored_weight, created_at)
+               VALUES ('Retired', ?, 3, 10, 50, '2026-11-18 09:00:00')""", (exercise,),
+        )
+        monkeypatch.setattr(fatigue_route, "build_fatigue_page_context",
+                            partial(build_fatigue_page_context, today=date(2026, 11, 25)))
+        empty = client.get("/fatigue").get_data(as_text=True)
+        assert "No planned exercises and no logged sessions in this period" in empty
+        assert 'data-testid="fatigue-empty-state"' in empty
+        assert 'href="/workout_plan"' in empty and 'name="period"' in empty
+
+        history = client.get("/fatigue?period=last_4_weeks").get_data(as_text=True)
+        assert 'data-testid="fatigue-empty-state"' not in history
+        assert 'data-muscle="Chest"' in history
+        assert "Planned shows your current program" in history
+        assert "Logged shows readings from the selected period" in history
+        assert "Regions without a reading stay gray" in history
+        assert history.index("Shoulder regions show Middle-Shoulder") < history.index('data-heatmap-figure="front"')
+
+        clean_db.execute_query(
+            """UPDATE workout_log SET scored_min_reps=NULL, scored_weight=NULL, created_at='2026-11-24 09:00:00'"""
+        )
+        unscored = client.get("/fatigue").get_data(as_text=True)
+        assert 'data-testid="fatigue-empty-state"' not in unscored
+        assert "No set volume in this window" in unscored
+        assert 'data-testid="fatigue-muscle-bar"' not in unscored
+
     def test_planned_data_renders_muscle_bars(
         self, client, exercise_factory, workout_plan_factory
     ):

@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import date
+from functools import partial
 import json
 import os
 from pathlib import Path
@@ -89,17 +91,43 @@ class Route:
     seed: Callable[[Path, Path, Path], None] | None = None
 
 
+def seed_fatigue_periods(run: Path, database: Path, source: Path) -> None:
+    """Three scored dates on either side of a Monday, matching the Step 4 control."""
+    sys.path.insert(0, str(source))
+    from utils.database import DatabaseHandler
+
+    with DatabaseHandler(str(database)) as db:
+        count = db.execute_query("UPDATE workout_log SET created_at='2026-11-17 09:00:00'")
+        if count != 6:
+            raise ValueError("Expected the six visual-seed log rows")
+        for exercise, day, sets in (
+            ("Barbell Bench Press", "2026-11-24", 3),
+            ("Barbell Bent Over Row", "2026-11-23", 9),
+            ("Barbell Squat", "2026-11-18", 16),
+        ):
+            count = db.execute_query(
+                "UPDATE workout_log SET created_at=?, planned_sets=? WHERE exercise=? AND scored_weight IS NOT NULL",
+                (day + " 09:00:00", sets, exercise),
+            )
+            if count != 1:
+                raise ValueError(f"Expected one scored log for {exercise}")
+
+
+SUMMARY_CONTROL = "5668cfa3c2d7b6ba1a7c180dd2245e56613b1600"
 ROUTES: dict[str, Route] = {
     "workout_log": Route("Workout Log", "workout-log-frame.check.ts", "5dc83cef", seed_workout_log),
     "workout_plan": Route("Workout Plan", "workout-plan-frame.check.ts", "8b023d1a"),
     "overlays": Route("Overlay style", "overlay-style.check.ts", "8b023d1a"),
+    "weekly_summary": Route("Weekly Summary", "summary-fatigue-frame.check.ts", SUMMARY_CONTROL),
+    "session_summary": Route("Session Summary", "summary-fatigue-frame.check.ts", SUMMARY_CONTROL),
+    "fatigue": Route("Fatigue", "summary-fatigue-frame.check.ts", SUMMARY_CONTROL, seed_fatigue_periods),
 }
 
 
 def prepare(route: Route, run: Path, database: Path, runtime: Path, source: Path) -> None:
     validate_paths(run, database, runtime)
     # Set both overrides before the seeder or an application import can resolve them.
-    os.environ.update(DB_FILE=str(database), HT_RUNTIME_DIR=str(runtime))
+    os.environ.update(DB_FILE=str(database), HT_RUNTIME_DIR=str(runtime), PW_DB_PATH=str(database))
     subprocess.run([
         sys.executable, str(REPO / "e2e/scripts/prepare_visual_db.py"),
         "--source", str(REPO / "e2e/fixtures/database.visual.seed.db"),
@@ -138,6 +166,11 @@ def serve() -> None:
         raise ValueError("Frame server imported the wrong application")
     from utils.runtime_init import init_runtime
     init_runtime()
+    if key == "fatigue":
+        import routes.fatigue as fatigue_route
+        fatigue_route.build_fatigue_page_context = partial(
+            fatigue_route.build_fatigue_page_context, today=date(2026, 11, 25),
+        )
     application = app.create_app()
 
     @application.get("/__frame_identity")

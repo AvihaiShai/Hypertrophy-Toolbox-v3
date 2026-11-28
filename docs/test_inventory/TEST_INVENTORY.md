@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **794** |
+| Playwright tests (chromium) | **814** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **644** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4776** across 145 files |
-| pytest test files (all) | **146** |
+| Required functional gate — `E2E Functional (Chromium)` | **664** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **4832** across 146 files |
+| pytest test files (all) | **147** |
 | JS unit cases (Vitest) | **271** across 15 files |
 | Hard waits (lines containing waitForTimeout) | **77** across 14 files |
 
@@ -26,7 +26,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 | Spec | Tests | In required functional set |
 |---|---:|:---:|
-| `accessibility.spec.ts` | 42 | yes |
+| `accessibility.spec.ts` | 45 | yes |
 | `api-integration.spec.ts` | 57 | yes |
 | `body-composition.spec.ts` | 10 | yes |
 | `browser-navigation-state.spec.ts` | 3 | yes |
@@ -46,13 +46,13 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `progression.spec.ts` | 42 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
 | `smoke-navigation.spec.ts` | 20 | yes |
-| `summary-pages.spec.ts` | 22 | yes |
+| `summary-pages.spec.ts` | 35 | yes |
 | `superset-edge-cases.spec.ts` | 17 | yes |
 | `ui-hardening.spec.ts` | 37 | yes |
 | `user-profile.spec.ts` | 24 | yes |
 | `validation-boundary.spec.ts` | 27 | yes |
 | `visual-baseline-thumbnails.spec.ts` | 18 | — |
-| `visual-field-separator.spec.ts` | 42 | yes |
+| `visual-field-separator.spec.ts` | 46 | yes |
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
 | `volume-splitter.spec.ts` | 64 | yes |
@@ -125,7 +125,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_fatigue_context.py` | 29 |
 | `tests/test_fatigue_golden.py` | 1 |
 | `tests/test_fatigue_heatmap_mapping.py` | 23 |
-| `tests/test_fatigue_routes.py` | 17 |
+| `tests/test_fatigue_routes.py` | 18 |
 | `tests/test_fatigue_stage4_observer.py` | 26 |
 | `tests/test_filter_predicates.py` | 39 |
 | `tests/test_filter_registry.py` | 10 |
@@ -176,10 +176,11 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_runtime_paths.py` | 23 |
 | `tests/test_schema_registry.py` | 5 |
 | `tests/test_session_summary.py` | 37 |
-| `tests/test_session_summary_routes.py` | 38 |
+| `tests/test_session_summary_routes.py` | 39 |
 | `tests/test_static_cache_policy.py` | 12 |
 | `tests/test_static_replay_contracts.py` | 105 |
 | `tests/test_strength_calibration.py` | 36 |
+| `tests/test_summary_projection_states.py` | 3 |
 | `tests/test_superset.py` | 14 |
 | `tests/test_superset_service.py` | 18 |
 | `tests/test_template_landmarks.py` | 3 |
@@ -204,7 +205,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary_unassigned.py` | 20 |
 | `tests/test_workout_controls_busy_signal_contracts.py` | 9 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
-| `tests/test_workout_log_frame_runner.py` | 58 |
+| `tests/test_workout_log_frame_runner.py` | 109 |
 | `tests/test_workout_log_routes.py` | 86 |
 | `tests/test_workout_log_utils.py` | 30 |
 | `tests/test_workout_plan_routes.py` | 139 |

@@ -5,8 +5,7 @@
  * entry nor calibration but were left open after the 2026-05-04 reconciliation:
  *
  *   - Item 4: 375px viewport — badge wraps, no horizontal overflow, info button
- *     stays tappable (≥44x44 CSS px tap target per WCAG 2.5.5 AAA, treated here
- *     as a soft signal not a gate).
+ *     stays tappable (≥44x44 CSS px tap target).
  *   - Item 5: dark-mode contrast across the bands — captures background + text
  *     colors of the rendered badge in dark mode at default and 375px viewports.
  *
@@ -119,13 +118,38 @@ test.afterAll(() => {
 });
 
 test.describe('Fatigue Stage 4 — smoke 4 (375px viewport)', () => {
-  test.use({ viewport: { width: 375, height: 812 } });
+  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
+
+  async function useProjectedHelp(page: Page) {
+    const info = page.locator('.fatigue-badge__info-btn');
+    const help = page.getByRole('tooltip');
+    await info.tap();
+    await expect(help).toBeVisible();
+    await expect(help).toContainText(/plan/i);
+    await expect(help).not.toContainText(/counting mode toggle/i);
+    await page.getByRole('heading', {level:1}).tap();
+    // Reload to give keyboard focus an independent first interaction.
+    await page.reload();
+    await expect(help).toBeHidden();
+    const tabStops = await page.locator('a[href]:visible, button:visible, select:visible, summary:visible, [tabindex="0"]:visible').count();
+    for (let i = 0; i <= tabStops && !await info.evaluate(el => document.activeElement === el); i++) {
+      await page.keyboard.press('Tab');
+    }
+    await expect(info).toBeFocused();
+    await expect(help).toBeVisible();
+    await expect(help).toContainText(/plan/i);
+    await page.getByRole('link', {name: /view per-muscle breakdown/i}).click();
+    await expect(page).toHaveURL(/\/fatigue$/);
+    await expect(page.getByRole('heading', {level:1, name:'Fatigue meter'})).toBeVisible();
+  }
 
   test('weekly summary badge fits at 375px (light)', async ({ page }) => {
     const m = await captureBadge(page, ROUTES.WEEKLY_SUMMARY, 'light');
     expect(m.badgeBox, 'badge must render').not.toBeNull();
     expect(m.hasHorizontalOverflow, `no horizontal overflow (scrollWidth=${m.bodyScrollWidth}, clientWidth=${m.bodyClientWidth})`).toBe(false);
     expect(m.infoButtonBox, 'info button must render').not.toBeNull();
+    expect.soft(m.infoButtonMeetsTapTarget, '44 × 44 touch target').toBe(true);
+    await useProjectedHelp(page);
   });
 
   test('session summary badge fits at 375px (light)', async ({ page }) => {
@@ -133,6 +157,8 @@ test.describe('Fatigue Stage 4 — smoke 4 (375px viewport)', () => {
     expect(m.badgeBox).not.toBeNull();
     expect(m.hasHorizontalOverflow, `no horizontal overflow (scrollWidth=${m.bodyScrollWidth}, clientWidth=${m.bodyClientWidth})`).toBe(false);
     expect(m.infoButtonBox).not.toBeNull();
+    expect.soft(m.infoButtonMeetsTapTarget, '44 × 44 touch target').toBe(true);
+    await useProjectedHelp(page);
   });
 });
 

@@ -22,7 +22,8 @@ import {
   waitForWorkoutPlanReady,
 } from './fixtures';
 import type { Page } from '@playwright/test';
-import { loadPlan, planRows, ROUTINE_A, SQUAT } from './workout-plan-fixture';
+import { addPlanRow, BENCH, loadPlan, planPost, planRows, ROUTINE_A, ROW, SQUAT } from './workout-plan-fixture';
+import { summaryResponse } from './summary-records';
 import { moreButton, planHeader } from './workout-plan-redesign';
 
 /** WCAG 2.1 SC 1.4.3 floor for normal-size body text. */
@@ -908,14 +909,10 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   // route-owned guidance tone clears the last dark contrast finding.
   'workout_log:dark': [],
 
-  // Dark scores *better* than light on both summaries: the muted greys that
-  // fail on white clear the bar on the dark surface. The brighter dark ink
-  // ramp then cleared the single remaining node on each, so both dark rows
-  // are now empty. Neither page has a route bundle change in this packet --
-  // this is the shared `--ink-2`/`--ink-3` lift reaching them.
-  'weekly_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
+  // Step 4 retires the four control findings on each light Summary.
+  'weekly_summary:light': [],
   'weekly_summary:dark': [],
-  'session_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
+  'session_summary:light': [],
   'session_summary:dark': [],
 
   // Clean since X11 closed: `#exerciseSelect` takes its name from the `<h4>`
@@ -943,12 +940,9 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'user_profile:light': [{ rule: 'color-contrast', nodes: 84 }],
   'user_profile:dark': [],
 
-  // X8. `/fatigue` links no page bundle at all, so this row is a direct reading
-  // of the shared bundles: light is clean, final dark paint fails four times.
-  // The briefly registered six included transitional `h1` and `#fatigue-period`
-  // paint; document-wide settlement excludes those non-final readings.
+  // The merged control had four settled dark contrast nodes on Fatigue.
   'fatigue:light': [],
-  'fatigue:dark': [{ rule: 'color-contrast', nodes: 4 }],
+  'fatigue:dark': [],
 
   // With a modal open, axe's `focusable-modal-open` check returns `undefined`
   // (`focusableModalOpenEvaluate` in axe-core). This register reads violations,
@@ -960,12 +954,8 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
     { rule: 'aria-hidden-focus', nodes: 2 },
   ],
 
-  // Four, the same as the route scan: the injected data cells add no violation
-  // of their own, so production `<thead>` markup clears axe's structural table
-  // rules and the cell text clears 4.5:1 once a row exists to paint. This state
-  // deliberately does not render production's `.volume-badge`; in particular,
-  // `.medium-volume` (white on #fd7e14) remains outside this scan.
-  'state:populated-table': [{ rule: 'color-contrast', nodes: 4 }],
+  // Historical structural population, in addition to the production-row scans below.
+  'state:populated-table': [],
 };
 
 function formatFindings(findings: AxeFinding[]): string {
@@ -1239,4 +1229,56 @@ test.describe('Plan redesign acceptance', () => {
     await expect(modal).toBeHidden();
     await expect(more).toBeFocused();
   });
+});
+
+
+test.describe('Populated Summary and Fatigue accessibility', () => {
+  for (const route of [ROUTES.WEEKLY_SUMMARY, ROUTES.SESSION_SUMMARY, ROUTES.FATIGUE]) {
+    test('axe production rows and panels on ' + route, async ({page}) => {
+      await page.setViewportSize({width:1440,height:900});
+      const request = page.request;
+      await planPost(request,'/clear_workout_plan');
+      try {
+        await addPlanRow(request,'Axe press and squat',BENCH,{sets:3});
+        await addPlanRow(request,'Axe press and squat',SQUAT,{sets:7});
+        await addPlanRow(request,'Axe back',ROW,{sets:4});
+        const xhr = route === ROUTES.FATIGUE ? null : summaryResponse(page,route,'total');
+        const html = await page.goto(route);
+        if (xhr) {
+          expect(await html!.text()).toContain('lateral-head-triceps');
+          const data = (await (await xhr).json()).data;
+          expect(data.isolated_muscles.some((row:{isolated_muscle:string})=>row.isolated_muscle === 'lateral-head-triceps')).toBe(true);
+          const weekly = route === ROUTES.WEEKLY_SUMMARY;
+          const id = weekly ? '#weekly-summary-table' : '#session-summary-table';
+          const table = page.locator('table').filter({has:page.locator(id)});
+          await expect(table).toBeVisible();
+          const rows = table.locator('tbody tr:visible').filter({has:page.locator('td[data-raw-value]')});
+          const expected = data[weekly ? 'weekly_summary' : 'session_summary'];
+          expect(new Set(expected.map((r:{muscle_group:string})=>r.muscle_group)).size).toBeGreaterThanOrEqual(3);
+          await expect(rows).toHaveCount(expected.length);
+          expect(await table.locator('th[scope=col]:visible').count()).toBeGreaterThan(3);
+          for (const muscle of ['Chest','Quadriceps','Latissimus Dorsi']) {
+            const row = rows.filter({has:page.locator('[data-raw-value="' + muscle + '"]')}).first();
+            await expect(row).toBeVisible();
+            expect(await row.locator('td:visible').count()).toBeGreaterThan(3);
+          }
+          if (weekly) {
+            await expect(page.locator('#pattern-coverage-container')).toContainText('Axe back');
+            const scoped = await new AxeBuilder({page}).include('table:has(#weekly-summary-table)').withTags(AXE_TAGS).analyze();
+            expect(scoped.passes.length).toBeGreaterThan(0);
+            expect(scoped.violations).toEqual([]);
+          }
+        } else {
+          await expect(page.getByTestId('fatigue-page')).toHaveAttribute('data-heatmap-state','ready');
+          await expect(page.getByTestId('fatigue-muscle-bar').first()).toBeVisible();
+        }
+        for (const theme of ['light','dark'] as const) {
+          await setThemeAndSettle(page,theme);
+          const results = await new AxeBuilder({page}).withTags(AXE_TAGS).analyze();
+          expect(results.passes.length).toBeGreaterThan(0);
+          expect.soft(results.violations.map(r=>[r.id,r.nodes.map(n=>n.target)]), route + ':' + theme).toEqual([]);
+        }
+      } finally { await planPost(request,'/clear_workout_plan'); }
+    });
+  }
 });

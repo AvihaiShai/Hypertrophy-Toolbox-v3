@@ -111,6 +111,7 @@ def test_prepare_sets_both_scratch_overrides_before_copying_or_editing_the_seed(
         assert options == {"cwd": checkout, "check": True}
         assert os.environ["DB_FILE"] == str(database)
         assert os.environ["HT_RUNTIME_DIR"] == str(runtime)
+        assert os.environ["PW_DB_PATH"] == str(database)
         calls.append("copy")
 
     def seed(run_path: Path, db_path: Path, source: Path) -> None:
@@ -326,6 +327,14 @@ def test_the_log_route_keeps_its_check_its_control_and_its_fixture() -> None:
 
     assert (log.label, log.check, log.control) == ("Workout Log", "workout-log-frame.check.ts", "5dc83cef")
     assert log.seed is frame.seed_workout_log
+
+
+@pytest.mark.parametrize("route", ["weekly_summary", "session_summary", "fatigue"])
+def test_summary_and_fatigue_share_the_verified_navigation_control(route):
+    row = frame.ROUTES[route]
+    assert row.control == "5668cfa3c2d7b6ba1a7c180dd2245e56613b1600"
+    assert row.check == "summary-fatigue-frame.check.ts"
+    assert row.seed is (frame.seed_fatigue_periods if route == "fatigue" else None)
 
 
 @pytest.mark.parametrize("route", ROUTE_KEYS)

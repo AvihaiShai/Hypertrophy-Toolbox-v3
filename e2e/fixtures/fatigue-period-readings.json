@@ -1,0 +1,111 @@
+{
+  "control": "5668cfa3c2d7b6ba1a7c180dd2245e56613b1600",
+  "palette": {
+    "light": {
+      "light": ["rgba(25, 135, 84, 0.78)", "rgba(25, 135, 84, 0.32)", "0.9px"],
+      "moderate": ["rgba(13, 110, 253, 0.85)", "rgba(13, 110, 253, 0.3)", "0.9px"],
+      "heavy": ["rgba(181, 129, 0, 0.92)", "rgba(181, 129, 0, 0.34)", "0.9px"],
+      "very-heavy": ["rgba(220, 53, 69, 0.88)", "rgba(220, 53, 69, 0.32)", "0.9px"],
+      "unranked": ["rgba(108, 117, 125, 0.55)", "rgba(108, 117, 125, 0.28)", "0.9px"]
+    },
+    "dark": {
+      "light": ["rgba(93, 230, 171, 0.82)", "rgba(93, 230, 171, 0.34)", "0.9px"],
+      "moderate": ["rgba(116, 185, 255, 0.85)", "rgba(116, 185, 255, 0.34)", "0.9px"],
+      "heavy": ["rgba(255, 209, 102, 0.9)", "rgba(255, 209, 102, 0.36)", "0.9px"],
+      "very-heavy": ["rgba(255, 123, 138, 0.86)", "rgba(255, 123, 138, 0.34)", "0.9px"],
+      "unranked": ["rgba(173, 181, 189, 0.62)", "rgba(173, 181, 189, 0.34)", "0.9px"]
+    }
+  },
+  "periods": {
+    "this_session": {
+      "sfr": ["0.29", "0.29"],
+      "regions": {
+        "planned": {
+          "front/abs": ["Abdominals", "unranked"],
+          "front/biceps": ["Biceps", "light"],
+          "front/quadriceps": ["Quadriceps", "moderate"],
+          "back/lats": ["Latissimus-Dorsi", "light"],
+          "back/gluteal": ["Glutes", "moderate"]
+        },
+        "logged": {
+          "front/abs": ["Abdominals", "unranked"],
+          "front/biceps": ["Biceps", "unranked"],
+          "front/quadriceps": ["Quadriceps", "unranked"],
+          "back/lats": ["Latissimus-Dorsi", "unranked"],
+          "back/gluteal": ["Glutes", "unranked"]
+        }
+      },
+      "bars": [
+        ["Glutes", "64%", "10.3", "64.4531%", "0", null],
+        ["Quadriceps", "51%", "10.1", "50.5313%", "0", null],
+        ["Triceps", "29%", "5.2", "28.6458%", "3.0", "16.5%"],
+        ["Chest", "29%", "6.3", "28.5938%", "5.9", "27%"],
+        ["Biceps", "23%", "6.1", "23.3654%", "0", null],
+        ["Latissimus-Dorsi", "20%", "5.0", "19.8%", "0", null],
+        ["Hamstrings", "17%", "3.4", "17.0156%", "0", null],
+        ["Forearms", "8%", "1.2", "7.73438%", "0", null],
+        ["Front-Shoulder", "—", "6.6", "8%", "1.5", "8%"]
+      ]
+    },
+    "this_week": {
+      "sfr": ["0.29", "0.29"],
+      "regions": {
+        "planned": {
+          "front/abs": ["Abdominals", "unranked"],
+          "front/biceps": ["Biceps", "light"],
+          "front/quadriceps": ["Quadriceps", "moderate"],
+          "back/lats": ["Latissimus-Dorsi", "light"],
+          "back/gluteal": ["Glutes", "moderate"]
+        },
+        "logged": {
+          "front/abs": ["Abdominals", "unranked"],
+          "front/biceps": ["Biceps", "moderate"],
+          "front/quadriceps": ["Quadriceps", "unranked"],
+          "back/lats": ["Latissimus-Dorsi", "moderate"],
+          "back/gluteal": ["Glutes", "unranked"]
+        }
+      },
+      "bars": [
+        ["Latissimus-Dorsi", "71%", "5.0", "19.8%", "17.8", "71.28%"],
+        ["Glutes", "64%", "10.3", "64.4531%", "0", null],
+        ["Quadriceps", "51%", "10.1", "50.5313%", "0", null],
+        ["Biceps", "34%", "6.1", "23.3654%", "8.9", "34.2692%"],
+        ["Triceps", "29%", "5.2", "28.6458%", "3.0", "16.5%"],
+        ["Chest", "29%", "6.3", "28.5938%", "5.9", "27%"],
+        ["Forearms", "28%", "1.2", "7.73438%", "4.5", "27.8438%"],
+        ["Hamstrings", "17%", "3.4", "17.0156%", "0", null],
+        ["Front-Shoulder", "—", "6.6", "8%", "1.5", "8%"]
+      ]
+    },
+    "last_4_weeks": {
+      "sfr": ["0.29", "0.24"],
+      "regions": {
+        "planned": {
+          "front/abs": ["Abdominals", "unranked"],
+          "front/biceps": ["Biceps", "light"],
+          "front/quadriceps": ["Quadriceps", "moderate"],
+          "back/lats": ["Latissimus-Dorsi", "light"],
+          "back/gluteal": ["Glutes", "moderate"]
+        },
+        "logged": {
+          "front/abs": ["Abdominals", "unranked"],
+          "front/biceps": ["Biceps", "moderate"],
+          "front/quadriceps": ["Quadriceps", "very_heavy"],
+          "back/lats": ["Latissimus-Dorsi", "moderate"],
+          "back/gluteal": ["Glutes", "very_heavy"]
+        }
+      },
+      "bars": [
+        ["Quadriceps", "211%", "10.1", "50.5313%", "42.2", "150%"],
+        ["Glutes", "132%", "10.3", "64.4531%", "21.1", "132%"],
+        ["Latissimus-Dorsi", "71%", "5.0", "19.8%", "17.8", "71.28%"],
+        ["Hamstrings", "53%", "3.4", "17.0156%", "10.6", "52.8%"],
+        ["Biceps", "34%", "6.1", "23.3654%", "8.9", "34.2692%"],
+        ["Triceps", "29%", "5.2", "28.6458%", "3.0", "16.5%"],
+        ["Chest", "29%", "6.3", "28.5938%", "5.9", "27%"],
+        ["Forearms", "28%", "1.2", "7.73438%", "4.5", "27.8438%"],
+        ["Front-Shoulder", "—", "6.6", "8%", "1.5", "8%"]
+      ]
+    }
+  }
+}

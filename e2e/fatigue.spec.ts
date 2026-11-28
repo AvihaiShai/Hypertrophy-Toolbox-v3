@@ -235,6 +235,8 @@ test.describe('/fatigue body heatmap', () => {
     // every other test in this file through the shared fixture.
     await expect(page.locator('[data-testid="fatigue-heatmap"]')).toBeVisible();
     await expect(page.locator('[data-testid="fatigue-heatmap-figure-front"] svg')).toHaveCount(0);
+    await expect(page.getByTestId('fatigue-heatmap-figure-front')).toContainText(/front view unavailable/i);
+    await expect(page.getByTestId('fatigue-bar-list').getByTestId('fatigue-muscle-bar').first()).toBeVisible();
     consoleErrors.assertNoErrors();
   });
 
@@ -303,6 +305,11 @@ test.describe('/fatigue page', () => {
     });
     await gotoFatigue(page);
     await expect(page.locator('[data-testid="fatigue-empty-state"]')).toBeVisible();
+    const empty = page.locator('main .ui-empty-state:visible');
+    await expect(empty).toHaveCount(1);
+    await expect(empty).toContainText(/no planned exercises and no logged sessions in this period/i);
+    await expect(empty.getByRole('link', {name: 'Plan'})).toHaveAttribute('href', '/workout_plan');
+    await expect(page.getByTestId('fatigue-period-select')).toBeEnabled();
   });
 
   test('dark mode parity — page survives toggle without console errors', async ({ page, consoleErrors }) => {
@@ -331,10 +338,9 @@ test.describe('/fatigue page', () => {
   });
 
   test('badge → /fatigue link from /session_summary navigates here', async ({ page }) => {
-    // The "View per-muscle breakdown →" link lands in chapter 2.8, so this
-    // spec validates round-trip navigation rather than the link itself.
     await page.goto('/session_summary');
-    await page.goto(FATIGUE_URL);
+    await page.getByRole('link', {name: /View per-muscle breakdown/i}).click();
+    await expect(page).toHaveURL(/\/fatigue$/);
     await expect(page.locator('[data-testid="fatigue-page"]')).toBeVisible();
   });
 });
