@@ -40,8 +40,8 @@ font is not the font token. And one page's tables ignore the theme system entire
 
 ## The system in one paragraph
 
-Neutral surfaces and a single indigo accent carry both themes. The shared navigation, Workout
-Log and Workout Plan use opaque surfaces and thin borders. Older components also use translucent
+Neutral surfaces and a single indigo accent carry both themes. Navigation, Workout Log, Workout
+Plan and the three Analyze pages use opaque surfaces and thin borders. Older components also use translucent
 panels, blur and soft shadows. The `[data-theme="dark"]` attribute switches the token values.
 Spacing and type adapt across seven viewport bands. Components honor `prefers-reduced-motion`.
 
@@ -69,9 +69,8 @@ There are **10 page bundles for 11 page routes**: `templates/fatigue.html` decla
 block, so `/fatigue` loads only the global bundles — confirmed by reading the live document's
 stylesheet list. Its page-specific styling, including the body heatmap, lives in `scss/_fatigue.scss`,
 which is `@import`ed into `custom-bootstrap.scss` and therefore compiles into
-`bootstrap.custom.min.css`. That is the one page whose look is carried by the Bootstrap build
-artifact rather than by a route bundle, and it is why its local overrides — such as a 12px select
-radius where every other page uses 8px — are not findable in `static/css/pages-*.css`.
+`bootstrap.custom.min.css`. The period selector uses the same 8 px control radius as the
+Summary contribution selector.
 
 The tail is load-bearing: **`motion.css` and `theme-dark.css` load after the page bundle**, which
 is how reduced-motion overrides and dark theming win over page-specific rules without needing
@@ -292,6 +291,20 @@ the danger, orange, success and purple swatches. Session warnings use a second p
 on the ordinary row surface. Weekly names each warning's priority and each routine's
 position relative to its returned target range.
 
+### Fatigue meter and projected fatigue
+
+The three Analyze pages share a 24 / 32 px title and 24 / 32 px primary readouts.
+Projected fatigue pairs its score with a labelled band and swatch. Its 44 px help
+button opens the explanation inside the panel, keeping it readable on a zoomed phone.
+
+The Fatigue header keeps the descriptive caveat with the period selector. One panel
+shows planned and logged stimulus-to-fatigue ratios side by side from 768 px and
+stacks them on phones. The open Body map has labelled front and back views, channel
+controls and five named swatches. The same theme-specific hues color the muscle
+regions and the list’s meter fills. The per-muscle panel shows each channel’s
+score and band beside its track. Ranked tracks mark the reference at 66.66% of
+their width. Unranked readings use a short fill and the “No range” label.
+
 ### Workout Plan redesign
 
 The Plan uses the Workout Log frame and the same 16, 24 and 32 px gutters. The list comes
@@ -366,9 +379,6 @@ mode: table `rgb(33,37,41)`, header `rgb(52,58,64)`, body cell `rgb(42,42,42)` �
 neutral greys, not `--surface-*`. In light mode the header text is `rgb(80,80,80)` and body text
 is pure `rgb(0,0,0)`, neither of which is `--ink-1` or `--ink-2`. Every other page's tables track
 the tokens. Recorded as an observed divergence.
-
-**The Fatigue page's select** computes to `rgba(255,255,255,.7)` light / `rgba(40,40,52,.7)` dark
-with a **12px** radius, where every other page's select is 8px. Another local override.
 
 **Semantic colors do not invert.** Already noted above and repeated here because it is the most
 likely thing for someone to "fix": success, warning, danger, and accent are deliberately identical

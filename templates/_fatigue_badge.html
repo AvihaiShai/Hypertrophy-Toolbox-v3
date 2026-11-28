@@ -3,9 +3,8 @@
          role="status" aria-labelledby="fatigue-badge-heading">
     <div class="fatigue-badge__head">
         <h2 id="fatigue-badge-heading" class="fatigue-badge__eyebrow">Projected fatigue</h2>
-        <button type="button" class="fatigue-badge__info-btn" data-bs-toggle="tooltip"
-                data-bs-placement="auto" aria-label="About projected fatigue"
-                title="A planning estimate based on movement pattern, rep range and Reps In Reserve. Higher bands indicate a higher planned workload.">
+        <button type="button" class="fatigue-badge__info-btn" aria-label="About projected fatigue"
+                aria-describedby="projection-help" aria-controls="projection-help" aria-expanded="false">
             <i class="fas fa-info-circle" aria-hidden="true"></i>
         </button>
     </div>
@@ -24,4 +23,6 @@
     <a class="fatigue-badge__breakdown-link" href="{{ url_for('fatigue.fatigue_page') }}" data-testid="fatigue-badge-breakdown-link">
         View per-muscle breakdown <span aria-hidden="true">→</span>
     </a>
+    <p class="fatigue-badge__help" id="projection-help" role="tooltip" hidden>A planning estimate based on movement pattern,
+        rep range and Reps In Reserve. Higher bands indicate a higher planned workload.</p>
 </section>

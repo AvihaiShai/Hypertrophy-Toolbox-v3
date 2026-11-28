@@ -18,7 +18,7 @@
          data-has-landmarks="{{ 'true' if has_landmarks else 'false' }}"
          data-testid="fatigue-muscle-bar">
     <header class="fatigue-bar__head">
-        <h3 class="fatigue-bar__name h6 mb-0">{{ row.muscle }}</h3>
+        <h3 class="fatigue-bar__name">{{ row.muscle }}</h3>
         <span class="fatigue-bar__percent" data-testid="fatigue-percent">
             {%- if has_landmarks and row.max_percent_of_mrv is not none -%}
                 {{ '%.0f%%' | format(row.max_percent_of_mrv) }}
@@ -51,6 +51,7 @@
                     <span class="fatigue-bar__score--empty">—</span>
                 {%- endif -%}
             </span>
+            <span class="fatigue-bar__band">{{ (data.band | replace('_',' ') | capitalize) if data and data.band else ('No range' if data else 'No reading') }}</span>
         </div>
     {% endfor %}
 </article>

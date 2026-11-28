@@ -221,6 +221,25 @@ export async function refreshSummary(key, params, renderRow) {
 
 export function onSummaryReady(update) {
     document.addEventListener('DOMContentLoaded', () => {
+        const info = document.querySelector('.fatigue-badge__info-btn');
+        const description = document.getElementById('projection-help');
+        function showHelp(open) {
+            description.hidden = !open;
+            info.setAttribute('aria-expanded', String(open));
+        }
+        info.addEventListener('focus', () => showHelp(true));
+        info.addEventListener('click', () => showHelp(true));
+        info.addEventListener('pointerenter', event => {
+            if (event.pointerType === 'mouse') showHelp(true);
+        });
+        info.closest('.fatigue-badge').addEventListener('pointerleave', () => {
+            if (document.activeElement !== info) showHelp(false);
+        });
+        info.addEventListener('blur', () => showHelp(false));
+        info.addEventListener('keydown', event => {
+            if (event.key === 'Escape') showHelp(false);
+        });
+
         document.addEventListener('filterViewModeChanged', () => {
             // The global isolated rows stay server-rendered across contribution changes.
             document.querySelectorAll('td[data-label="Isolated Muscle"]').forEach(cell => {

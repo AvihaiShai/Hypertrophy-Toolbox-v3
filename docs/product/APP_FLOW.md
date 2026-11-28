@@ -506,10 +506,10 @@ embeds rather than fetching anything.
 |---|---|---|
 | Period `<select>` | Navigation | Auto-submits its form on change — `GET /fatigue?period=…`, a real navigation and full page reload. There is no Apply button; a submit button exists only inside `<noscript>`, labelled "Update" |
 | Body map panel | Presentation | A `<details>` element, open by default. Collapsing it is browser-native; no state is persisted |
-| Planned / Logged channel buttons | Presentation | Recolor the figures from the already-rendered data. Each button renders `hidden` and is revealed only if that channel actually has data — measured on a planned-only page, `Planned` is visible and pressed while `Logged` stays hidden, so no dead toggle is ever shown |
+| Planned / Logged channel buttons | Presentation | With both channels available, the buttons recolor the figures and update their accessible names and the visible caption. With one channel, the caption identifies it and the switch stays hidden. |
 | Body map figures | Presentation | Two SVGs, front and back, colored by each muscle's existing fatigue band. Regions with no reading stay gray |
 | Legend | Presentation | Band swatches with text labels |
-| Link to Plan | Navigation | → `/workout_plan` |
+| Link to Plan | Navigation | When the current plan is empty and the selected period has no logs, the empty state links to `/workout_plan`. The period selector remains available for earlier logs. |
 
 ### The body map is a second view of the same numbers
 
@@ -553,7 +553,7 @@ Three details that would otherwise read as bugs, all stated in the page's own co
 
 | Surface | Where | Gated? |
 |---|---|---|
-| **Projected fatigue badge** | Weekly Summary and Session Summary | **No.** Always rendered; the route computes the score and band on every request with no settings check |
+| **Projected fatigue badge** | Weekly Summary and Session Summary | The badge renders on every HTML page request. It uses the current plan and has no settings check. |
 | **Fatigue context block** | Progression estimates and suggestions | **Yes.** Controlled from Profile by `fatigue_context_settings.enabled`, which is **off by default** |
 
 Only the second is the opt-in one. Both are independent of `CountingMode` and `ContributionMode`.
