@@ -30,7 +30,9 @@ export async function visibleLabelFits(control: Locator) {
       spokenSuffix = el.querySelector(':scope > .visually-hidden');
       if (spokenSuffix?.textContent?.trim() !== 'muscle names') return false;
       const style = getComputedStyle(spokenSuffix);
-      if (style.width !== '1px' || style.height !== '1px' || style.overflow !== 'hidden' ||
+      // Counter-zoom can round a CSS pixel to a fractional rendered size.
+      const suffix = spokenSuffix.getBoundingClientRect();
+      if (suffix.width > 1.05 || suffix.height > 1.05 || style.position !== 'absolute' || style.overflow !== 'hidden' ||
           style.clip !== 'rect(0px, 0px, 0px, 0px)') return false;
     }
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
