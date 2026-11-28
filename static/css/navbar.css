@@ -23,6 +23,7 @@
 
 /* Bootstrap's navbar and collapse rules are unlayered. */
 #navbar {
+  --bs-navbar-active-color: var(--ink-2);
   position: fixed;
   inset: 0 0 auto;
   z-index: 1000;
@@ -86,11 +87,11 @@
   background: var(--surface-1);
 }
 
-.navbar .nav-link.active {
+.navbar :is([aria-current="page"], .dropdown-toggle.active) {
   color: var(--nav-current);
 }
 
-.navbar .nav-link.active::before {
+.navbar :is([aria-current="page"], .dropdown-toggle.active)::before {
   content: "";
   position: absolute;
   inset: auto 7px 0;
@@ -214,7 +215,7 @@
     padding-inline: 12px;
   }
 
-  .navbar .nav-link.active::before {
+  .navbar :is([aria-current="page"], .dropdown-toggle.active)::before {
     inset: 8px auto 8px 0;
     width: 2px;
     height: auto;

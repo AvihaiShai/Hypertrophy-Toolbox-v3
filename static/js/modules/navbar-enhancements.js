@@ -236,7 +236,6 @@ function initializeDesktopHoverDropdowns(navbar) {
       if (!isDesktopHover()) return;
 
       clearHideTimer();
-      dropdown.classList.add('is-hover-open');
       dropdownInstance.show();
       toggle.setAttribute('aria-expanded', 'true');
     }
@@ -246,7 +245,6 @@ function initializeDesktopHoverDropdowns(navbar) {
 
       clearHideTimer();
       hideTimer = window.setTimeout(() => {
-        dropdown.classList.remove('is-hover-open');
         dropdownInstance.hide();
         toggle.setAttribute('aria-expanded', 'false');
       }, delay);
@@ -254,7 +252,14 @@ function initializeDesktopHoverDropdowns(navbar) {
 
     dropdown.addEventListener('mouseenter', openDropdown);
     dropdown.addEventListener('mouseleave', () => closeDropdown());
-    dropdown.addEventListener('focusin', openDropdown);
+    dropdown.addEventListener('focusin', (event) => {
+      if (!dropdown.contains(event.relatedTarget)) openDropdown();
+    });
+    // Cached 3.0.1 navbar CSS highlights the open trigger while a submenu item has focus.
+    dropdown.addEventListener('shown.bs.dropdown', () => {
+      if (isDesktopHover()) dropdown.classList.add('is-hover-open');
+    });
+    dropdown.addEventListener('hidden.bs.dropdown', () => dropdown.classList.remove('is-hover-open'));
     dropdown.addEventListener('focusout', (event) => {
       if (!dropdown.contains(event.relatedTarget)) {
         closeDropdown(80);
@@ -285,13 +290,12 @@ function initializeDesktopHoverDropdowns(navbar) {
 
     menu.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        closeDropdown(0);
         toggle.focus();
+        closeDropdown(0);
       }
     });
 
     desktopHoverQuery.addEventListener('change', () => {
-      dropdown.classList.remove('is-hover-open');
       dropdownInstance.hide();
       toggle.setAttribute('aria-expanded', 'false');
     });

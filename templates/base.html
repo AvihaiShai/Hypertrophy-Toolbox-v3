@@ -41,7 +41,7 @@
     ) %}
     {% macro destination(id, path, glyph, label, classes='') -%}
         <a id="{{ id }}" data-testid="{{ id }}" href="{{ path }}"
-           class="nav-link nav-link-with-icon {{ classes }}{% if path == current_path %} active{% endif %}"
+           class="nav-link {{ classes }}{% if path == current_path %} active{% endif %}"
            {% if path == current_path %}aria-current="page"{% endif %}>
             <i class="fas fa-{{ glyph }} nav-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
             <span>{{ label }}</span>
@@ -65,7 +65,7 @@
                     <li class="nav-item">{{ destination('nav-workout-log', '/workout_log', 'book-open', 'Log') }}</li>
                     <li class="nav-item dropdown">
                         <button id="nav-analyze-toggle" type="button" data-visual-dropdown-toggle
-                                class="nav-link nav-link-with-icon dropdown-toggle{% if current_path in analyze_pages|map(attribute=1) %} active{% endif %}"
+                                class="nav-link dropdown-toggle{% if current_path in analyze_pages|map(attribute=1) %} active{% endif %}"
                                 data-bs-toggle="dropdown" aria-controls="nav-analyze-pages" aria-expanded="false">
                             <i class="fas fa-chart-line nav-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
                             <span>Analyze</span>

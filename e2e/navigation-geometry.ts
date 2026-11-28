@@ -89,17 +89,25 @@ export async function expectGlyph(link: Locator, hex: string, family = 'Font Awe
 export async function expectCurrentMarker(link: Locator, mobile: boolean) {
   await expect(link).toHaveClass(/\bactive\b/);
   const marked = await link.evaluate((el, phone) => {
+    const swatch = document.createElement('span');
+    swatch.style.cssText = 'position:absolute;color:var(--nav-current)';
+    el.append(swatch);
+    const accent = getComputedStyle(swatch).color;
+    swatch.remove();
     const style = getComputedStyle(el);
-    const painted = (ink: string) => ink !== 'transparent' && ink !== 'rgba(0, 0, 0, 0)';
+    const label = el.querySelector('span');
+    const icon = el.querySelector('[data-visual-icon]');
+    if (!label || !icon || getComputedStyle(label).color !== accent ||
+        getComputedStyle(icon, '::before').color !== accent) return false;
     const border = phone ? style.borderLeft : style.borderBottom;
-    if (border.startsWith('2px solid') && painted(phone ? style.borderLeftColor : style.borderBottomColor)) return true;
+    if (border.startsWith('2px solid') && (phone ? style.borderLeftColor : style.borderBottomColor) === accent) return true;
     return ['::before', '::after'].some(pseudo => {
       const marker = getComputedStyle(el, pseudo);
       const thickness = phone ? marker.width : marker.height;
       const length = parseFloat(phone ? marker.height : marker.width);
       return marker.content !== 'none' && marker.display !== 'none' && marker.visibility === 'visible'
         && Number(marker.opacity) > 0 && thickness === '2px' && length > 3
-        && parseFloat(phone ? marker.left : marker.bottom) === 0 && painted(marker.backgroundColor);
+        && parseFloat(phone ? marker.left : marker.bottom) === 0 && marker.backgroundColor === accent;
     });
   }, mobile);
   expect(marked, 'visible 2px current-location marker at the leading or bottom edge').toBe(true);

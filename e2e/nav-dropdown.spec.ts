@@ -826,6 +826,13 @@ test.describe('Navigation on the fixed header', () => {
         for (const id of ['nav-analyze-toggle', 'nav-fatigue']) {
           await expectCurrentMarker(page.locator('#' + id), mobile);
         }
+        // The cached theme script uses "active" for light mode.
+        const utility = page.locator('#darkModeToggle');
+        const utilityInk = await page.locator('#muscleModeToggle').evaluate(el => getComputedStyle(el).color);
+        await utility.evaluate(el => el.classList.add('active'));
+        await expect(utility).toHaveCSS('color', utilityInk);
+        expect(await utility.evaluate(el => getComputedStyle(el, '::before').content)).toBe('none');
+        await utility.evaluate(el => el.classList.remove('active'));
         await expectGlyph(page.locator('.nav-signature-link'), 'f08c', 'Font Awesome 5 Brands');
         await expectGlyph(page.locator('#muscleModeToggle'), 'f610');
         await expectGlyph(page.locator('#darkModeToggle'), theme === 'dark' ? 'f185' : 'f186');
@@ -931,6 +938,14 @@ test.describe('Navigation keyboard and utility controls', () => {
         await expect(analyze).toHaveAttribute('aria-expanded', 'true');
         const weekly = page.locator('#nav-weekly-summary');
         if (!(await weekly.evaluate(el => el === document.activeElement))) await page.keyboard.press('Tab');
+        if (!mobile) {
+          await weekly.press('Escape');
+          await expect(analyze).toBeFocused();
+          await expect(analyze).toHaveAttribute('aria-expanded', 'false');
+          await expect(weekly).toBeHidden();
+          await analyze.press('ArrowDown');
+          await expect(weekly).toBeFocused();
+        }
         for (const id of ['nav-weekly-summary', 'nav-session-summary', 'nav-fatigue']) {
           const item = page.locator('#' + id);
           await expect(item).toBeFocused();

@@ -237,7 +237,8 @@ def test_navbar_adds_no_important_declarations() -> None:
 
 def test_navbar_custom_property_count_matches_contract() -> None:
     decls = [d for r in _rules(_css()) for d in r["decls"] if d.lstrip().startswith("--")]
-    assert len(decls) == 6
+    assert len(decls) == 7
+    assert "--bs-navbar-active-color: var(--ink-2)" in decls
     assert not any(re.match(r"--nav-(?:gap|padding-[xy])\s*:", decl) for decl in decls)
 
 
