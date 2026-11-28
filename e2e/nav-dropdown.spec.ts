@@ -6,7 +6,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect, ROUTES, SELECTORS, resetWorkoutPlan, waitForPageReady } from './strict-fixtures';
 
-import { expectBodyClearance, expectCurrentMarker, expectGlyph, expectReadableLink, prepareNavigation, scrollCompact, targetGeometry } from './navigation-geometry';
+import { expectBodyClearance, expectCurrentMarker, expectGlyph, expectReadableLink, prepareNavigation, scrollCompact, targetGeometry, visibleLabelFits } from './navigation-geometry';
 
 const ANALYZE_TOGGLE = '#navbar .dropdown-toggle:has-text("Analyze")';
 const ROUTE_LIST = [
@@ -896,20 +896,7 @@ test.describe('Navigation on the fixed header', () => {
               const label = `${width}/${scale}/compact=${compact}/${selector}`;
               const g = await targetGeometry(control);
               expect(g.width > 0 && g.height > 0 && g.contained && g.ownsTargets, label).toBe(true);
-              const contentsFit = await control.evaluate(el => {
-                const rect = el.getBoundingClientRect();
-                const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-                while (walker.nextNode()) {
-                  if (!walker.currentNode.textContent?.trim()) continue;
-                  const range = document.createRange();
-                  range.selectNodeContents(walker.currentNode);
-                  const text = range.getBoundingClientRect();
-                  if (!text.width || text.left < rect.left - 1 || text.right > rect.right + 1
-                    || text.top < rect.top - 1 || text.bottom > rect.bottom + 1) return false;
-                }
-                return true;
-              });
-              expect(contentsFit, label + ' full label').toBe(true);
+              expect(await visibleLabelFits(control), label + ' full label').toBe(true);
               rects.push(g);
             }
             const sorted = rects.sort((a, b) => a.left - b.left);

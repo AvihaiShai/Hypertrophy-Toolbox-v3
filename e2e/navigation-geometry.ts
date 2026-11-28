@@ -20,6 +20,36 @@ export async function targetGeometry(control: Locator) {
   });
 }
 
+export async function visibleLabelFits(control: Locator) {
+  return control.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    // A DOM Range measures the entire string even inside a clipped 1px
+    // screen-reader label. Only the naming control has that extra text.
+    let spokenSuffix: Element | null = null;
+    if (el.id === 'muscleModeToggle') {
+      spokenSuffix = el.querySelector(':scope > .visually-hidden');
+      if (spokenSuffix?.textContent?.trim() !== 'muscle names') return false;
+      const style = getComputedStyle(spokenSuffix);
+      if (style.width !== '1px' || style.height !== '1px' || style.overflow !== 'hidden' ||
+          style.clip !== 'rect(0px, 0px, 0px, 0px)') return false;
+    }
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      if (!walker.currentNode.textContent?.trim()) continue;
+      if (spokenSuffix?.contains(walker.currentNode)) continue;
+      const parent = walker.currentNode.parentElement!;
+      const style = getComputedStyle(parent);
+      if (style.visibility !== 'visible' || Number(style.opacity) === 0) return false;
+      const range = document.createRange();
+      range.selectNodeContents(walker.currentNode);
+      const text = range.getBoundingClientRect();
+      if (!text.width || text.left < rect.left - 1 || text.right > rect.right + 1
+        || text.top < rect.top - 1 || text.bottom > rect.bottom + 1) return false;
+    }
+    return true;
+  });
+}
+
 export async function expectGlyph(link: Locator, hex: string, family = 'Font Awesome 5 Free') {
   const weight = family === 'Font Awesome 5 Brands' ? '400' : '900';
   const icon = link.locator('[data-visual-icon]');
