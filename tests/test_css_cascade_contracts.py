@@ -629,6 +629,11 @@ def test_welcome_tokens_extract_exact_values_without_dead_custom_properties() ->
 
 
 def test_session_summary_warning_paint_is_scoped_to_status_pills() -> None:
+    base = (ROOT / "templates/base.html").read_text(encoding="utf-8")
+    session = (ROOT / "templates/session_summary.html").read_text(encoding="utf-8")
+    assert 'css/pages-session-summary.css' in session
+    assert base.index("css/a11y.css") < base.index("{% block page_css %}") < base.index("css/motion.css")
+    assert base.index("css/motion.css") < base.index("css/theme-dark.css")
     css = (ROOT / "static/css/pages-session-summary.css").read_text(encoding="utf-8")
     rules = re.findall(r"([^{}]+)\{([^{}]+)\}", COMMENT_RE.sub("", css))
     expected = {"ok": "--ui-achieved", "borderline": "--ui-pending", "excessive": "--ui-danger"}
@@ -640,6 +645,11 @@ def test_session_summary_warning_paint_is_scoped_to_status_pills() -> None:
 
 
 def test_weekly_summary_pattern_and_shared_record_styles_remain_separate() -> None:
+    base = (ROOT / "templates/base.html").read_text(encoding="utf-8")
+    weekly = (ROOT / "templates/weekly_summary.html").read_text(encoding="utf-8")
+    assert 'css/pages-weekly-summary.css' in weekly
+    assert base.index("css/a11y.css") < base.index("{% block page_css %}") < base.index("css/motion.css")
+    assert base.index("css/motion.css") < base.index("css/theme-dark.css")
     css = (ROOT / "static/css/pages-weekly-summary.css").read_text(encoding="utf-8")
     panels = (ROOT / "templates/partials/_summary_panels.html").read_text(encoding="utf-8")
     shared = (ROOT / "static/css/components.css").read_text(encoding="utf-8")

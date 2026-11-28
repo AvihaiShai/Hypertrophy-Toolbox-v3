@@ -100,8 +100,10 @@ def _is_groups(css: str) -> list[str]:
 
 
 def test_the_repair_added_no_lines() -> None:
-    """Pin the measured source after retiring the four legacy Swap paint rules."""
-    assert _css().count("\n") == 4576
+    """Keep the repaired 4,576-line source and the new Summary prefix accounted for."""
+    prefix, marker, repaired = _css().partition("/* Button Base Styles - Glass Effect Enhancement */")
+    assert marker and prefix.count("\n") == 103
+    assert repaired.count("\n") == 4576
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
@@ -205,7 +207,7 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     """
     css = _css()
     assert css.count(":is(") == 14
-    assert css.count(":where(") == 65
+    assert css.count(":where(") == 65 + 5  # Five low-specificity Summary selectors.
     assert css.count(":hover") == 80
     commented_hovers = sum(
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
