@@ -833,15 +833,12 @@ test.describe('Navigation on the fixed header', () => {
           const button = page.getByRole('button', { name: 'Toggle navigation menu' });
           const symbol = button.locator('[data-visual-icon]');
           await expect(symbol).toBeVisible();
-          const hasStrokes = await symbol.evaluate(el => {
-            const path = el.querySelector('path') ?? (el.matches('path') ? el : null);
-            const expected = 'M4 7h22M4 15h22M4 23h22';
-            const color = getComputedStyle(el.closest('button')!).color;
-            if (path) return path.getAttribute('d') === expected && getComputedStyle(path).stroke === color;
-            const style = getComputedStyle(el);
-            return decodeURIComponent(style.maskImage).includes(expected) && style.backgroundColor === color;
-          });
-          expect(hasStrokes, 'original three strokes painted in the button colour').toBe(true);
+          const strokes = symbol.locator('path');
+          await expect(symbol).toHaveAttribute('viewBox', '0 0 30 30');
+          await expect(strokes).toHaveAttribute('d', 'M4 7h22M4 15h22M4 23h22');
+          await expect(strokes).toHaveCSS('stroke', await button.evaluate(el => getComputedStyle(el).color));
+          await expect(strokes).toHaveCSS('stroke-linecap', 'round');
+          await expect(strokes).toHaveCSS('stroke-width', '2.5px');
         }
       }
     });

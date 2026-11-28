@@ -67,7 +67,7 @@ export async function expectGlyph(link: Locator, hex: string, family = 'Font Awe
     const cx = (rect.left + rect.right) / 2;
     const cy = (rect.top + rect.bottom) / 2;
     const painted = [[cx, cy], [rect.left + 1, cy], [rect.right - 1, cy],
-      [cx, rect.top + 1], [cx, rect.bottom - 1]].every(([x, y]) => link.contains(document.elementFromPoint(x, y)));
+      [cx, rect.top + 1], [cx, rect.bottom - 1]].every(([x, y]) => el.contains(document.elementFromPoint(x, y)));
     let opaque = true;
     for (let ancestor: Element | null = el; ancestor; ancestor = ancestor.parentElement) {
       if (Number(getComputedStyle(ancestor).opacity) !== 1) opaque = false;
