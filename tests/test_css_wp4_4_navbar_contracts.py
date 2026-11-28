@@ -220,6 +220,10 @@ def test_shared_container_owns_regular_and_compact_frame_geometry() -> None:
         and not rule["at_rules"]
     ]
     assert "min-height: 51px" in compact["decls"]
+    [narrow_height] = [rule for rule in rules if "--nav-height: 56px" in rule["decls"]]
+    assert narrow_height["selector"] == ":root"
+    assert narrow_height["at_rules"] == ("@layer navbar", "@media (max-width: 1359.98px)")
+    assert not any("min-height: 55px" in rule["decls"] for rule in rules)
 
 
 # --------------------------------------------------------------------------
@@ -233,7 +237,7 @@ def test_navbar_adds_no_important_declarations() -> None:
 
 def test_navbar_custom_property_count_matches_contract() -> None:
     decls = [d for r in _rules(_css()) for d in r["decls"] if d.lstrip().startswith("--")]
-    assert len(decls) == 5
+    assert len(decls) == 6
     assert not any(re.match(r"--nav-(?:gap|padding-[xy])\s*:", decl) for decl in decls)
 
 
@@ -241,17 +245,19 @@ def test_the_navbar_layer_contains_only_frame_and_theme_tokens() -> None:
     css = _strip_comments(_css())
     assert len(re.findall(r"@layer\s+[\w-]+\s*\{", css)) == 1
     layered = [rule for rule in _rules(css) if rule["layer"]]
-    assert [rule["selector"] for rule in layered] == [
+    assert [rule["selector"] for rule in layered if len(rule["at_rules"]) == 1] == [
         ":root", ".navbar", '[data-theme="dark"] .navbar',
     ]
-    assert all(rule["at_rules"] == ("@layer navbar",) for rule in layered)
+    assert [rule["at_rules"] for rule in layered if len(rule["at_rules"]) > 1] == [
+        ("@layer navbar", "@media (max-width: 1359.98px)"),
+    ]
     assert all(decl.startswith("--") for rule in layered for decl in rule["decls"])
 
 
 def test_navbar_rule_count_matches_contract() -> None:
     rules = _rules(_css())
     assert len(rules) == 37
-    assert sum(rule["layer"] is None for rule in rules) == 34
+    assert sum(rule["layer"] is None for rule in rules) == 33
 
 
 def test_compact_motion_uses_a_transition_and_respects_reduced_motion() -> None:
