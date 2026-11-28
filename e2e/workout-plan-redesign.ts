@@ -31,6 +31,47 @@ export async function setPlanView(page: Page, mode: 'simple' | 'advanced') {
   await expect(toggle).toHaveAttribute('data-view-mode', mode);
 }
 
+/** Read every linked phone card in one browser task because the post-link GET replaces the entire tbody. */
+export function readSupersetCardPaint(page: Page) {
+  return page.locator('#workout').evaluate(workout => {
+    const probe = document.createElement('span');
+    probe.style.cssText = 'display:none;color:var(--ink-2);background:var(--surface-1)';
+    workout.append(probe);
+    const ink = getComputedStyle(probe).color;
+    const surface = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    // The neutral tokens resolve to opaque sRGB colors in both supported themes.
+    const opaqueTokens = ink.startsWith('rgb(') && surface.startsWith('rgb(') && ink !== surface;
+    const visibleBox = (node: Element) => {
+      const box = node.getBoundingClientRect();
+      return node.isConnected && box.width > 0 && box.height > 0 &&
+        node.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+    };
+    return [...workout.querySelectorAll<HTMLElement>('#workout_plan_table_body tr[data-superset-group]')].map(card => {
+      const base = getComputedStyle(card);
+      const before = getComputedStyle(card, '::before');
+      const width = parseFloat(before.width);
+      const paintedRail = visibleBox(card) && before.display !== 'none' && before.visibility === 'visible' &&
+        Number(before.opacity) > 0 && before.content !== 'none' && before.content !== 'normal' &&
+        before.position === 'absolute' && parseFloat(before.left) === 0 &&
+        width > Math.max(1, parseFloat(base.borderLeftWidth)) && parseFloat(before.height) > width &&
+        opaqueTokens && before.backgroundColor === ink;
+      const badge = card.querySelector('.superset-badge');
+      const style = badge && getComputedStyle(badge);
+      const paintedBadge = !!badge && visibleBox(badge) && badge.textContent?.trim() === 'Superset' &&
+        opaqueTokens && style?.color === ink && style.backgroundColor === surface;
+      return {
+        id: Number(card.dataset.exerciseId),
+        group: card.dataset.supersetGroup,
+        paintedRail,
+        paintedBadge,
+        badge: [style?.color, style?.backgroundColor],
+        rail: [base, before].map(layer => [layer.borderLeftWidth, layer.borderLeftColor, layer.backgroundColor]),
+      };
+    }).sort((a, b) => a.id - b.id);
+  });
+}
+
 /** Measure colors even when a legacy action has no shared variant class. */
 export function filledPlanActions(page: Page) {
   return page.locator('#main-content').evaluate(main => {

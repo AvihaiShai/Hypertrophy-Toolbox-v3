@@ -14,32 +14,14 @@ export function initializeNavbarEnhancements() {
 
   const mobileMenuToggle = navbar.querySelector('.navbar-toggler, .nb-menu-btn');
   const mobileMenu = navbar.querySelector('#navbarNav');
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   initializeDesktopHoverDropdowns(navbar);
   
   // Compact mode on scroll
-  let lastScrollY = window.scrollY;
-  const scrollThreshold = 80; // px (64-96px range recommended for smooth experience)
-  
   function handleScroll() {
-    const currentScrollY = window.scrollY;
-    
-    if (prefersReducedMotion) {
-      // Instant toggle for reduced motion
-      navbar.classList.toggle('nb-compact', currentScrollY > scrollThreshold);
-    } else {
-      // Smooth transition
-      if (currentScrollY > scrollThreshold && !navbar.classList.contains('nb-compact')) {
-        navbar.classList.add('nb-compact');
-      } else if (currentScrollY <= scrollThreshold && navbar.classList.contains('nb-compact')) {
-        navbar.classList.remove('nb-compact');
-      }
-    }
-    
-    lastScrollY = currentScrollY;
+    navbar.classList.toggle('nb-compact', window.scrollY > 80);
   }
-  
+
   // Throttled scroll handler
   let ticking = false;
   function onScroll() {
@@ -74,10 +56,7 @@ export function initializeNavbarEnhancements() {
         mobileMenu.querySelectorAll(
           'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
         )
-      ).filter(el => {
-        const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden';
-      });
+      ).filter(el => el.getClientRects().length && getComputedStyle(el).visibility === 'visible');
       
       firstFocusableElement = focusableElements[0] || null;
       lastFocusableElement = focusableElements[focusableElements.length - 1] || null;
@@ -85,9 +64,11 @@ export function initializeNavbarEnhancements() {
     
     // Trap focus within mobile menu
     function trapFocus(e) {
-      if (!isMenuOpen || focusableElements.length === 0) return;
+      if (!isMenuOpen || e.defaultPrevented) return;
       
       if (e.key === 'Tab') {
+        // Submenu visibility and disabled scale buttons can change while open.
+        updateFocusableElements();
         if (e.shiftKey) {
           // Shift + Tab (backward)
           if (document.activeElement === firstFocusableElement) {
@@ -114,7 +95,7 @@ export function initializeNavbarEnhancements() {
       if (isMenuOpen) {
         document.body.style.overflow = 'hidden';
         // Add inert to main content if supported (with fallback)
-        const mainContent = document.querySelector('.container-fluid:not(#navbar .container-fluid), main:not(#navbar)');
+        const mainContent = document.getElementById('main-content');
         if (mainContent) {
           try {
             if ('inert' in mainContent) {
@@ -130,7 +111,7 @@ export function initializeNavbarEnhancements() {
     
     function unlockBodyScroll() {
       document.body.style.overflow = '';
-      const mainContent = document.querySelector('.container-fluid:not(#navbar .container-fluid), main:not(#navbar)');
+      const mainContent = document.getElementById('main-content');
       if (mainContent) {
         if (mainContent.hasAttribute('inert')) {
           mainContent.removeAttribute('inert');
@@ -144,7 +125,6 @@ export function initializeNavbarEnhancements() {
     // Open mobile menu
     function openMobileMenu() {
       isMenuOpen = true;
-      mobileMenu.classList.add('show');
       navbar.setAttribute('aria-expanded', 'true');
       mobileMenuToggle.setAttribute('aria-expanded', 'true');
       lockBodyScroll();
@@ -152,7 +132,7 @@ export function initializeNavbarEnhancements() {
       
       // Focus first element after a brief delay
       focusTimer = setTimeout(() => {
-        firstFocusableElement?.focus();
+        if (!mobileMenu.contains(document.activeElement)) firstFocusableElement?.focus();
       }, 100);
       
       // Add event listeners
@@ -200,7 +180,7 @@ export function initializeNavbarEnhancements() {
 
     mobileMenu.addEventListener('hidden.bs.collapse', () => {
       releaseMenuState();
-      mobileMenuToggle.focus();
+      if (!isDesktopLayout()) mobileMenuToggle.focus();
     });
 
     // Close when the panel's own empty space is clicked, not a control inside it
@@ -230,7 +210,7 @@ function initializeDesktopHoverDropdowns(navbar) {
 
   if (typeof bootstrap === 'undefined' || !bootstrap.Dropdown) return;
 
-  const desktopHoverQuery = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 992px)');
+  const desktopHoverQuery = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1360px)');
   const dropdowns = navbar.querySelectorAll('.dropdown');
 
   dropdowns.forEach((dropdown) => {
@@ -256,7 +236,6 @@ function initializeDesktopHoverDropdowns(navbar) {
       if (!isDesktopHover()) return;
 
       clearHideTimer();
-      dropdown.classList.add('is-hover-open');
       dropdownInstance.show();
       toggle.setAttribute('aria-expanded', 'true');
     }
@@ -266,7 +245,6 @@ function initializeDesktopHoverDropdowns(navbar) {
 
       clearHideTimer();
       hideTimer = window.setTimeout(() => {
-        dropdown.classList.remove('is-hover-open');
         dropdownInstance.hide();
         toggle.setAttribute('aria-expanded', 'false');
       }, delay);
@@ -274,7 +252,14 @@ function initializeDesktopHoverDropdowns(navbar) {
 
     dropdown.addEventListener('mouseenter', openDropdown);
     dropdown.addEventListener('mouseleave', () => closeDropdown());
-    dropdown.addEventListener('focusin', openDropdown);
+    dropdown.addEventListener('focusin', (event) => {
+      if (!dropdown.contains(event.relatedTarget)) openDropdown();
+    });
+    // Cached 3.0.1 navbar CSS highlights the open trigger while a submenu item has focus.
+    dropdown.addEventListener('shown.bs.dropdown', () => {
+      if (isDesktopHover()) dropdown.classList.add('is-hover-open');
+    });
+    dropdown.addEventListener('hidden.bs.dropdown', () => dropdown.classList.remove('is-hover-open'));
     dropdown.addEventListener('focusout', (event) => {
       if (!dropdown.contains(event.relatedTarget)) {
         closeDropdown(80);
@@ -305,13 +290,12 @@ function initializeDesktopHoverDropdowns(navbar) {
 
     menu.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        closeDropdown(0);
         toggle.focus();
+        closeDropdown(0);
       }
     });
 
     desktopHoverQuery.addEventListener('change', () => {
-      dropdown.classList.remove('is-hover-open');
       dropdownInstance.hide();
       toggle.setAttribute('aria-expanded', 'false');
     });

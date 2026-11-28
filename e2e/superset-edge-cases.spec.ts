@@ -20,7 +20,7 @@ import {
 } from './fixtures';
 import { test as guardedTest } from './console-guard';
 import { BENCH, DEADLIFT, ROUTINE_A, ROW, SQUAT, addPlanRow, loadPlan, planData, planPost, planRow } from './workout-plan-fixture';
-import { setDetails, setSupersetChoice } from './workout-plan-redesign';
+import { readSupersetCardPaint, setDetails, setSupersetChoice } from './workout-plan-redesign';
 
 /**
  * Helper to select a complete routine
@@ -776,7 +776,9 @@ guardedTest.describe('Plan redesign acceptance', () => {
     for (const exercise of [BENCH, ROW, SQUAT, DEADLIFT]) await addPlanRow(page.request, ROUTINE_A, exercise);
     const rows = await planData(page.request);
     const [bench, row, squat, deadlift] = [BENCH, ROW, SQUAT, DEADLIFT].map(name => rows.find(entry => entry.exercise === name)!);
-    await planPost(page.request, '/api/superset/link', { exercise_ids: [bench.id, row.id] });
+    const firstLink = await planPost(page.request, API_ENDPOINTS.SUPERSET_LINK, { exercise_ids: [bench.id, row.id] });
+    const firstGroup = firstLink.data.superset_group;
+    expect(firstGroup).toMatch(/^SS-/);
     await loadPlan(page);
     await expect(planRow(page, bench.id).locator('.superset-badge'), 'linked cards display the neutral Superset badge')
       .toHaveText('Superset');
@@ -786,23 +788,43 @@ guardedTest.describe('Plan redesign acceptance', () => {
       await setSupersetChoice(planRow(page, entry.id), true);
     }
     await expect(page.locator('#superset-selection-info')).toContainText(/2.*selected/i);
-    const linked = page.waitForResponse(response => new URL(response.url()).pathname === '/api/superset/link');
-    await page.locator('#link-superset-btn').click();
-    const link = await linked;
-    expect(link.ok()).toBe(true);
-    expect(link.request().postDataJSON()).toEqual({ exercise_ids: [squat.id, deadlift.id] });
-    await expectToast(page, "Linked 'Barbell Squat' and 'Barbell Deadlift' as superset");
-    const appearances = [];
-    for (const entry of [bench, row, squat, deadlift]) {
-      const card = planRow(page, entry.id);
-      await expect(card.locator('.superset-badge')).toHaveText('Superset');
-      appearances.push(await card.evaluate(element => {
-        const badge = getComputedStyle(element.querySelector('.superset-badge')!);
-        const rail = [getComputedStyle(element), getComputedStyle(element, '::before')].map(style =>
-          [style.borderLeftWidth, style.borderLeftColor, style.backgroundColor]);
-        return { badge: [badge.color, badge.backgroundColor], rail };
-      }));
+    let releaseRefresh!: () => void;
+    const held = new Promise<void>(resolve => { releaseRefresh = resolve; });
+    const planUrl = (url: URL) => url.pathname === API_ENDPOINTS.GET_WORKOUT_PLAN;
+    await page.route(planUrl, async route => {
+      await held;
+      await route.continue();
+    }, { times: 1 });
+    const firstPair = [bench.id, row.id].map(id => ({ id, group: firstGroup })).sort((a, b) => a.id - b.id);
+    let secondGroup: string;
+    try {
+      const linked = page.waitForResponse(response =>
+        new URL(response.url()).pathname === API_ENDPOINTS.SUPERSET_LINK && response.request().method() === 'POST');
+      const refreshStarted = page.waitForRequest(request => planUrl(new URL(request.url())) && request.method() === 'GET');
+      await page.locator('#link-superset-btn').click();
+      const link = await linked;
+      expect(link.ok()).toBe(true);
+      expect(link.request().postDataJSON()).toEqual({ exercise_ids: [squat.id, deadlift.id] });
+      secondGroup = (await link.json()).data.superset_group;
+      expect(secondGroup).toMatch(/^SS-/);
+      expect(secondGroup).not.toBe(firstGroup);
+      await expectToast(page, "Linked 'Barbell Squat' and 'Barbell Deadlift' as superset");
+      await refreshStarted;
+      const beforeRefresh = await readSupersetCardPaint(page);
+      expect(beforeRefresh.map(({ id, group }) => ({ id, group }))).toEqual(firstPair);
+    } finally {
+      releaseRefresh();
     }
+    await expect(supersetRows(page)).toHaveCount(4);
+    const cards = await readSupersetCardPaint(page);
+    const bothPairs = [...firstPair, ...[squat.id, deadlift.id].map(id => ({ id, group: secondGroup }))];
+    expect(cards.map(({ id, group }) => ({ id, group }))).toEqual(bothPairs.sort((a, b) => a.id - b.id));
+    for (const card of cards) {
+      expect(card, 'two painted neutral indicators on exercise ' + card.id).toMatchObject({
+        paintedBadge: true, paintedRail: true,
+      });
+    }
+    const appearances = cards.map(({ badge, rail }) => ({ badge, rail }));
     expect(appearances).toEqual(Array(4).fill(appearances[0]));
     const stored = await planData(page.request);
     const group = (id: number) => stored.find(entry => entry.id === id)?.superset_group;
@@ -811,6 +833,8 @@ guardedTest.describe('Plan redesign acceptance', () => {
     expect(group(bench.id)).toBe(group(row.id));
     expect(group(squat.id)).toBe(group(deadlift.id));
     expect(group(bench.id)).not.toBe(group(squat.id));
+    expect(group(bench.id)).toBe(firstGroup);
+    expect(group(squat.id)).toBe(secondGroup);
 
     await setDetails(page, squat.id, true);
     await setSupersetChoice(planRow(page, squat.id), true);

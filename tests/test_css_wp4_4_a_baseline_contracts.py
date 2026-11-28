@@ -136,7 +136,7 @@ def test_important_is_counted_in_reconcilable_units() -> None:
 
 
 def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
-    """N2 freezes `@layer` membership arc-wide, which needs exact spans.
+    """Record live spans alongside the historical WP4.4 layer ruling.
 
     Layered normal declarations lose to every unlayered one and layered
     `!important` wins over every unlayered one, so moving a rule across a layer
@@ -158,7 +158,7 @@ def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
         {"layer": "workout-dropdowns", "openLine": 6, "closeLine": 97}
     ]
     assert layers["spans"]["navbar.css"] == [
-        {"layer": "navbar", "openLine": 6, "closeLine": 874}
+        {"layer": "navbar", "openLine": 2, "closeLine": 22}
     ]
 
 
@@ -689,9 +689,9 @@ def test_contract_anchor_register_covers_every_shared_surface(
     for surface in ("navbar.css", "a11y.css", "theme-dark.css", "components.css"):
         assert surface in bound, surface
 
-    # F6's named examples, still present.
+    # Navigation's gutter and the surviving keyboard-focus hook.
     pinned_strings = {pin["pinnedString"] for pin in pins}
-    assert "--nav-gap: var(--s-3);" in pinned_strings
+    assert "padding: 0 var(--ui-gutter);" in pinned_strings
     assert "*:focus-visible," in pinned_strings
 
     # G9 — Region H was retired with the Workout Log pilot (#736). The lock is now

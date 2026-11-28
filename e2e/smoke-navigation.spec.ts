@@ -11,6 +11,30 @@ import { installStaticReplay, isStaticAssetRecorded, staticRecordingsSettled } f
 
 const ANALYZE_TOGGLE = '#navbar .dropdown-toggle:has-text("Analyze")';
 
+test.describe('Previously cached application entry', () => {
+  test.use({ staticReplay: false });
+
+  test('Workout Plan initializes when the cached entry imports the refreshed navbar module', async ({ page }) => {
+    let servedCachedEntry = false;
+    await page.route('**/static/js/app.js?*', async route => {
+      const entry = await route.fetch();
+      // The immutable 3.0.1 entry imported and called this name at startup.
+      const previousStartup = "import { initializeNavbar } from './modules/navbar.js';\ninitializeNavbar();\n";
+      await route.fulfill({ response: entry, body: previousStartup + await entry.text() });
+      servedCachedEntry = true;
+    });
+    const refreshedModule = page.waitForResponse(response =>
+      new URL(response.url()).pathname === '/static/js/modules/navbar.js');
+
+    await page.goto(ROUTES.WORKOUT_PLAN);
+    expect((await refreshedModule).ok()).toBe(true);
+    expect(servedCachedEntry).toBe(true);
+    await expect(page.locator('#workout')).toHaveAttribute('data-plan-state', /^(empty|populated)$/);
+    await expect(page.locator('#navbar')).toHaveAttribute('data-navbar-enhancements-initialized', 'true');
+    await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-workout-plan');
+  });
+});
+
 async function openAnalyzeDropdown(page: Page): Promise<void> {
   const analyzeToggle = page.locator(ANALYZE_TOGGLE);
   await expect(analyzeToggle).toBeVisible();

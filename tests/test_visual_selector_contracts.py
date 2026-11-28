@@ -1,5 +1,10 @@
+import hashlib
 import re
+from html.parser import HTMLParser
 from pathlib import Path
+
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -154,8 +159,8 @@ def test_style_assertions_resolve_semantic_tokens_without_literal_rgb():
     nav_spec = read("e2e/nav-dropdown.spec.ts")
     summary_spec = read("e2e/summary-pages.spec.ts")
 
-    assert "--nav-icon-accent" in nav_spec
-    assert "data-nav-icon" in nav_spec
+    assert "--nav-icon-accent" not in nav_spec
+    assert "data-visual-icon" in nav_spec
     assert "rgb(109, 93, 252)" not in nav_spec
     assert "rgb(15, 159, 143)" not in nav_spec
     assert "rgb(217, 119, 6)" not in nav_spec
@@ -167,3 +172,93 @@ def test_style_assertions_resolve_semantic_tokens_without_literal_rgb():
     assert "rgb(253, 126, 20)" not in summary_spec
     assert "rgb(25, 135, 84)" not in summary_spec
     assert "rgb(111, 66, 193)" not in summary_spec
+
+# The cmap indices were read directly from this bundled WOFF2's format-4 cmap.
+# Its digest binds that offline verification to the exact font served in CI.
+SOLID_FONT_SHA256 = "9834b82ad26e2a37583d22676a12dd2eb0fe7c80356a2114d0db1aa8b3899537"
+# DOM id, destination, accessible text, Free Solid name, CSS codepoint, glyph index
+NAVIGATION = (
+    ("nav-brand", "/", "Hypertrophy Toolbox", "dumbbell", "f44b", 523),
+    ("nav-workout-plan", "/workout_plan", "Plan", "tasks", "f0ae", 170),
+    ("nav-workout-log", "/workout_log", "Log", "book-open", "f518", 610),
+    ("nav-analyze-toggle", "#", "Analyze", "chart-line", "f201", 358),
+    ("nav-weekly-summary", "/weekly_summary", "Weekly", "calendar-week", "f784", 916),
+    ("nav-session-summary", "/session_summary", "Session", "calendar-day", "f783", 915),
+    ("nav-fatigue", "/fatigue", "Fatigue", "battery-half", "f242", 393),
+    ("nav-progression-plan", "/progression", "Progress", "level-up-alt", "f3bf", 495),
+    ("nav-user-profile", "/user_profile", "Profile", "user-circle", "f2bd", 446),
+    ("nav-body-composition", "/body_composition", "Body Composition", "ruler", "f545", 655),
+    ("nav-volume-splitter", "/volume_splitter", "Distribute", "sliders-h", "f1de", 338),
+    ("nav-backup", "/backup", "Backup", "folder-open", "f07c", 141),
+)
+
+
+class NavbarParser(HTMLParser):
+    """Read anchor order, attributes and label from the original Flask response."""
+
+    def __init__(self):
+        super().__init__()
+        self.in_header = False
+        self.current = None
+        self.links = {}
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "header" and attrs.get("id") == "navbar":
+            self.in_header = True
+        element_id = attrs.get("id") or ""
+        if self.in_header and tag in ("a", "button") and element_id.startswith("nav-"):
+            self.current = element_id
+            assert self.current not in self.links
+            self.links[self.current] = (attrs, [])
+
+    def handle_endtag(self, tag):
+        if tag in ("a", "button"):
+            self.current = None
+        if tag == "header":
+            self.in_header = False
+
+    def handle_data(self, data):
+        if self.current:
+            self.links[self.current][1].append(data)
+
+
+@pytest.mark.parametrize("page_id,path", [(r[0], r[1]) for r in NAVIGATION if r[1] != "#"])
+def test_navigation_server_marks_only_current_destination(client, page_id, path):
+    for url in dict.fromkeys([path, path.rstrip("/") + "/", path + "?x=1", path.rstrip("/") + "/?x=1"]):
+        response = client.get(url)
+        assert response.status_code == 200, url
+        nav = NavbarParser()
+        nav.feed(response.get_data(as_text=True))
+        assert list(nav.links) == [r[0] for r in NAVIGATION], url
+        for ident, href, name, *_ in NAVIGATION:
+            attrs, text = nav.links[ident]
+            if ident != "nav-analyze-toggle":
+                assert attrs["href"] == href
+                assert attrs["data-testid"] == ident
+            else:
+                assert attrs["data-bs-toggle"] == "dropdown"
+                assert attrs["aria-expanded"] == "false"
+            assert " ".join(" ".join(text).split()) == name
+            assert attrs.get("aria-current") == ("page" if ident == page_id else None), (url, ident)
+            selected_group = ident == "nav-analyze-toggle" and path in ("/weekly_summary", "/session_summary", "/fatigue")
+            assert ("active" in attrs["class"].split()) == (ident == page_id or selected_group), (url, ident)
+
+
+def test_navigation_glyphs_exist_in_the_bundled_free_solid_face():
+    font = ROOT / "static/vendor/fontawesome/webfonts/fa-solid-900.woff2"
+    assert hashlib.sha256(font.read_bytes()).hexdigest() == SOLID_FONT_SHA256
+    css = read("static/vendor/fontawesome/css/all.min.css")
+    for _, _, _, glyph, codepoint, cmap_index in NAVIGATION:
+        assert re.search(rf'\.fa-{glyph}:before[^{{}}]*\{{content:"\\{codepoint}"', css)
+        assert cmap_index > 0
+
+
+def test_navigation_image_references_retired_and_files_retained():
+    images = ("7-days.gif", "dividers.gif", "icons8-bench-press.gif", "icons8-growth.gif",
+              "icons8-to-do.gif", "notebook.gif", "icons8-session-50.png")
+    templates = list((ROOT / "templates").rglob("*.html"))
+    for image in images:
+        assert (ROOT / "static/images" / image).is_file()
+        assert not [p for p in templates if image in p.read_text(encoding="utf-8")], image
+    assert "static/images/icons8-session-50.png" in read("tests/test_package_asset_staging.py")

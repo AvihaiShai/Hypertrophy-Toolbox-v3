@@ -33,155 +33,62 @@
 </head>
 
 <body>
-    <!-- Navbar -->
-    <header id="navbar" data-component="navbar" data-testid="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Main navigation">
+    {% set current_path = request.path.rstrip('/') or '/' %}
+    {% set analyze_pages = (
+        ('nav-weekly-summary', '/weekly_summary', 'calendar-week', 'Weekly'),
+        ('nav-session-summary', '/session_summary', 'calendar-day', 'Session'),
+        ('nav-fatigue', '/fatigue', 'battery-half', 'Fatigue')
+    ) %}
+    {% macro destination(id, path, glyph, label, classes='') -%}
+        <a id="{{ id }}" data-testid="{{ id }}" href="{{ path }}"
+           class="nav-link {{ classes }}{% if path == current_path %} active{% endif %}"
+           {% if path == current_path %}aria-current="page"{% endif %}>
+            <i class="fas fa-{{ glyph }} nav-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
+            <span>{{ label }}</span>
+        </a>
+    {%- endmacro %}
+    <header id="navbar" data-component="navbar" data-testid="navbar" class="navbar" aria-label="Main navigation">
         <a class="nb-skip-link" href="#main-content">Skip to main content</a>
         <div class="container-fluid">
-            <!-- Updated Brand with Icon -->
-            <a class="navbar-brand nav-link" 
-               id="nav-brand" 
-               data-testid="nav-brand"
-               href="/"
-               {% if request.path == '/' %}aria-current="page"{% endif %}>
-               <span class="navbar-brand-content">
-                   <img src="{{ url_for('static', filename='images/icons8-bench-press.gif') }}"
-                        alt=""
-                        class="navbar-brand-icon"
-                        data-visual-icon
-                        aria-hidden="true"
-                        width="24"
-                        height="24">
-                   <span>Hypertrophy Toolbox</span>
-               </span>
-            </a>
-
-            <!-- Toggler for Responsive Navbar -->
-            <button 
-                class="navbar-toggler nb-menu-btn" 
-                type="button" 
-                data-bs-toggle="collapse" 
-                data-bs-target="#navbarNav" 
-                aria-controls="navbarNav" 
-                aria-expanded="false" 
-                aria-label="Toggle navigation menu">
-                <span class="navbar-toggler-icon" data-visual-icon aria-hidden="true"></span>
+            {{ destination('nav-brand', '/', 'dumbbell', 'Hypertrophy Toolbox', 'navbar-brand') }}
+            <button class="navbar-toggler nb-menu-btn" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                    aria-label="Toggle navigation menu">
+                <svg width="24" height="24" viewBox="0 0 30 30" fill="none" stroke="currentColor"
+                     stroke-linecap="round" stroke-width="2.5" data-visual-icon aria-hidden="true">
+                    <path d="M4 7h22M4 15h22M4 23h22"/>
+                </svg>
             </button>
-
-            <!-- Navbar Links -->
             <nav class="collapse navbar-collapse" id="navbarNav" aria-label="Primary navigation">
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-workout-plan" data-testid="nav-workout-plan" href="/workout_plan">
-                            <img src="{{ url_for('static', filename='images/icons8-to-do.gif') }}"
-                                 alt=""
-                                 class="nav-icon"
-                                 data-visual-icon
-                                 aria-hidden="true"
-                                 width="20"
-                                 height="20">
-                            <span>Plan</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-workout-log" data-testid="nav-workout-log" href="/workout_log">
-                            <img src="{{ url_for('static', filename='images/notebook.gif') }}"
-                                 alt=""
-                                 class="nav-icon"
-                                 data-visual-icon
-                                 aria-hidden="true"
-                                 width="20"
-                                 height="20">
-                            <span>Log</span>
-                        </a>
-                    </li>
+                    <li class="nav-item">{{ destination('nav-workout-plan', '/workout_plan', 'tasks', 'Plan') }}</li>
+                    <li class="nav-item">{{ destination('nav-workout-log', '/workout_log', 'book-open', 'Log') }}</li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link nav-link-with-icon dropdown-toggle" href="#" id="nav-analyze-toggle" data-visual-dropdown-toggle role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-chart-line nav-icon nav-fa-icon" data-visual-icon aria-hidden="true"></i>
+                        <button id="nav-analyze-toggle" type="button" data-visual-dropdown-toggle
+                                class="nav-link dropdown-toggle{% if current_path in analyze_pages|map(attribute=1) %} active{% endif %}"
+                                data-bs-toggle="dropdown" aria-controls="nav-analyze-pages" aria-expanded="false">
+                            <i class="fas fa-chart-line nav-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
                             <span>Analyze</span>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="nav-analyze-toggle">
-                            <li class="nav-item">
-                                <a class="dropdown-item nav-link nav-link-with-icon" id="nav-weekly-summary" data-testid="nav-weekly-summary" href="/weekly_summary">
-                                    <img src="{{ url_for('static', filename='images/7-days.gif') }}"
-                                         alt=""
-                                         class="nav-icon"
-                                         data-visual-icon
-                                         aria-hidden="true"
-                                         width="20"
-                                         height="20">
-                                    <span>Weekly</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="dropdown-item nav-link nav-link-with-icon" id="nav-session-summary" data-testid="nav-session-summary" href="/session_summary">
-                                    <img src="{{ url_for('static', filename='images/icons8-session-50.png') }}"
-                                         alt=""
-                                         class="nav-icon"
-                                         data-visual-icon
-                                         aria-hidden="true"
-                                         width="20"
-                                         height="20">
-                                    <span>Session</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="dropdown-item nav-link nav-link-with-icon" id="nav-fatigue" data-testid="nav-fatigue" href="/fatigue">
-                                    <i class="fas fa-bolt nav-icon nav-fa-icon" data-visual-icon aria-hidden="true"></i>
-                                    <span>Fatigue</span>
-                                </a>
-                            </li>
+                        </button>
+                        <ul class="dropdown-menu" id="nav-analyze-pages" aria-labelledby="nav-analyze-toggle">
+                            {% for id, path, glyph, label in analyze_pages %}
+                                <li class="nav-item">{{ destination(id, path, glyph, label, 'dropdown-item') }}</li>
+                            {% endfor %}
                         </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-progression-plan" data-testid="nav-progression-plan" href="/progression">
-                            <img src="{{ url_for('static', filename='images/icons8-growth.gif') }}"
-                                 alt=""
-                                 class="nav-icon"
-                                 data-visual-icon
-                                 aria-hidden="true"
-                                 width="20"
-                                 height="20">
-                            <span>Progress</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-user-profile" data-testid="nav-user-profile" href="/user_profile">
-                            <i class="fas fa-user-alt nav-icon nav-fa-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
-                            <span>Profile</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-body-composition" data-testid="nav-body-composition" href="/body_composition">
-                            <i class="fas fa-ruler nav-icon nav-fa-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
-                            <span>Body Composition</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-volume-splitter" data-testid="nav-volume-splitter" href="/volume_splitter">
-                            <img src="{{ url_for('static', filename='images/dividers.gif') }}"
-                                 alt=""
-                                 class="nav-icon"
-                                 data-visual-icon
-                                 aria-hidden="true"
-                                 width="20"
-                                 height="20">
-                            <span>Distribute</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-with-icon" id="nav-backup" data-testid="nav-backup" href="/backup">
-                            <i class="fas fa-folder-open nav-icon nav-fa-icon" data-nav-icon data-visual-icon aria-hidden="true"></i>
-                            <span>Backup</span>
-                        </a>
-                    </li>
+                    <li class="nav-item">{{ destination('nav-progression-plan', '/progression', 'level-up-alt', 'Progress') }}</li>
+                    <li class="nav-item">{{ destination('nav-user-profile', '/user_profile', 'user-circle', 'Profile') }}</li>
+                    <li class="nav-item">{{ destination('nav-body-composition', '/body_composition', 'ruler', 'Body Composition') }}</li>
+                    <li class="nav-item">{{ destination('nav-volume-splitter', '/volume_splitter', 'sliders-h', 'Distribute') }}</li>
+                    <li class="nav-item">{{ destination('nav-backup', '/backup', 'folder-open', 'Backup') }}</li>
                 </ul>
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav nav-utilities">
                     <!-- Developer Signature -->
                     <li class="nav-item nav-signature">
                         <a href="https://www.linkedin.com/in/avihaishai" target="_blank" rel="noopener noreferrer" class="nav-link nav-signature-link">
                             <span class="signature-text">by</span>
                             <span class="signature-name">Avihai</span>
-                            <i class="fab fa-linkedin signature-icon" data-visual-icon></i>
+                            <i class="fab fa-linkedin signature-icon" aria-hidden="true" data-visual-icon></i>
                         </a>
                     </li>
                     <li class="nav-item nav-divider" aria-hidden="true"></li>
@@ -195,7 +102,7 @@
                                 type="button" 
                                 aria-label="Decrease text size"
                                 title="Decrease size">−</button>
-                            <span id="scale-indicator" class="scale-indicator" data-visual-scale-control aria-live="polite" title="Current scale level">3</span>
+                            <span id="scale-indicator" class="scale-indicator" data-visual-scale-control aria-live="polite" title="Current scale level">{{ ui_scale_level }}</span>
                             <button 
                                 id="scale-increase" 
                                 class="scale-btn-compact" 
@@ -208,15 +115,16 @@
                     <li class="nav-item nav-divider" aria-hidden="true"></li>
                     <!-- Muscle Naming Mode Toggle (Simple/Scientific) -->
                     <li class="nav-item">
-                        <button id="muscleModeToggle" class="nav-link muscle-mode-toggle" type="button" aria-label="Toggle Muscle Naming Mode" title="Toggle between simple and scientific muscle names">
+                        <button id="muscleModeToggle" class="nav-link muscle-mode-toggle" type="button" title="Toggle between simple and scientific muscle names">
                             <i class="fas fa-user muscle-mode-icon" data-visual-icon aria-hidden="true"></i>
-                            <span class="d-none d-lg-inline ms-1 muscle-mode-label">Simple</span>
+                            <span class="muscle-mode-label">Simple</span>
+                            <span class="visually-hidden">muscle names</span>
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button id="darkModeToggle" data-testid="dark-mode-toggle" class="nav-link" type="button" aria-label="Toggle Dark Mode">
-                            <i class="fas fa-moon text-primary" data-visual-icon aria-hidden="true"></i>
-                            <span class="d-none d-lg-inline ms-1 text-primary">Dark Mode</span>
+                        <button id="darkModeToggle" data-testid="dark-mode-toggle" class="nav-link" type="button">
+                            <i class="fas fa-moon" data-visual-icon aria-hidden="true"></i>
+                            <span>Dark Mode</span>
                         </button>
                     </li>
                 </ul>

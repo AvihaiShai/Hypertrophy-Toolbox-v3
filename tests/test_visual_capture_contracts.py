@@ -488,3 +488,22 @@ def test_the_inherited_red_ledger_marks_its_operational_rules_superseded():
         "a superseded ledger must carry a `currentStatus` block saying what is "
         "true now"
     )
+
+
+def test_final_segment_is_compared_first_and_reports_only_an_existing_success():
+    """The native tail must be proven even when the later header comparison fails."""
+    source = VISUAL_HELPER.read_text(encoding="utf-8")
+    section = source.split("const segments = Math.ceil(documentHeight", 1)[1].split("function assertCaptureFits", 1)[0]
+    # The independent native regression supplies the behavioral ordering proof
+    # (a passing tail followed by a failing earlier band). Leave the traversal
+    # algorithm free to change while guarding the success evidence boundary.
+    before, assertion, after = section.partition("await expect(page).toHaveScreenshot(segmentName")
+    assert assertion
+    assert "console.log" not in before
+    assert "snapshotPath(" in before and "existsSync(" in before
+    assert "updateSnapshots" in before and "'none'" in before and "'missing'" in before
+    log = re.search(r"console\.log\(\s*[`](.*?)[`]", after, re.DOTALL)
+    assert log, "missing a success line after the awaited comparison"
+    message = log.group(1)
+    assert "${segmentName}" in message and " of ${segments}" in message
+    assert re.search(r"retry=\$\{[^}]+\.retry\}", message)

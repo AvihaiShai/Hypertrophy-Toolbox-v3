@@ -186,8 +186,8 @@
       "navbar.css": [
         {
           "layer": "navbar",
-          "openLine": 6,
-          "closeLine": 874
+          "openLine": 2,
+          "closeLine": 22
         }
       ],
       "pages-welcome.css": [
@@ -692,7 +692,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "5db8a6f3824ce521a6d180ebba94010937b4730b821a280a2fd548fd7cd0ece4"
+      "nameAndSizeSha256": "05aa2c32cd3753cc5d40232e8c8f993443ca6bc9735d184f71132b436faac060"
     },
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -785,7 +785,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "a52e736b20e479ab0e7737a2684f579795cfc4937b42f107e91c439a4d31df26"
+      "nameAndSizeSha256": "0aeeb259d820a53b680fdd0cf1efee70946400063e90141b4c0a6718e8b50774"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -1396,21 +1396,21 @@
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_only_exact_local_values_use_shared_aliases",
       "line": "152",
-      "pinnedString": "--nav-gap: var(--s-3);",
+      "pinnedString": "padding: 0 var(--ui-gutter);",
       "candidateSurfaces": "navbar.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_only_exact_local_values_use_shared_aliases",
       "line": "153",
-      "pinnedString": "--nav-padding-y: var(--s-3);",
+      "pinnedString": "background: var(--surface-2);",
       "candidateSurfaces": "navbar.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_only_exact_local_values_use_shared_aliases",
       "line": "154",
-      "pinnedString": "--nav-padding-x: 1rem;",
+      "pinnedString": "border-bottom: 1px solid var(--ui-hairline);",
       "candidateSurfaces": "navbar.css"
     },
     {

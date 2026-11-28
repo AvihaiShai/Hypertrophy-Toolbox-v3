@@ -19,7 +19,6 @@ import {
     checkProgressionStatus,
     initializeProgressionChecks 
 } from './modules/workout-log.js';
-import { initializeNavbar } from './modules/navbar.js';
 import { initializeNavbarEnhancements } from './modules/navbar-enhancements.js';
 import { initializeProgressionPlan } from './modules/progression-plan.js';
 import { initializeVolumeSplitter } from './modules/volume-splitter.js';
@@ -161,8 +160,7 @@ window.generateStarterPlan = async function() {
     }
 };
 
-// Initialize navbar
-initializeNavbar();
+// Initialize navbar interactions
 initializeNavbarEnhancements();
 
 // Initialize workout plan dropdowns

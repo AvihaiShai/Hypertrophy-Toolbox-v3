@@ -5,9 +5,10 @@ measured rather than assumed.*
 
 **Derived from:** the CSS bundles at revision `d1efc93`, plus computed styles read from a running
 application across **11 pages × 2 themes × 3 viewports** (66 page loads, all HTTP 200), a
-reduced-motion pass, and a keyboard-focus pass. The Workout Plan redesign section and shared
-overlay rules reflect #736. Its [frame check](../../e2e/workout-plan-frame.check.ts) and
-[overlay check](../../e2e/overlay-style.check.ts) cover the redesigned components.
+reduced-motion pass, and a keyboard-focus pass. The Workout Plan and Navigation sections
+reflect #736. The redesign checks cover the page frame, shared overlays and the rendered
+navigation in both themes. [Plan frame](../../e2e/workout-plan-frame.check.ts) ·
+[Overlays](../../e2e/overlay-style.check.ts) · [Navigation](../../e2e/nav-dropdown.spec.ts)
 **On conflict, the code wins.**
 
 This document describes what shipped. It introduces no design decision and proposes no change.
@@ -39,12 +40,10 @@ font is not the font token. And one page's tables ignore the theme system entire
 
 ## The system in one paragraph
 
-A light-first, low-contrast "calm glass" surface system: layered neutral surfaces, a single indigo
-accent, generous corner radii, soft neumorphic shadows, and translucent blurred panels. Dark mode
-is a token swap on `[data-theme="dark"]`, not a separate stylesheet. Sizing is not fixed — nearly
-every dimension is a token that steps through **seven viewport bands**, so the same page is
-materially denser on a laptop than on a 4K display. Motion is short and uniform, and fully
-removed under `prefers-reduced-motion`.
+Neutral surfaces and a single indigo accent carry both themes. The shared navigation, Workout
+Log and Workout Plan use opaque surfaces and thin borders. Older components also use translucent
+panels, blur and soft shadows. The `[data-theme="dark"]` attribute switches the token values.
+Spacing and type adapt across seven viewport bands. Components honor `prefers-reduced-motion`.
 
 ## Bundle structure and load order
 
@@ -84,40 +83,36 @@ is how reduced-motion overrides and dark theming win over page-specific rules wi
 | `base.css` | 79 | Body background and base typography |
 | `layout.css` | 1,800 | Containers, grids, page scaffolding |
 | `components.css` | 4,576 | Buttons, cards, tables, badges, fields and overlays |
-| `navbar.css` | 1,532 | Navigation bar and its dropdowns |
-| `a11y.css` | 636 | Focus, contrast, screen-reader affordances |
+| `navbar.css` | 248 | Navigation, its panels and utilities |
+| `a11y.css` | 551 | Focus, scale capability, contrast and screen-reader affordances |
 | `motion.css` | 91 | Transitions and the reduced-motion override |
-| `theme-dark.css` | 508 | Shared dark-mode overrides |
+| `theme-dark.css` | 471 | Shared dark-mode overrides |
 | `pages-*.css` (10) | 8,616 total | Route-specific styling. The Plan bundle accounts for 1,999 lines |
 
 ---
 
 ## Color
 
-Eleven color tokens carry the whole palette. Values below are the **computed** values read from
-the running application, not the source text.
+Eleven color tokens carry the shared palette. The values are computed colors from the running
+application. The reference counts cover application stylesheets and exclude comments and the
+compiled Bootstrap bundle.
 
 | Token | Light | Dark | Role | `var()` refs |
 |---|---|---|---|---:|
-| `--surface-0` | `#eef1f6` | `#101419` | Page background / inset dark controls | 3 |
-| `--surface-1` | `#f4f6fa` | `#192028` | Recessed / secondary surface | 57 |
-| `--surface-2` | `#ffffff` | `#26313d` | Raised surface — cards, panels | 101 |
-| `--ink-1` | `#0f1220` | `#f3f6fa` | Primary text | 129 |
-| `--ink-2` | `#4a5170` | `#c3ccd7` | Secondary text, table headers | 81 |
-| `--ink-3` | `#8a90a8` | `#96a2b1` | Tertiary text, hints | 49 |
-| `--accent` | `#4c6ef5` | `#4c6ef5` | Single accent — indigo | **247** |
-| `--accent-ink` | `#ffffff` | `#ffffff` | Text on accent | 6 |
+| `--surface-0` | `#eef1f6` | `#101419` | Page background / inset dark controls | 12 |
+| `--surface-1` | `#f4f6fa` | `#192028` | Recessed / secondary surface | 72 |
+| `--surface-2` | `#ffffff` | `#26313d` | Raised surface for cards, panels and navigation | 79 |
+| `--ink-1` | `#0f1220` | `#f3f6fa` | Primary text | 144 |
+| `--ink-2` | `#4a5170` | `#c3ccd7` | Secondary text, table headers | 123 |
+| `--ink-3` | `#8a90a8` | `#96a2b1` | Tertiary text, hints | 71 |
+| `--accent` | `#4c6ef5` | `#4c6ef5` | Single accent — indigo | 164 |
+| `--accent-ink` | `#ffffff` | `#ffffff` | Text on accent | 7 |
 | `--success` | `#10b981` | `#10b981` | Positive state | 6 |
 | `--warning` | `#f59e0b` | `#f59e0b` | Caution state | 4 |
-| `--danger` | `#ef4444` | `#ef4444` | Destructive / error | 12 |
+| `--danger` | `#ef4444` | `#ef4444` | Destructive / error | 9 |
 
-Two observations the numbers make plain:
-
-- **`--accent` is used 247 times**, more than the next two tokens combined. This is a
-  single-accent system, not a multi-hue palette.
-- **The five semantic colors do not change between themes.** Only surfaces and inks swap. Accent,
-  success, warning, and danger keep the same hex in dark mode, which is why they read as brighter
-  there — the surface moved, not the color.
+The accent and semantic colors keep their values across themes. Surfaces and inks swap to provide
+the contrast each theme needs.
 
 The dark ink ramp is intentionally brighter than the former blue-grey ramp. Tertiary copy remains
 visibly subordinate while clearing the raised graphite surfaces without looking dim.
@@ -128,48 +123,25 @@ white text. **Light mode's action palette is unchanged**: light defines the `--a
 `var(--accent)` / `var(--danger)` and the same greens the Excel action already used, so every light
 action button computes to the value it did before.
 
-**Light layout does move, and it is deliberate.** The navbar brand carries both `.navbar-brand` and
-`.nav-link` (`templates/base.html:41`). Bootstrap's `.nav-link` sets the *shorthand*
-`padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x)`, and `.navbar-brand`, later in
-source order, overrides only the block edges. `--bs-nav-link-padding-x` is defined on `.nav`, which
-the brand is not inside, so the shorthand was invalid at computed-value time and the brand's inline
-padding resolved to **0** — its pill border sat against the text. The house rule that would have
-supplied the inset (`navbar.css:174`) lives inside `@layer navbar`, and unlayered Bootstrap beats a
-layered rule at any specificity, so it never applied. `navbar.css` now restores `padding-inline`
-in the unlayered block, the only place that can win, and `e2e/nav-dropdown.spec.ts` pins it at
-≥ 12px on both edges.
-
-Because the navbar renders on every route, this shifts **both** themes at every viewport. Measured
-against the committed win32 corpus, it moves **33 light captures** by 1–2 % each — a constant delta
-per viewport (820–857 px mobile, 2,644–2,692 px tablet, ~18.8 k desktop), reaching pages whose own
-bundles this change never touched. Those 33 are expected movement, not regression; the light colour
-system itself is untouched.
-
 ### Elevation and glass
 
 | Token | Light | Dark | `var()` refs |
 |---|---|---|---:|
-| `--shadow-neu-out` | soft dual shadow, `rgba(167,175,200,.35)` + white highlight | compact black shadow + subtle top edge | 15 |
-| `--shadow-neu-in` | inset variant of the above | compact inset black shadow + inner outline | 16 |
-| `--shadow-elev-1` | `0 1px 2px / 0 2px 8px rgba(15,18,32,.06)` | `0 2px 8px rgba(0,0,0,.28)` | 9 |
-| `--shadow-elev-2` | `0 8px 24px rgba(15,18,32,.10)` | `0 12px 32px rgba(0,0,0,.38)` | 8 |
-| `--calm-glass-bg` | `rgba(255,255,255,.55)` | `rgba(25,32,40,.94)` | 12 |
-| `--calm-glass-border` | `rgba(255,255,255,.65)` | `rgba(185,203,224,.16)` | 30 |
-| `--calm-glass-blur` | `18px` | `18px` | 13 |
-| `--calm-glass-sat` | `180%` | `180%` | 12 |
+| `--shadow-neu-out` | soft dual shadow, `rgba(167,175,200,.35)` + white highlight | compact black shadow + subtle top edge | 12 |
+| `--shadow-neu-in` | inset variant of the above | compact inset black shadow + inner outline | 6 |
+| `--shadow-elev-1` | `0 1px 2px / 0 2px 8px rgba(15,18,32,.06)` | `0 2px 8px rgba(0,0,0,.28)` | 8 |
+| `--shadow-elev-2` | `0 8px 24px rgba(15,18,32,.10)` | `0 12px 32px rgba(0,0,0,.38)` | 12 |
+| `--calm-glass-bg` | `rgba(255,255,255,.55)` | `rgba(25,32,40,.94)` | 10 |
+| `--calm-glass-border` | `rgba(255,255,255,.65)` | `rgba(185,203,224,.16)` | 14 |
+| `--calm-glass-blur` | `18px` | `18px` | 9 |
+| `--calm-glass-sat` | `180%` | `180%` | 8 |
 
 Both neumorphic and flat elevation shadows are theme-aware. Dark mode uses compact black shadows
 and a subtle top edge instead of opposing light/dark neumorphic lobes, keeping boundaries visible
 without creating additional apparent surface bands.
 
-Glass surfaces are real and live: the navbar computes to
-`backdrop-filter: blur(20px) saturate(1.8)` in both themes, over `rgba(255,255,255,.75)` light and
-`rgba(12,16,21,.94)` dark. Buttons carry a lighter `blur(4px)`.
-
-At hamburger widths (up to 1359.98px) the open navbar menu panel is the exception: it is fully
-opaque, `--surface-2` (`#ffffff` light, `#26313d` dark). Measured in Chromium, the panel's own
-`backdrop-filter` did not blur the page behind it, so a translucent panel let page text show
-through behind the links.
+The fixed navbar and its panels use opaque `--surface-2` in both themes. A 1 px `--ui-hairline`
+edge separates the header from the page. The header has zero shadow and backdrop blur.
 
 ---
 
@@ -178,13 +150,13 @@ through behind the links.
 | Owner | Stack | Applies to |
 |---|---|---|
 | `base.css` — hardcoded on `body` | `'Inter', Arial, sans-serif` | Body text and anything inheriting from it |
-| `--font-sans` token | `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` | Shared components and navbar declarations |
-| `--wl-font` and `--nav-font` | `ui-sans-serif, system-ui, "Inter", …` | Welcome page and navbar container |
-| Shared page frame and controls, `--wpdd-font` | `Inter, sans-serif` | Workout Plan, Workout Log and the exercise picker |
+| `--font-sans` token | `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` | Shared components |
+| `--wl-font` | `ui-sans-serif, system-ui, "Inter", …` | Welcome page |
+| Shared header, page frames and `--wpdd-font` | `Inter, sans-serif` | Navigation, Workout Plan, Workout Log and the exercise picker |
 
-`base.css` sets the body stack directly. The Welcome and navbar tokens prefer the platform
-font. On Home, `body` computes to `Inter, Arial, sans-serif` and `h1` computes to
-`ui-sans-serif, system-ui, …`.
+`base.css` sets the body stack directly. On Home, `body` computes to `Inter, Arial, sans-serif`
+and `h1` uses the Welcome token's system font stack. Navbar controls use Inter 500 at 14 / 20 px.
+The brand uses 16 px at weight 600.
 
 Every `var(--font-sans)` reference also carries the full stack as an inline fallback, so the token
 failing to resolve changes nothing.
@@ -326,10 +298,21 @@ controls. Linked exercises use a neutral rail and a Superset badge in both theme
 
 ### Navigation and data entry
 
-Expanded navigation links size to their labels. The phone header shows the same Home link
-and product name. Keep the entire theme control inside the viewport. On phones up to 576px,
-each Workout Log label and its value share the full card width. Desktop column percentages
-apply above that breakpoint.
+The fixed header aligns the brand glyph with `--ui-gutter` at 16 px below 768 px, 24 px from
+768 px, and 32 px from 1360 px. At application scale 6 the regular header measures 56 px at
+390 and 768 px, and 64 px at 1440 px. It compacts on scroll. The menu below 1360 px starts at
+the header's bottom edge and scrolls independently to the final control. From 1360 px, the
+destinations and utilities fit on one row at scales 6 and 8. The 45 px hamburger keeps its
+three-stroke symbol and a pointer target above 44 px at scale 8.
+
+Destinations use bundled Font Awesome Free 5 solid glyphs at `1em`, in the label color. The
+server marks the current link with `aria-current="page"`. A 2 px edge in the current color
+appears below the link on desktop and along its leading edge in the menu. Analyze also has an
+edge when one of its destinations is current. Enabled controls use `--surface-1` on hover.
+The glyph and the control hold their position while hovered. [Navigation checks](../../e2e/nav-dropdown.spec.ts)
+
+On phones up to 576 px, each Workout Log label and its value share the full card width.
+Desktop column percentages apply above that breakpoint.
 
 The Backup save form uses the shared primary text color in dark mode. The Volume Splitter
 paints its recommended interval on the native slider track in both themes. The input keeps
@@ -390,9 +373,9 @@ Dark mode is a `localStorage` toggle, not a media query — though it defaults t
 5. The theme is applied by setting `data-theme="light"` or `data-theme="dark"` on `<html>`.
 
 `tokens.css` redefines six surface/ink tokens plus the neumorphic and elevation shadows and two
-glass tokens under `[data-theme="dark"]`; `theme-dark.css` (574 lines) carries the corrections the token
-swap alone cannot express. Verified live: `data-theme` is `light` and `dark` respectively across
-all 11 pages.
+glass tokens under `[data-theme="dark"]`. `theme-dark.css` carries overrides for older components.
+Navigation uses the shared tokens in `navbar.css`. Its current-location marker and keyboard
+focus ring use an accent mixed with the primary ink in each theme.
 
 Because the whole switch is a token swap on one attribute, **any component that hardcodes a color
 instead of consuming a token silently opts out of dark mode.** That is the mechanism behind both
@@ -406,14 +389,14 @@ Four tokens, and they are genuinely uniform:
 
 | Token | Value | `var()` refs |
 |---|---|---:|
-| `--dur-fast` | `150ms` | 20 |
+| `--dur-fast` | `150ms` | 12 |
 | `--dur-base` | `240ms` | 2 |
 | `--dur-slow` | `360ms` | 1 |
-| `--ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | 24 |
+| `--ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | 15 |
 
-Measured: buttons, nav links, and inputs all transition at `0.15s` with `cubic-bezier(0.22,1,0.36,1)`.
-`--dur-fast` and `--ease-out` carry essentially the entire system; the slower two are near-unused.
-The easing curve is a decelerating ease-out — fast start, soft landing.
+Common button and input transitions use `0.15s` with `cubic-bezier(0.22,1,0.36,1)`. The navbar's
+container animates its minimum height for 150 ms when it compacts. Reduced-motion mode removes
+that transition.
 
 **Reduced motion is honored and total.** With `prefers-reduced-motion: reduce`, measured on the
 Plan page: `transition-duration: 0s`, `animation-duration: 0s`, and `0s` on `body`. Not shortened
@@ -426,12 +409,13 @@ Plan page: `transition-duration: 0s`, `animation-duration: 0s`, and `0s` on `bod
 - **Skip link.** The first tabbable element on every page is a "Skip to main content" link
   targeting `#main-content`, which carries `tabindex="-1"` so it can receive programmatic focus.
   Verified live: one `Tab` from a fresh page load lands on `.nb-skip-link`.
-- **Focus is visible and not suppressed.** That first focused element computes to
-  `outline: rgba(13,110,253,.5) solid 2px` with `outline-offset: 2px` — a real, offset ring.
+- **Keyboard focus uses a 2 px outline.** Navbar controls draw it inside the target with
+  `--nav-current`. Other controls retain the shared focus ring and offset.
 - **Status is never carried by color alone.** Volume classes, fatigue bands, and warnings all
   render a text label beside the color.
-- **Controls are labelled.** The icon-only navbar buttons — dark mode, muscle naming, scale −/+ —
-  each carry an `aria-label` and a `title`; the scale indicator is `aria-live="polite"`.
+- **Controls are labelled.** Theme and muscle naming have visible labels alongside their icons.
+  The hamburger and scale buttons have accessible names. The scale indicator announces changes
+  with `aria-live="polite"`.
 - **The open navbar menu traps focus.** While the hamburger menu is open, Tab wraps inside it and
   page content is inert with scrolling locked. Escape and a click on empty panel space close it and
   return focus to the toggler. Widening the viewport to 1360px or wider releases the trap, the

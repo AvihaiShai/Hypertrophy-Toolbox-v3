@@ -34,18 +34,6 @@
     color: var(--text-primary) !important;
 }
 
-/* Navbar Specific - Dark Mode */
-/* Note: All navbar styling is handled by navbar.css to prevent double-layer glitch */
-/* Background removed - #navbar in navbar.css controls this */
-:where([data-theme="dark"] #navbar) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
-}
-
-:where([data-theme="dark"] .navbar-dark .navbar-nav .nav-link) {
-    color: var(--text-primary) !important;
-}
-
 /* Cards and Containers - Glass */
 :where([data-theme="dark"] .card) {
     background: var(--glass-bg) !important;
@@ -73,7 +61,7 @@
     box-shadow: var(--glass-shadow) !important;
 }
 
-:where([data-theme="dark"] .dropdown-menu) {
+:where([data-theme="dark"] .dropdown-menu:not(#navbar *)) {
     background: rgba(26, 26, 34, 0.95) !important;
     backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
@@ -208,36 +196,11 @@
 
 /* Transitions */
 :where(body),
-:where(.navbar),
 :where(.card),
 :where(.table),
 :where(.form-control),
 :where(.btn) {
     transition: all 0.3s ease-in-out;
-}
-
-/* Dark Mode Toggle Button */
-:where(#darkModeToggle) {
-    background: none;
-    /* border styling handled by navbar.css */
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-}
-
-:where(#darkModeToggle i),
-:where(#darkModeToggle span) {
-    color: #0d6efd !important;
-}
-
-:where([data-theme="dark"] #darkModeToggle i) {
-    color: #ffd700 !important;
-}
-
-:where(#darkModeToggle:hover) {
-    opacity: 0.8;
 }
 
 /* Volume Indicators in Dark Mode */
