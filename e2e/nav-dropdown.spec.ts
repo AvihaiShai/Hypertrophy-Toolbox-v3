@@ -996,14 +996,19 @@ test.describe('Navigation keyboard and utility controls', () => {
       if (width === 320) await openAndSettle(page);
       await expect(page.locator('#scale-indicator')).toHaveText('8');
       await expect(page.locator('html')).toHaveCSS('zoom', '1.2');
-      const muscle = page.getByRole('button', { name: 'Toggle Muscle Naming Mode' });
-      const dark = page.getByRole('button', { name: 'Toggle Dark Mode' });
-      for (const [mode, theme] of [['Simple', 'dark'], ['Scientific', 'light']]) {
+      const muscle = page.locator('#muscleModeToggle');
+      const dark = page.locator('#darkModeToggle');
+      await expect(muscle).toHaveAccessibleName('Scientific muscle names');
+      await expect(dark).toHaveAccessibleName('Dark Mode');
+      for (const [mode, theme, nextTheme] of [['Simple', 'dark', 'Light Mode'], ['Scientific', 'light', 'Dark Mode']]) {
         await muscle.click();
-        await expect(muscle).toContainText(mode);
+        await expect(muscle.locator('.muscle-mode-label')).toHaveText(mode);
+        await expect(muscle).toHaveAccessibleName(`${mode} muscle names`);
         await expectGlyph(muscle, mode === 'Simple' ? 'f007' : 'f610');
         await dark.click();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await expect(dark.locator('span')).toHaveText(nextTheme);
+        await expect(dark).toHaveAccessibleName(nextTheme);
         await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-fatigue');
       }
     });
@@ -1042,6 +1047,21 @@ test.describe('Navigation keyboard and utility controls', () => {
     await expect(skip).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page.locator('#main-content')).toBeFocused();
+  });
+});
+
+test.describe('Navigation before JavaScript starts', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('the utility buttons announce their visible default labels', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(ROUTES.HOME);
+    const muscle = page.locator('#muscleModeToggle');
+    await expect(muscle.locator('.muscle-mode-label')).toHaveText('Simple');
+    await expect(muscle).toHaveAccessibleName('Simple muscle names');
+    const theme = page.locator('#darkModeToggle');
+    await expect(theme.locator('span')).toHaveText('Dark Mode');
+    await expect(theme).toHaveAccessibleName('Dark Mode');
   });
 });
 
