@@ -68,13 +68,13 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 644
+      "tests": 664
     },
     "specs": [
       {
         "in_required_functional_set": true,
         "spec": "accessibility.spec.ts",
-        "tests": 42
+        "tests": 45
       },
       {
         "in_required_functional_set": true,
@@ -174,7 +174,7 @@
       {
         "in_required_functional_set": true,
         "spec": "summary-pages.spec.ts",
-        "tests": 22
+        "tests": 35
       },
       {
         "in_required_functional_set": true,
@@ -204,7 +204,7 @@
       {
         "in_required_functional_set": true,
         "spec": "visual-field-separator.spec.ts",
-        "tests": 42
+        "tests": 46
       },
       {
         "in_required_functional_set": false,
@@ -238,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 794
+    "total_tests": 814
   },
   "pytest": {
-    "collected_deterministic": 4776,
-    "deterministic_files": 145,
+    "collected_deterministic": 4833,
+    "deterministic_files": 146,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -480,7 +480,7 @@
       },
       {
         "file": "tests/test_fatigue_routes.py",
-        "tests": 17
+        "tests": 18
       },
       {
         "file": "tests/test_fatigue_stage4_observer.py",
@@ -684,7 +684,7 @@
       },
       {
         "file": "tests/test_session_summary_routes.py",
-        "tests": 38
+        "tests": 39
       },
       {
         "file": "tests/test_static_cache_policy.py",
@@ -697,6 +697,10 @@
       {
         "file": "tests/test_strength_calibration.py",
         "tests": 36
+      },
+      {
+        "file": "tests/test_summary_projection_states.py",
+        "tests": 3
       },
       {
         "file": "tests/test_superset.py",
@@ -732,7 +736,7 @@
       },
       {
         "file": "tests/test_version.py",
-        "tests": 23
+        "tests": 24
       },
       {
         "file": "tests/test_visual_capture_contracts.py",
@@ -796,7 +800,7 @@
       },
       {
         "file": "tests/test_workout_log_frame_runner.py",
-        "tests": 58
+        "tests": 109
       },
       {
         "file": "tests/test_workout_log_routes.py",
@@ -835,7 +839,7 @@
         "tests": 41
       }
     ],
-    "total_files": 146
+    "total_files": 147
   },
   "schema_version": 2,
   "vitest": {

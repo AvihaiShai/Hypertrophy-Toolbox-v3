@@ -915,11 +915,11 @@ test.describe('Navigation on the fixed header', () => {
   }
 });
 
-// Session populates this initially empty table from its contribution-mode GET.
-// Both successful outcomes exclude its Loading spinner and fetch-error message.
+// The server can render routines before the contribution-mode request finishes.
 async function expectSessionReady(page: Page) {
   await expect(page.locator('#navbar [aria-current="page"]')).toHaveAttribute('id', 'nav-session-summary');
   const table = page.locator('#session-summary-table');
+  await expect(table).toHaveAttribute('aria-busy', 'false');
   const routines = table.locator('td[data-label="Routine"]');
   const empty = table.getByText('No data available.', { exact: true });
   await expect(routines.or(empty).first()).toBeAttached();

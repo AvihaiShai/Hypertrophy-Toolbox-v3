@@ -566,3 +566,40 @@ class TestSessionSummaryDataTransformation:
         data = assert_success_payload(response.get_json())
         item = data['session_summary'][0]
         assert item['effective_sets'] == 15  # Fallback to weekly_sets
+
+
+def test_two_routines_and_inclusive_date_bounds_keep_distinct_logged_denominators(
+    client, clean_db, exercise_factory, workout_plan_factory, workout_log_factory,
+):
+    name = exercise_factory("Scope press", primary_muscle_group="Chest")
+    clean_db.execute_query("INSERT INTO exercise_isolated_muscles VALUES (?, ?)", (name, "upper-pectoralis"))
+    for routine, sets, days in [
+        ("First", 10, ("2026-11-23", "2026-11-24")),
+        ("Second", 11, ("2026-11-24",)),
+    ]:
+        plan_id = workout_plan_factory(name, routine=routine, sets=sets, rir=1, min_rep_range=8, max_rep_range=12)
+        for day in days:
+            log_id = workout_log_factory(plan_id, routine=routine, exercise=name)
+            clean_db.execute_query("UPDATE workout_log SET created_at=? WHERE id=?", (day + " 09:00:00", log_id))
+
+    def get(**params):
+        response = client.get("/session_summary", query_string=params, headers={"Accept": "application/json"})
+        assert response.status_code == 200
+        return response.get_json()["data"]
+
+    global_data = get()
+    assert global_data["isolated_muscles"] and global_data["categories"]
+    for routine, dates, count, warning in [
+        ("First", {}, 2, "ok"),
+        ("First", {"start_date": "2026-11-24"}, 1, "borderline"),
+        ("Second", {"end_date": "2026-11-24"}, 1, "excessive"),
+        ("Second", {"start_date": "2026-11-22", "end_date": "2026-11-23"}, 0, "no_data"),
+    ]:
+        for mode in ("total", "direct"):
+            result = get(routine=routine, contribution_mode=mode, **dates)
+            rows = result["session_summary"]
+            assert {row["routine"] for row in rows} == {routine}
+            chest = next(row for row in rows if row["muscle_group"] == "Chest")
+            assert (chest["session_count"], chest["warning_level"]) == (count, warning)
+            assert result["isolated_muscles"] == global_data["isolated_muscles"]
+            assert result["categories"] == global_data["categories"]

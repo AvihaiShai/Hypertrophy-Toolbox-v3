@@ -32,8 +32,7 @@ JS = ROOT / "static" / "js"
 # out, and a name that starts being used must be emitted or added here on
 # purpose. Both directions are asserted below.
 KNOWN_INERT = {
-    "d-flex": "15 call sites; activating it re-flows session-summary and weekly-summary",
-    "d-inline-block": "1 call site (fatigue.html:22 period select)",
+    "d-flex": "Legacy templates and modules still use this deliberately withheld utility.",
 }
 
 

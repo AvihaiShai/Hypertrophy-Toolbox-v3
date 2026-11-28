@@ -11,12 +11,11 @@
   below stands in for them. The bar list underneath is the primary view and is
   unaffected.
 #}
-<details class="fatigue-heatmap" open data-heatmap-panel data-testid="fatigue-heatmap">
+<details class="ui-panel fatigue-heatmap" open data-heatmap-panel data-testid="fatigue-heatmap" data-visual-surface>
     <summary class="fatigue-heatmap__summary">Body map</summary>
 
     <p class="fatigue-heatmap__note">
-        Colors show each muscle&rsquo;s fatigue band for the selected period.
-        Regions without a reading stay gray.
+        Planned shows your current program. Logged shows readings from the selected period. Regions without a reading stay gray.
     </p>
 
     {#
@@ -42,7 +41,7 @@
              hidden>
             {% for key, label in [('planned', 'Planned'), ('logged', 'Logged')] %}
                 <button type="button"
-                        class="fatigue-heatmap__channel-btn"
+                        class="ui-btn fatigue-heatmap__channel-btn"
                         data-heatmap-channel="{{ key }}"
                         data-testid="fatigue-heatmap-channel-{{ key }}"
                         aria-pressed="false"
@@ -63,11 +62,12 @@
 
     <div class="fatigue-heatmap__figures" data-heatmap-figures>
         {% for side, label in [('front', 'Front'), ('back', 'Back')] %}
-            <div class="fatigue-heatmap__figure"
-                 data-heatmap-figure="{{ side }}"
-                 data-testid="fatigue-heatmap-figure-{{ side }}">
-                <p class="fatigue-heatmap__fallback">{{ label }} view unavailable.</p>
-            </div>
+            <figure class="fatigue-heatmap__figure">
+                <div data-heatmap-figure="{{ side }}" data-testid="fatigue-heatmap-figure-{{ side }}">
+                    <p class="fatigue-heatmap__fallback">{{ label }} view unavailable.</p>
+                </div>
+                <figcaption>{{ label }}</figcaption>
+            </figure>
         {% endfor %}
     </div>
 

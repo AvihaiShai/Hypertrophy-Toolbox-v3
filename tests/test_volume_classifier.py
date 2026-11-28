@@ -114,8 +114,8 @@ class TestGetVolumeTooltip:
     def test_tooltip_ranges(self):
         """Tooltip should show correct ranges for each label."""
         assert "Below 10 sets" in get_volume_tooltip("Low Volume", 5)
-        assert "10-19 sets" in get_volume_tooltip("Medium Volume", 15)
-        assert "20-29 sets" in get_volume_tooltip("High Volume", 25)
+        assert "10 to below 20 sets" in get_volume_tooltip("Medium Volume", 15)
+        assert "20 to below 30 sets" in get_volume_tooltip("High Volume", 25)
         assert "30+ sets" in get_volume_tooltip("Excessive Volume", 35)
 
     def test_tooltip_unknown_label(self):
@@ -126,7 +126,7 @@ class TestGetVolumeTooltip:
     def test_tooltip_format(self):
         """Tooltip should follow expected format."""
         tooltip = get_volume_tooltip("High Volume", 25.5)
-        assert "High Volume: 20-29 sets (Current: 25.5 sets)" == tooltip
+        assert "High Volume: 20 to below 30 sets (Current: 25.5 sets)" == tooltip
 
 
 class TestGetSessionWarningTooltip:

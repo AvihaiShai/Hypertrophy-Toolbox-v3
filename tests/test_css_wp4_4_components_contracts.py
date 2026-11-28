@@ -44,6 +44,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPONENTS = ROOT / "static" / "css" / "components.css"
+# The existing rules keep their measured line anchors after the opt-in Summary styles.
+SUMMARY_PREFIX_LINES = 104
+LEGACY_START = "/* Button Base Styles - Glass Effect Enhancement */"
+SUMMARY_FAMILY_COUNTS = {r":where\(": 5, r":focus": 3, r"::[\w-]+": 3, r"@media": 2}
 
 
 def _css() -> str:
@@ -111,6 +115,7 @@ def _rule_body_at_line(css: str, selector: str, line: int) -> str:
     WP4.4-a already uses for the layer span, and it fails loudly instead of
     silently drifting onto a different rule.
     """
+    line += SUMMARY_PREFIX_LINES
     for match in re.finditer(_head_pattern(selector), css, flags=re.S):
         if css.count("\n", 0, match.start()) + 1 != line:
             continue
@@ -343,10 +348,15 @@ def test_excluded_families_are_numerically_frozen() -> None:
     in an interaction state, a JS-applied class, a pseudo-element, a keyframe, a
     custom property, a media condition or the `:is()` family.
     """
-    css = _strip_comments(_css())
+    raw = _css()
+    prefix, marker, legacy = raw.partition(LEGACY_START)
+    assert marker and prefix.count("\n") == SUMMARY_PREFIX_LINES
+    summary_css = _strip_comments(prefix)
+    legacy_css = _strip_comments(legacy)
     for pattern, expected in FROZEN_FAMILY_COUNTS.items():
         flags = re.M if pattern.startswith("^") else 0
-        assert len(re.findall(pattern, css, flags)) == expected, pattern
+        assert len(re.findall(pattern, legacy_css, flags)) == expected, pattern
+        assert len(re.findall(pattern, summary_css, flags)) == SUMMARY_FAMILY_COUNTS.get(pattern, 0), pattern
 
 
 def _family_partition(css: str) -> tuple[list[str], list[str]]:
@@ -415,7 +425,7 @@ def test_where_and_hover_are_frozen_outside_the_i_owned_family() -> None:
                 }
             else:
                 assert properties == ["transform"]
-    assert rest.count(":where(") == WHERE_OUTSIDE_FAMILY
+    assert rest.count(":where(") == WHERE_OUTSIDE_FAMILY + SUMMARY_FAMILY_COUNTS[r":where\("]
     assert rest.count(":hover") == HOVER_OUTSIDE_FAMILY
     assert ":is(" not in rest
 
@@ -465,7 +475,7 @@ def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
 def test_the_deletion_was_pure_removal() -> None:
     """Pin the original h deletion and the current post-migration totals."""
     raw = _css()
-    assert raw.count("\n") == 4576
+    assert raw.count("\n") == 4576 + SUMMARY_PREFIX_LINES
     assert len(re.findall(r"!important", _strip_comments(raw))) == 539
     assert BEFORE_IMPORTANT - AFTER_IMPORTANT == 20
     assert BEFORE_LINES - AFTER_LINES == 138

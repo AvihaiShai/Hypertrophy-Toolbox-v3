@@ -426,9 +426,9 @@ Three specifics that are easy to state wrong:
 | Control | Action type | Behavior |
 |---|---|---|
 | Muscle Contribution Mode `<select>` | API | Re-requests `GET /weekly_summary?contribution_mode=total\|direct` with JSON headers. `TOTAL` credits primary 100%, secondary 50%, tertiary 25%; `DIRECT_ONLY` credits primary only. A failed isolated-muscle read returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
-| Export to Excel | Download | `GET /export_to_excel` — the **workout plan** export, not a summary export |
-| Pattern coverage panel | API | `GET /api/pattern_coverage` |
-| **Projected fatigue badge** | Presentation + Navigation | Server-rendered on every request. Shows a band label and an info tooltip; its "View per-muscle breakdown" link navigates to `/fatigue` |
+| Export workout data | Download | Uses the existing workbook handler. On a Summary page its Plan-table precheck shows “No exercises to export” before sending a request ([#754](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/754)). |
+| Pattern coverage panel | API | `GET /api/pattern_coverage`. A failed read shows a local unavailable message and leaves the volume table usable. |
+| **Projected fatigue badge** | Presentation + Navigation | Shows the planned week’s score and band, confirmed empty state, or unavailable message. The info tooltip and “View per-muscle breakdown” link remain available. |
 | Collapsible explanation | Presentation | `<details>` block |
 
 **`counting_mode` has no UI control.** It is a query parameter (`raw` / `effective`, default
@@ -477,9 +477,9 @@ per-session averages.
 |---|---|---|
 | Routine filter | API | `GET /session_summary?routine=…` with JSON headers |
 | Start / end date | API | Same endpoint, `start_date` / `end_date` |
-| Muscle Contribution Mode | API | Same endpoint, `contribution_mode`. A failed isolated-muscle read during this refresh returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
-| **Projected fatigue badge** | Presentation + Navigation | Same always-on server-rendered badge as Weekly Summary; links to `/fatigue` |
-| Export to Excel | Download | `GET /export_to_excel` |
+| Muscle Contribution Mode | API | The initial refresh, contribution changes and navbar muscle-name changes preserve the URL’s routine and either date bound. Categories and isolated muscles remain global. A failed isolated-muscle read returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
+| **Projected fatigue badge** | Presentation + Navigation | Shows the selected planned routine or the heaviest planned routine. The date range limits logs only. The breakdown link stays available if the projection fails. |
+| Export workout data | Download | Uses the same workbook handler and Plan-table precheck as Weekly Summary ([#754](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/754)). |
 
 If the isolated-muscle statistics read fails on initial navigation, the page returns HTTP 500
 and shows the shared error page. A successful read with no matches leaves the page available
@@ -506,10 +506,10 @@ embeds rather than fetching anything.
 |---|---|---|
 | Period `<select>` | Navigation | Auto-submits its form on change — `GET /fatigue?period=…`, a real navigation and full page reload. There is no Apply button; a submit button exists only inside `<noscript>`, labelled "Update" |
 | Body map panel | Presentation | A `<details>` element, open by default. Collapsing it is browser-native; no state is persisted |
-| Planned / Logged channel buttons | Presentation | Recolor the figures from the already-rendered data. Each button renders `hidden` and is revealed only if that channel actually has data — measured on a planned-only page, `Planned` is visible and pressed while `Logged` stays hidden, so no dead toggle is ever shown |
+| Planned / Logged channel buttons | Presentation | With both channels available, the buttons recolor the figures and update their accessible names and the visible caption. With one channel, the caption identifies it and the switch stays hidden. |
 | Body map figures | Presentation | Two SVGs, front and back, colored by each muscle's existing fatigue band. Regions with no reading stay gray |
 | Legend | Presentation | Band swatches with text labels |
-| Link to Plan | Navigation | → `/workout_plan` |
+| Link to Plan | Navigation | When the current plan is empty and the selected period has no logs, the empty state links to `/workout_plan`. The period selector remains available for earlier logs. |
 
 ### The body map is a second view of the same numbers
 
@@ -553,7 +553,7 @@ Three details that would otherwise read as bugs, all stated in the page's own co
 
 | Surface | Where | Gated? |
 |---|---|---|
-| **Projected fatigue badge** | Weekly Summary and Session Summary | **No.** Always rendered; the route computes the score and band on every request with no settings check |
+| **Projected fatigue badge** | Weekly Summary and Session Summary | The badge renders on every HTML page request. It uses the current plan and has no settings check. |
 | **Fatigue context block** | Progression estimates and suggestions | **Yes.** Controlled from Profile by `fatigue_context_settings.enabled`, which is **off by default** |
 
 Only the second is the opt-in one. Both are independent of `CountingMode` and `ContributionMode`.

@@ -23,14 +23,14 @@ describe('getVolumeDetails', () => {
         const result = getVolumeDetails(10);
         expect(result.class).toBe('medium-volume');
         expect(result.label).toBe('Medium Volume');
-        expect(result.tooltip).toBe('Medium Volume: 10-19 effective sets (Current: 10.0 effective sets)');
+        expect(result.tooltip).toBe('Medium Volume: 10 to below 20 effective sets (Current: 10.0 effective sets)');
     });
 
     it('classifies 20 to 29 as high volume', () => {
         const result = getVolumeDetails(25.5);
         expect(result.class).toBe('high-volume');
         expect(result.label).toBe('High Volume');
-        expect(result.tooltip).toBe('High Volume: 20-29 effective sets (Current: 25.5 effective sets)');
+        expect(result.tooltip).toBe('High Volume: 20 to below 30 effective sets (Current: 25.5 effective sets)');
     });
 
     it('classifies 30 and above as excessive volume', () => {

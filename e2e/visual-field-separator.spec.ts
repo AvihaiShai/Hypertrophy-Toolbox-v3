@@ -1,5 +1,7 @@
 import { test, expect } from './strict-fixtures';
 import { ROUTES } from './fixtures';
+import { addPlanRow, BENCH, planData } from './workout-plan-fixture';
+import { summaryResponse } from './summary-records';
 
 /**
  * Rendered contrast contract for table separators.
@@ -31,8 +33,8 @@ const MIN_CONTRAST = 3.0; // WCAG 2.2 SC 1.4.11, non-text contrast
 const SURFACES = [
   { name: 'progression', route: ROUTES.PROGRESSION, table: '.current-goals table' },
   { name: 'body-composition', route: ROUTES.BODY_COMPOSITION, table: '.bc-table' },
-  { name: 'session-summary', route: ROUTES.SESSION_SUMMARY, table: 'table.tbl--responsive' },
-  { name: 'weekly-summary', route: ROUTES.WEEKLY_SUMMARY, table: 'table.tbl--responsive' },
+  { name: 'session-summary', route: ROUTES.SESSION_SUMMARY, table: 'table:has(#session-summary-table)' },
+  { name: 'weekly-summary', route: ROUTES.WEEKLY_SUMMARY, table: 'table:has(#weekly-summary-table)' },
   { name: 'workout-log', route: ROUTES.WORKOUT_LOG, table: '#workout-log-table' },
   { name: 'workout-plan', route: ROUTES.WORKOUT_PLAN, table: '[data-testid="exercise-table"]' },
   { name: 'volume-splitter', route: ROUTES.VOLUME_SPLITTER, table: 'table.tbl--responsive' },
@@ -47,12 +49,19 @@ const VIEWPORTS = [
 const THEMES = ['light', 'dark'] as const;
 
 for (const surface of SURFACES) {
-  for (const viewport of VIEWPORTS) {
+  const isSummary = surface.name === 'weekly-summary' || surface.name === 'session-summary';
+  const widths = isSummary ? [...VIEWPORTS, {name:'phone', width:390, height:844}] : VIEWPORTS;
+  for (const viewport of widths) {
     for (const theme of THEMES) {
       test(`separator contrast: ${surface.name} ${viewport.name} ${theme}`, async ({ page }) => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         // Obtain production field markup on the functional lane's empty Log.
         let planId: number | undefined;
+        if (isSummary) {
+          const routine = 'Summary separators ' + surface.name + viewport.name + theme;
+          await addPlanRow(page.request,routine,BENCH);
+          planId = (await planData(page.request)).find(row => row.routine === routine)!.id;
+        }
         if (surface.name === 'workout-log') {
           const routine = `GYM - Separator ${viewport.name} ${theme} - Workout A`;
           const result = await page.request.post('/add_exercise', {data: {
@@ -64,13 +73,21 @@ for (const surface of SURFACES) {
           expect((await page.request.post('/export_to_workout_log')).ok()).toBe(true);
         }
         try {
+          const populated = isSummary ? summaryResponse(page,surface.route,'total') : null;
           await page.goto(surface.route);
+          if (populated) {
+            const payload = (await (await populated).json()).data;
+            const records = payload[surface.route.slice(1)];
+            expect(records.length).toBeGreaterThanOrEqual(3);
+            await expect(page.locator(surface.table).locator('tbody tr:visible')).toHaveCount(records.length);
+            await expect(page.locator(surface.table).locator('td[data-raw-value="Chest"]:visible').first()).toBeVisible();
+          }
           await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
           if (surface.name === 'workout-plan') {
             await expect(page.locator('#workout')).toHaveAttribute('data-plan-state', /^(empty|populated)$/);
           }
 
-          const measured = await page.evaluate(({ table, isPlan }) => {
+          const measured = await page.evaluate(({ table, isPlan, isSummary }) => {
             const tbl = document.querySelector(table);
             if (!tbl) return { missing: true as const };
 
@@ -91,7 +108,8 @@ for (const surface of SURFACES) {
             const body = tbl.querySelector('tbody') ?? tbl.appendChild(document.createElement('tbody'));
             const dataRows = () =>
               Array.from(body.querySelectorAll('tr')).filter((r) => r.querySelectorAll('td').length > 1);
-            while (dataRows().length < 2) {
+            if (isSummary && dataRows().length < 2) return {missing: true as const};
+            while (!isSummary && dataRows().length < 2) {
               const row = document.createElement('tr');
               for (let c = 0; c < cols; c++) {
                 const td = document.createElement('td');
@@ -137,15 +155,36 @@ for (const surface of SURFACES) {
             }
             const cs = getComputedStyle(td);
             const trs = getComputedStyle(tr);
+            // Compose translucent ancestor surfaces from the canvas forward.
+            // Card borders face the parent outside the card. Table dividers
+            // face the cells on either side, including Bootstrap's inset stripe.
+            const painted = (element: Element | null) => {
+              const layers = [];
+              for (let e = element; e; e = e.parentElement) {
+                const s = getComputedStyle(e);
+                const stripe = s.boxShadow.includes('inset') && s.boxShadow.includes('9999px') &&
+                  s.boxShadow.match(/rgba?\([^)]+\)/)?.[0];
+                if (stripe) layers.push(stripe);
+                layers.push(s.backgroundColor);
+              }
+              let rgb = [255,255,255];
+              for (const layer of layers.reverse()) {
+                const p = parse(layer);
+                if (p) rgb = p.rgb.map((v,i) => v * p.a + rgb[i] * (1-p.a));
+              }
+              return 'rgb(' + rgb.join(',') + ')';
+            };
             return {
               missing: false as const,
               tdColor: cs.borderBottomColor,
               tdWidth: cs.borderBottomWidth,
               trColor: trs.borderTopColor,
               trWidth: trs.borderTopWidth,
-              backdrop: backdrop(td),
+              backdrop: isSummary ? painted(td) : backdrop(td),
+              adjacent: isSummary ? painted(dataRows()[1].cells[0]) : undefined,
+              outside: isSummary ? painted(tr.parentElement) : undefined,
             };
-          }, { table: surface.table, isPlan: surface.name === 'workout-plan' });
+          }, { table: surface.table, isPlan: surface.name === 'workout-plan', isSummary });
 
           expect(measured.missing, `no ${surface.table} on ${surface.name}`).toBe(false);
           if (measured.missing) return;
@@ -168,9 +207,9 @@ for (const surface of SURFACES) {
             return { rgb: [p[0], p[1], p[2]] as [number, number, number], a: p.length > 3 ? p[3] : 1 };
           };
 
-          const bg = parse(measured.backdrop) ?? { rgb: [255, 255, 255] as [number, number, number], a: 1 };
-          const check = (label: string, colour: string, width: string) => {
+          const check = (label: string, colour: string, width: string, backdrop = measured.backdrop) => {
             if (width === '0px') return; // not drawn here; nothing to perceive
+            const bg = parse(backdrop) ?? {rgb: [255,255,255] as [number,number,number], a:1};
             const c = parse(colour);
             expect(c, `${label} colour unparseable: ${colour}`).not.toBeNull();
             if (!c) return;
@@ -184,7 +223,7 @@ for (const surface of SURFACES) {
             expect(
               r,
               `${surface.name} ${viewport.name} ${theme}: ${label} contrast ${r.toFixed(2)}:1 ` +
-                `(${colour} on ${measured.backdrop}) is below ${MIN_CONTRAST}:1`,
+                `(${colour} on ${backdrop}) is below ${MIN_CONTRAST}:1`,
             ).toBeGreaterThanOrEqual(MIN_CONTRAST);
           };
 
@@ -199,8 +238,16 @@ for (const surface of SURFACES) {
               expect(parseFloat(measured.trWidth), 'cards draw a top border').toBeGreaterThan(0);
             }
           }
+          if (isSummary) {
+            if (viewport.width < 768) {
+              expect(parseFloat(measured.trWidth), 'painted phone card outline').toBeGreaterThan(0);
+            } else {
+              expect(parseFloat(measured.tdWidth), 'painted row separator').toBeGreaterThan(0);
+              check('adjacent row',measured.tdColor,measured.tdWidth,measured.adjacent);
+            }
+          }
           check('field separator (td bottom border)', measured.tdColor, measured.tdWidth);
-          if (surface.name !== 'workout-log') check('row-card outline (tr border)', measured.trColor, measured.trWidth);
+          if (surface.name !== 'workout-log') check('row-card outline (tr border)', measured.trColor, measured.trWidth,measured.outside);
         } finally {
           if (planId !== undefined) {
             expect((await page.request.post('/remove_exercise', {data: { id: planId }})).ok()).toBe(true);

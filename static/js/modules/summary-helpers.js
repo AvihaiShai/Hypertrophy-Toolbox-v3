@@ -1,15 +1,6 @@
-// Pure helpers shared by the weekly (Plan Volume) and session summary pages.
-//
-// Extracted verbatim from the page-local inline scripts in
-// templates/weekly_summary.html (Refactor Plan v3 WP3.2a) and
-// templates/session_summary.html (WP3.2b) — the two pages defined these
-// helpers byte-identically. They are DOM-free and side-effect-free so they
-// can be unit-tested under the node-environment Vitest runner; the DOM wiring
-// that consumes them lives in weekly-summary.js and session-summary.js.
-// Behavior is preserved exactly — this is a move, not a rewrite.
-//
-// (formatPatternName is weekly-only — the session page has no pattern-coverage
-// panel — but it lives here as a pure helper alongside the rest.)
+// Shared presentation and refresh behavior for the two Plan volume summaries.
+import { api } from './fetch-wrapper.js';
+import { escapeHtml } from './exercise-helpers.js';
 
 // Volume classification details based on effective sets.
 export function getVolumeDetails(effectiveSets) {
@@ -31,8 +22,8 @@ export function getVolumeDetails(effectiveSets) {
 
     const ranges = {
         'Low Volume': 'Below 10 effective sets',
-        'Medium Volume': '10-19 effective sets',
-        'High Volume': '20-29 effective sets',
+        'Medium Volume': '10 to below 20 effective sets',
+        'High Volume': '20 to below 30 effective sets',
         'Excessive Volume': '30+ effective sets'
     };
 
@@ -138,5 +129,129 @@ export function replaceSummaryRows(tableBody, html) {
     tableBody.innerHTML = html;
     tableBody.querySelectorAll(selector).forEach(element => {
         bootstrap.Tooltip.getOrCreateInstance(element);
+    });
+}
+
+export async function fetchSummaryData(url) {
+    const result = await api.get(url, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        showLoading: false,
+        showErrorToast: false,
+        useDefaultHeaders: false,
+        retries: 0,
+    });
+    if (isApiFailure(result)) throw new Error(getApiErrorMessage(result, 'Unable to load summary data.'));
+    return unwrapApiPayload(result);
+}
+
+// A projection belongs to the HTML request. Weekly also has an independent Pattern request.
+const outcomes = { tables: 'pending', pattern: 'pending' };
+
+export function setSummaryOutcome(source, state) {
+    outcomes[source] = state;
+    const empty = document.getElementById('summary-empty');
+    empty.hidden = !(outcomes.tables === 'empty' &&
+        document.querySelector('[data-projection-state]').dataset.projectionState === 'empty' &&
+        (!document.getElementById('pattern-coverage-container') || outcomes.pattern === 'empty'));
+}
+
+function messageRow(text, columns) {
+    return `<tr role="row"><td role="cell" colspan="${columns}"><span role="status">${text}</span></td></tr>`;
+}
+
+function categoryRow(category) {
+    return `<tr role="row">
+        <td role="cell" data-label="Category"><span data-bs-toggle="tooltip" title="${escapeHtml(getCategoryTooltip(category.category))}">${escapeHtml(category.category)}</span></td>
+        <td role="cell" data-label="Subcategory"><span data-bs-toggle="tooltip" title="${escapeHtml(getSubcategoryTooltip(category.category, category.subcategory))}">${escapeHtml(category.subcategory)}</span></td>
+        <td role="cell" data-label="Total Exercises" class="is-num">${escapeHtml(category.total_exercises)}</td>
+    </tr>`;
+}
+
+export function volumeRow(row, weekly, warning = null) {
+    const effectiveSets = row.effective_sets ?? row.total_sets ?? 0;
+    const rawSets = row.raw_sets ?? row.total_sets ?? 0;
+    const displayVolume = row.total_volume ?? row.total_weight ?? 0;
+    const muscleDisplay = window.FilterViewMode?.transformMuscleDisplay(row.muscle_group) || row.muscle_group || 'N/A';
+    const volume = getVolumeDetails(effectiveSets);
+    return `<tr role="row">
+        ${weekly ? '' : `<td role="cell" data-label="Routine">${escapeHtml(row.routine || 'N/A')}</td>`}
+        <td role="cell" data-label="Muscle Group" data-raw-value="${escapeHtml(row.muscle_group)}">${escapeHtml(muscleDisplay)}</td>
+        <td role="cell" data-label="Effective Sets" class="is-num">${effectiveSets.toFixed(1)}</td>
+        <td role="cell" data-label="Raw Sets" class="is-num">${rawSets.toFixed(1)}</td>
+        ${weekly ? `<td role="cell" data-label="Routines" class="is-num">${escapeHtml(row.frequency ?? 0)}</td>` : ''}
+        <td role="cell" data-label="Total Volume" class="is-num">${displayVolume.toFixed(0)}</td>
+        <td role="cell" data-label="${weekly ? 'Volume Classification' : 'Volume Status'}">
+            <div class="summary-status">
+                <span class="volume-classification" data-bs-toggle="tooltip" title="${escapeHtml(volume.tooltip)}">
+                    <span class="volume-badge ${volume.class}">${volume.label}</span>
+                </span>
+                ${warning ? `<span class="session-warning" data-warning="${escapeHtml(row.warning_level)}"
+                    data-bs-toggle="tooltip" title="${escapeHtml(warning.tooltip)}">${escapeHtml(warning.label)}</span>` : ''}
+            </div>
+        </td>
+    </tr>`;
+}
+
+let latestRequest = 0;
+
+export async function refreshSummary(key, params, renderRow) {
+    const request = ++latestRequest;
+    setSummaryOutcome('tables', 'pending');
+    const table = document.getElementById(key.replace('_', '-') + '-table');
+    const categories = document.getElementById('categories-table-body');
+    table.setAttribute('aria-busy', 'true');
+    replaceSummaryRows(table, messageRow('Loading volume…', 6));
+    try {
+        const data = await fetchSummaryData(`/${key}?${params}`);
+        if (request !== latestRequest) return;
+        if (![data?.[key], data?.categories, data?.isolated_muscles].every(Array.isArray)) {
+            throw new Error('Incomplete summary response');
+        }
+        const rows = data[key];
+        replaceSummaryRows(table, rows.length ? rows.map(renderRow).join('') : messageRow('No data available.', 6));
+        replaceSummaryRows(categories, data.categories.length ? data.categories.map(categoryRow).join('') :
+            messageRow('No categories data available.', 3));
+        setSummaryOutcome('tables', rows.length || data.categories.length || data.isolated_muscles.length ? 'populated' : 'empty');
+    } catch (error) {
+        if (request !== latestRequest) return;
+        console.error('Error fetching data:', error);
+        replaceSummaryRows(table, messageRow('Failed to load data.', 6));
+        setSummaryOutcome('tables', 'unavailable');
+    } finally {
+        if (request === latestRequest) table.setAttribute('aria-busy', 'false');
+    }
+}
+
+export function onSummaryReady(update) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const info = document.querySelector('.fatigue-badge__info-btn');
+        const description = document.getElementById('projection-help');
+        function showHelp(open) {
+            description.hidden = !open;
+            info.setAttribute('aria-expanded', String(open));
+        }
+        info.addEventListener('focus', () => showHelp(true));
+        info.addEventListener('click', () => showHelp(true));
+        info.addEventListener('pointerenter', event => {
+            if (event.pointerType === 'mouse') showHelp(true);
+        });
+        info.closest('.fatigue-badge').addEventListener('pointerleave', () => {
+            if (document.activeElement !== info) showHelp(false);
+        });
+        info.addEventListener('blur', () => showHelp(false));
+        info.addEventListener('keydown', event => {
+            if (event.key === 'Escape') showHelp(false);
+        });
+
+        document.addEventListener('filterViewModeChanged', () => {
+            // The global isolated rows stay server-rendered across contribution changes.
+            document.querySelectorAll('td[data-label="Isolated Muscle"]').forEach(cell => {
+                const raw = cell.dataset.rawValue ?? cell.textContent.trim();
+                cell.dataset.rawValue = raw;
+                cell.textContent = window.FilterViewMode?.transformIsolatedMuscleDisplay(raw) ?? raw;
+            });
+            update();
+        });
+        update();
     });
 }
