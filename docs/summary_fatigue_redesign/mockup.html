@@ -95,6 +95,7 @@ select { width:100%; max-width:100%; text-overflow:ellipsis; font-size:14px }
 .status-band { color:var(--ink-1); background:var(--fatigue-accent-soft) }
 .swatch { display:inline-block; width:10px; height:10px; flex:none; border-radius:3px; background:var(--fatigue-accent-strong); border:1px solid var(--fatigue-accent-border) }
 .badge-score { display:flex; align-items:center; gap:8px; margin:4px 0 }
+.badge-help { justify-self:start; min-width:44px; min-height:44px }
 .link,.disclosure { display:inline-flex; align-items:center; gap:6px; min-height:40px; font-weight:500 }
 summary { width:fit-content; min-height:40px; align-content:center; font-weight:500 }
 details[open]>.detail-copy { margin:4px 0 8px; display:grid; gap:8px }
@@ -422,14 +423,22 @@ function renderMock() {
     const weekly = route === 'weekly';
     const categories = [['Mechanic','Compound',7],['Mechanic','Isolated',3],['Utility','Basic',6],['Utility','Auxiliary',4],['Force','Push',6],['Force','Pull',4]];
     const isolated = [['Upper Pectoralis',2,10,100,5000,volumePill(10)],['Long Head Triceps',1,6,60,900,volumePill(6)]];
-    const patterns = [['Squat',6],['Hinge',6],['Horizontal Push',18],['Horizontal Pull',3],['Vertical Push',0],['Vertical Pull',3],['Upper Isolation',6]];
+    const corePatterns = [['Squat',6],['Hinge',6],['Horizontal Push',18],['Horizontal Pull',3],['Vertical Push',0],['Vertical Pull',3]];
+    const additionalPatterns = [['Upper Isolation',6]];
+    const patternChips = entries => entries.map(([name,count]) => `<li>${name} <b>${count}</b></li>`).join('');
+    const routineSets = [['Workout A',22],['Workout B',20]];
+    function routineChip([name, sets]) {
+      const status = sets < 15 ? 'Below target' : sets > 24 ? 'Above target' : 'Within target';
+      return `<li>${name} <b>${sets} sets</b> · ${status}</li>`;
+    }
     const periodLabel = weekly ? 'Planned weekly volume' : 'Heaviest planned routine: Workout A';
     main.innerHTML = `<header class="header"><h1>${titles[route]}</h1>
       <a class="button" href="/export_to_excel"><i class="fas fa-file-excel" aria-hidden="true"></i>Export workout data</a></header>
       <section class="panel" aria-labelledby="projected"><div class="badge-body"><div>
         <h2 id="projected">Projected fatigue</h2><div class="badge-score"><strong class="metric">${weekly ? '84':'52'}</strong>${bandPill(weekly ? 'moderate':'heavy')}</div>
         <p>${periodLabel}</p></div><a class="link" id="breakdown" href="${pageUrl('fatigue')}">View per-muscle breakdown <span aria-hidden="true">→</span></a></div>
-        <details><summary>About projected fatigue</summary><div class="detail-copy"><p>A planning estimate based on movement pattern, rep range and Reps In Reserve. Higher bands indicate a higher planned workload.</p></div></details>
+        <button class="button badge-help" type="button" id="badge-help" aria-describedby="badge-explanation" aria-controls="badge-explanation" aria-expanded="false">About projected fatigue</button>
+        <p class="detail-copy" id="badge-explanation" role="tooltip" hidden>A planning estimate based on movement pattern, rep range and Reps In Reserve. Higher bands indicate a higher planned workload.</p>
       </section>
       <section class="panel" aria-labelledby="muscle-volume"><div class="volume-head"><h2 id="muscle-volume">Muscle group volume</h2>
         <div class="field"><label for="contribution-mode">Muscle Contribution Mode</label><select id="contribution-mode">
@@ -451,11 +460,26 @@ function renderMock() {
         <p class="small">Volume classification in this table uses raw, unweighted sets.</p>
         ${table('Isolated muscles statistics',['Isolated Muscle','Exercise Count','Total Sets','Total Reps','Total Volume','Volume Classification'],isolated,[1,2,3,4])}</section>
       ${weekly ? `<section class="panel" aria-labelledby="patterns"><h2 id="patterns">Movement Pattern Coverage</h2>
-        <div><h3>Missing vertical push exercises</h3><p class="small">No vertical pressing exercises found. Consider adding exercises like overhead press, dips.</p></div><div><h3>Push-dominant program</h3><p class="small">Push volume (18 sets) exceeds pull volume (6 sets) by more than 50%. Consider adding more pulling exercises for shoulder health.</p></div><div class="wk-patterns"><div><h3>Total Sets by Movement Pattern</h3>
-        <ul class="chips">${patterns.map(([name,count])=>`<li>${name} <b>${count}</b></li>`).join('')}</ul></div>
-        <div><h3>Sets per Routine</h3><ul class="chips"><li>Workout A <b>22 sets</b></li><li>Workout B <b>20 sets</b></li></ul>
+        <div><h3>Missing vertical push exercises</h3><p class="small">High priority</p><p>No vertical pressing exercises found. Consider adding exercises like overhead press, dips.</p></div>
+        <div><h3>Push-dominant program</h3><p class="small">Medium priority</p><p>Push volume (18 sets) exceeds pull volume (6 sets) by more than 50%. Consider adding more pulling exercises for shoulder health.</p></div>
+        <div class="wk-patterns"><div class="flow"><h3>Total Sets by Movement Pattern</h3>
+        <div><p id="core-patterns">Core patterns</p><ul class="chips" aria-labelledby="core-patterns">${patternChips(corePatterns)}</ul></div>
+        <div><p id="additional-patterns">Additional patterns</p><ul class="chips" aria-labelledby="additional-patterns">${patternChips(additionalPatterns)}</ul></div></div>
+        <div><h3>Sets per Routine</h3><ul class="chips">${routineSets.map(routineChip).join('')}</ul>
         <p class="small">Target 15–24 sets</p></div></div></section>` : ''}`;
     const mode = byId('contribution-mode');
+    const help = byId('badge-help');
+    const explanation = byId('badge-explanation');
+    function showBadgeHelp(show) {
+      explanation.hidden = !show;
+      help.setAttribute('aria-expanded', String(show));
+    }
+    help.addEventListener('focus', () => showBadgeHelp(true));
+    help.addEventListener('click', () => showBadgeHelp(true));
+    help.addEventListener('blur', () => showBadgeHelp(false));
+    help.addEventListener('keydown', event => {
+      if (event.key === 'Escape') showBadgeHelp(false);
+    });
     const update = () => { byId('volume-table').innerHTML = volumeTable(mode.value); };
     update();
     mode.addEventListener('change',update);
@@ -504,7 +528,7 @@ function renderMock() {
       <div class="field"><label for="period">Period</label><select id="period">${periods.map(([id,label])=>`<option value="${id}" ${id===period?'selected':''}>${label}</option>`).join('')}</select></div></header>
       <section class="panel metrics-row" aria-label="Stimulus-to-fatigue ratio">${sfr('planned',42.8)}${sfr('logged',loggedStimulus)}</section>
       <details class="map" open data-heatmap-panel><summary>Body map</summary><div class="map-inner">
-        <p>Colors show each muscle’s fatigue band for the selected period. Regions without a reading stay gray.</p>
+        <p>Planned shows your current program. Logged shows readings from the selected period. Regions without a reading stay gray.</p>
         <p class="small">Shoulder regions show Middle-Shoulder. The upper-back region shows Traps. Front-Shoulder, Rear-Shoulder and Middle-Traps are listed separately when there is a reading.</p>
         <div class="map-controls"><div class="switch" role="group" aria-label="Which channel colors the body map" data-heatmap-control hidden>
         <button type="button" data-heatmap-channel="planned">Planned</button><button type="button" data-heatmap-channel="logged">Logged</button></div>
